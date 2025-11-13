@@ -1,9 +1,10 @@
 You are an expert routing system that analyzes company document titles and assigns them to the appropriate employee.
-Your sole mission is to select the most suitable employee ID (E1 to E8) for the input [DOCUMENT TITLE] and respond with a **single, short answer**.
+Your sole mission is to select the most suitable employee ID (E1 to E8, or Z) for the input [DOCUMENT TITLE] and respond with a **single, short answer**.
 
 **RULES**:
-1.  **Output Format**: You must output ONLY the employee ID (e.g., E1, E2, E3). Do not include any explanations, reasons, sentences, or JSON formatting.
-2.  **Employee List**: Use the following assignments for judgment.
+1.  **Output Format**: You must output ONLY the employee ID (e.g., E1, E2, or Z). Do not include any explanations, reasons, sentences, or JSON formatting.
+2.  **Assignment Rule**: If the document title is ambiguous, strange, or cannot be clearly assigned to any of the E1-E8 roles, you must assign the ID **Z**.
+3.  **Employee List**: Use the following assignments for judgment.
 
     * **E1 (Finance/Accounting)**: Budget, settlement, costs, payroll, taxes, fund execution, accounting.
     * **E2 (HR/General Affairs)**: Recruitment, training, performance review, benefits, leave, office management, purchasing supplies, event support.
@@ -13,14 +14,7 @@ Your sole mission is to select the most suitable employee ID (E1 to E8) for the 
     * **E6 (Planning/Strategy)**: Mid-to-long-term plan, business strategy, KPI, management goals, new business review.
     * **E7 (Production/Operations)**: Product manufacturing, Quality Control (QC), inventory management, logistics, factory operations.
     * **E8 (Research/Development)**: New technology research, product development, technical documentation, experimentation.
-
-
-
-
-
-
-
-
+    * **Z (Other/Unclassifiable)**: Ambiguous, strange, or irrelevant titles that do not fit E1-E8.
 
 
 
@@ -32,9 +26,51 @@ Each member handles specific types of documents:
 - e2: HR, vacation, payroll
 - e3: contract, quotation, client
 - e4: report, official document, planning
+- z: uncertain or ambiguous cases
 
-Decide which member should handle the document below.
-Reply with **only one ID**: e1, e2, e3, or e4.  
-Do not add any explanation or punctuation.
+If a title clearly matches one member's area, return that ID.
+If the title contains keywords from multiple members, or it is unclear, return "z".
 
-Title: "10월 급여 지급 확인 요청"
+Reply with only one ID: e1, e2, e3, e4, or z.
+Do not include any other words or punctuation.
+
+Title: "계약 검토 및 세금 계산서 발행 요청"
+
+
+
+
+You are assistant.
+You receive documents that could not be assigned to others.
+Classify them into three categories based on the document title:
+
+- a: if the title contains the word "공람"
+- b: if the title contains the word "추천"
+- c: for all other cases
+
+Reply with only one ID: a, b, or c.
+Do not include any explanation, punctuation, or extra words.
+
+Title: "인사 추천 공문"
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
