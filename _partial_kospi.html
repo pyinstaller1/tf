@@ -1,0 +1,138 @@
+{% load humanize %}
+
+{% if kospi %}
+<div class="rounded-box" style="border: 1px solid #eee; padding: 10px; border-radius: 8px;">
+    <div class="kospi-row kospi-header" style="font-weight: bold; border-bottom: 2px solid #ccc; padding-bottom: 8px; margin-bottom: 10px; cursor: pointer; display: flex; font-size: 16px; white-space: nowrap; align-items: center;">
+        <div style="flex: 0.3;"></div>
+        
+        <div onclick="sortTable(1, this)" style="flex: 2.2; text-align: center; position: relative;">
+            종목명<span class="sort-icon" style="position: absolute; width: 10px; font-size: 10px; margin-left: 2px; top: 1px;"></span>
+        </div>
+        
+        <div onclick="sortTable(2, this)" style="flex: 1.3; text-align: right; position: relative;">
+            현재가<span class="sort-icon" style="position: absolute; width: 10px; font-size: 10px; margin-left: 2px; top: 1px;"></span>
+        </div>
+        
+        <div onclick="sortTable(3, this)" style="flex: 1.1; text-align: right; position: relative;">
+            등락<span class="sort-icon" style="position: absolute; width: 10px; font-size: 10px; margin-left: 2px; top: 1px;"></span>
+        </div>
+        
+        <div onclick="sortTable(4, this)" style="flex: 0.8; text-align: right; padding-right: 15px; position: relative;">
+            RSI<span class="sort-icon" style="position: absolute; width: 10px; font-size: 10px; margin-left: 2px; top: 1px;"></span>
+        </div>        
+        
+        <div onclick="sortTable(5, this)" style="flex: 0.9; text-align: center; position: relative;">
+            시총<span class="sort-icon" style="position: absolute; width: 10px; font-size: 10px; margin-left: 2px; top: 1px;"></span>
+        </div>
+    </div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+    <div id="kospi-body">
+        {% for row in kospi %}
+        <div class="kospi-row" style="display: flex; align-items: center; border-bottom: 1px solid #f0f0f0; padding: 8px 0; font-size: 16px;">
+            <div style="flex: 0.3; text-align: right; color: #888; font-size: 11px;">{{ row.10 }}</div>
+            
+            <div style="flex: 2.2; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: bold;">
+                <a href="#" class="stock-link" 
+                   hx-get="{% url '_partial_detail' %}?code={{ row.0 }}" 
+                   hx-target="#box_detail" 
+                   hx-swap="innerHTML" 
+                   onclick="setActive(this, '{{ row.0 }}')">
+                    {{ row.1|slice:":11" }}
+                </a>
+            </div>
+
+            <div style="flex: 1.3; text-align: right;">{{ row.2|intcomma }}</div>
+
+            <div style="flex: 1.1; text-align: right;">
+                <span style="color: {% if '+' in row.3 %}red{% elif '-' in row.3 %}blue{% else %}black{% endif %}; font-weight: bold;">{{ row.3 }}</span>
+            </div>
+            <div style="flex: 0.8; text-align: right; font-size: 13px; font-weight: bold; padding-right: 5px; 
+                        color: {% if row.12 %}{% if row.12|add:0 >= 70 %}#ff4500{% elif row.12|add:0 <= 30 %}#1e90ff{% else %}#555{% endif %}{% else %}#ccc{% endif %};">
+                {{ row.12|floatformat:0|default:"-" }}
+            </div>
+            <div style="flex: 0.9; text-align: right; font-size: 12px; color: #999;">{{ row.4|intcomma }}</div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% else %}
+<p>데이터가 없습니다.</p>
+{% endif %}
+
+<br>
+
+
+
+<div style="margin-top: 20px; padding: 10px; border-top: 1px dashed #ccc; display: flex; align-items: center; width: 100%;">
+    
+    <form hx-get="{% url '_partial_detail' %}" hx-target="#box_detail" 
+          onsubmit="var m={% for r in kospi %}'{{r.1}}':'{{r.0}}',{% endfor %}; if(m[this.code.value])this.code.value=m[this.code.value];" 
+          style="display: flex; gap: 5px; align-items: center; margin: 0;">
+        <input type="text" name="code" list="stock-list" placeholder="종목명" 
+               style="height: 35px; width: 150px; border: 1px solid #ccc; border-radius: 4px; padding: 0 10px; box-sizing: border-box; font-size: 14px;">
+        <button type="submit" style="height: 35px; cursor: pointer; background-color: #f0f0f0; border: 1px solid #999; border-radius: 4px; padding: 0 15px; box-sizing: border-box; font-size: 14px;">조회</button>
+    </form>
+
+    <div style="flex-grow: 1;"></div>
+
+    <a href="{% url 'account' %}" style="text-decoration: none; display: flex; align-items: center; transform: translateY(-2px);">
+        <button type="button" style="height: 35px; cursor: pointer; background-color: #F48FB1; color: white; border: none; border-radius: 4px; padding: 0 20px; font-weight: bold; font-size: 14px; box-sizing: border-box; display: flex; align-items: center; justify-content: center;">
+            계좌관리
+        </button>
+    </a>
+</div>
+
+
+
+
+
+<datalist id="stock-list">
+    {% for row in kospi %}<option value="{{ row.1 }}">{{ row.0 }}</option>{% endfor %}
+</datalist>
+
+<script>
+var sortAscState = true;
+var stockDataMap = { {% for row in kospi %}"{{ row.1 }}":"{{ row.0 }}",{% endfor %} };
+
+// 전송 전 이름 -> 코드로 변환
+function transformBeforeSend(form) {
+    var val = form.code.value;
+    if (stockDataMap[val]) { form.code.value = stockDataMap[val]; }
+}
+
+// 테이블 정렬 (RSI 정렬 포함)
+function sortTable(index, element) {
+    var body = document.getElementById('kospi-body');
+    if (!body) return;
+    var rows = Array.from(body.getElementsByClassName('kospi-row'));
+    
+    document.querySelectorAll('.sort-icon').forEach(function(el) { el.innerText = ''; });
+    sortAscState = !sortAscState;
+    element.querySelector('.sort-icon').innerHTML = '<span style="font-size: 10px; margin-left: 3px;">' + (sortAscState ? '▲' : '▼') + '</span>';
+    
+    rows.sort(function(a, b) {
+        var valA = a.children[index].innerText.replace(/,/g, '').replace('%', '').trim();
+        var valB = b.children[index].innerText.replace(/,/g, '').replace('%', '').trim();
+        
+        var numA = parseFloat(valA), numB = parseFloat(valB);
+        if (!isNaN(numA) && !isNaN(numB)) {
+            return sortAscState ? numA - numB : numB - numA;
+        }
+        return sortAscState ? valA.localeCompare(valB) : valB.localeCompare(valA);
+    });
+
+    rows.forEach(function(row) { body.appendChild(row); });
+}
+</script>

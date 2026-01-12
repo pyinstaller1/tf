@@ -1,0 +1,1524 @@
+  <style>
+    .rounded-box {
+      background-color: #fffef3;
+      border-radius: 12px;
+      padding: 10px;
+      margin-top: 10px;
+      width: 457px;
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+      height: 500px;
+      overflow-y: auto;
+      line-height: 18px;
+    }
+
+    .kospi-row {
+      display: grid;
+      grid-template-columns: 23px 143px 67px 80px 80px 1fr;
+      row-gap: 4px;
+      column-gap: 10px;
+      margin-bottom: 4px;
+    }
+
+    .kospi-row > div:first-child {
+      text-align: right;
+    }
+
+    .ilbong-container {
+      border-radius: 12px;
+      padding: 10px;
+      width: 670px;
+      height: 500px;
+      overflow: hidden;
+      box-sizing: border-box;
+    }
+
+    .ilbong-box {
+      height: 100%;
+      overflow-y: auto;
+      overflow-x: hidden;
+      padding: 0;
+      width: 670px;
+      box-sizing: border-box;
+      background-color: transparent;
+    }
+
+    .ilbong-box table {
+      width: 100%;
+      border-collapse: collapse;
+      table-layout: fixed;
+      margin-top: 0;
+    }
+
+    .ilbong-box th,
+    .ilbong-box td {
+      padding: 6px 8px;
+      border: 1px solid #ccc;
+      font-size: 13px;
+      word-wrap: break-word;
+    }
+
+    .ilbong-box thead th {
+      position: sticky;
+      top: 0;
+      background-color: #d9ebff;
+      z-index: 5;
+      text-align: center;
+    }
+
+    .ilbong-box tbody td {
+      background-color: #f3fbff;
+      
+      text-align: center;
+    }
+
+    .ilbong-box th:nth-child(1),
+    .ilbong-box td:nth-child(1) {
+      width: 20%;
+    }
+
+    .ilbong-box td:nth-child(2),
+    .ilbong-box td:nth-child(3) {
+      text-align: right;
+    }
+
+    .ilbong-box th:nth-child(2),
+    .ilbong-box th:nth-child(3) {
+      text-align: center;
+    }
+
+  a.stock-link {
+    text-decoration: none;
+    color: black;
+    transition: color 0.3s, font-weight 0.3s;
+  }
+
+  a.stock-link:hover,
+  a.stock-link.active {
+    font-weight: bold !important;
+    color: #1E90FF !important;
+    text-decoration: none !important;
+  }
+
+  a.stock-link:visited {
+    color: black;
+  }
+
+  </style>
+
+
+
+<div style="display: flex; gap: 20px; align-items: flex-start;">
+    <div style="flex-grow: 1; order: 1;">
+        <div id="container_{{ code }}" style="height: 627px; min-width:673px; background-color: #eef8ff; border-radius: 12px; padding: 10px;" ></div>
+
+        <div style="margin-bottom:10px;">
+            <input type="radio" id="radio-daily" name="chartType_{{ code }}" value="daily" checked>
+            <label for="radio-daily">일봉</label>
+            
+            <input type="radio" id="radio-weekly" name="chartType_{{ code }}" value="weekly">
+            <label for="radio-weekly">주봉</label>
+            
+            <input type="radio" id="radio-monthly" name="chartType_{{ code }}" value="monthly">
+            <label for="radio-monthly">월봉</label>
+        </div>
+        
+        <div style="display: flex; gap: 10px; align-items: center; margin-bottom: 10px;">
+            <div>
+                <input type="checkbox" id="toggle-volume-{{ code }}" checked>
+                <label for="toggle-volume-{{ code }}">거래량</label>
+            </div>
+            <div>
+                <input type="checkbox" id="toggle-rsi-{{ code }}" checked>
+                <label for="toggle-rsi-{{ code }}">RSI</label>
+            </div>
+            <div>
+                <input type="checkbox" id="toggle-macd-{{ code }}" checked>
+                <label for="toggle-macd-{{ code }}">MACD</label>
+            </div>
+            <div>
+                <input type="checkbox" id="toggle-supply-{{ code }}" checked>
+                <label for="toggle-supply-{{ code }}">외국인</label>
+            </div>            
+            <div>
+                <input type="checkbox" id="toggle-navigator-{{ code }}">
+                <label for="toggle-navigator-{{ code }}">네비게이터</label>
+            </div>
+            <div>
+                <input type="checkbox" id="toggle-ma-{{ code }}" checked>
+                <label for="toggle-ma-{{ code }}">이평선</label>
+            </div>
+            <div>
+                <input type="checkbox" id="toggle-ema26-{{ code }}" checked>
+                <label for="toggle-ema26-{{ code }}">EMA26</label>
+            </div>
+            <div>
+                <input type="checkbox" id="toggle-bb-{{ code }}">
+                <label for="toggle-bb-{{ code }}">볼린저</label>
+            </div>
+            <div>
+                <input type="checkbox" id="toggle-ikh-{{ code }}">
+                <label for="toggle-ikh-{{ code }}">일목</label>
+            </div>
+        </div>
+
+
+        <div id="supply-legend-{{ code }}" style="position: absolute; top: z-index: 999; top: supplyTop; font-size: 11px; display: none;">        
+            <span style="color:#004C99; font-weight: bold;">개인</span> <span style="color:#CC0000; font-weight: bold;">기관</span> <span style="color:#55BF3B; font-weight: bold;">외국인</span>
+        </div>
+    </div>
+
+    <div id="tableContainer_{{ code }}" class="ilbong-box" style="order: 2; display: flex; flex-direction: column; gap: 20px;">
+        <div id="basicTable_{{ code }}"></div>
+        <div id="ilbongTable_{{ code }}" style="height: 300px; overflow-y: auto;"></div>
+    </div>    
+</div>
+
+
+
+
+
+
+
+<script type="application/json" id="json_{{ code }}">
+    {{ json_ilbong|safe }}
+</script>
+
+
+<script type="application/json" id="json_basic_{{ code }}">
+    {{ json_basic|safe }}
+</script>
+
+
+
+<script>
+/**
+ * HTML에 삽입된 JSON 데이터를 파싱하고, Highcharts를 위한 전역 변수를 설정합니다.
+ * ⭐ 이 함수는 테이블 생성 스크립트가 주석 처리되더라도 차트가 작동하도록 전역 변수를 설정합니다.
+ */
+function getJsonIlbong(code) {
+    const scriptTag = document.getElementById('json_' + code);
+    const basicTag = document.getElementById('json_basic_' + code);
+    
+    if (!scriptTag) {
+        console.warn(`[데이터 없음] json_${code} 태그를 찾을 수 없습니다.`);
+        return null;
+    }
+
+    try {
+        // 1. 텍스트가 비어있는지 확인
+        const rawContent = scriptTag.textContent.trim();
+        if (!rawContent || rawContent === "None" || rawContent === "") {
+            console.error(`[데이터 오류] ${code}의 JSON 내용이 비어있습니다.`);
+            window.currentIlbongData = [];
+            return null;
+        }
+
+        // 2. 파싱 시도
+        const ilbongData = JSON.parse(rawContent);
+        window.currentIlbongData = Array.isArray(ilbongData) ? ilbongData : [];
+
+        // 3. 기본 정보 파싱
+        if (basicTag && basicTag.textContent.trim()) {
+            window.currentBasicData = JSON.parse(basicTag.textContent.trim());
+        } else {
+            window.currentBasicData = [];
+        }
+
+        window.currentChartCode = code;
+        console.log(`[성공] ${code} 데이터 로드 완료:`, window.currentIlbongData.length, "건");
+
+    } catch(e) {
+        // 파싱 에러 발생 시 콘솔에 원인 출력하고 빈 배열 할당
+        console.error(`[파싱 에러] 종목코드 ${code}의 데이터 형식이 잘못되었습니다:`, e);
+        window.currentIlbongData = [];
+        window.currentBasicData = [];
+        return null;
+    }
+}
+
+</script>
+
+
+
+<script>
+(function() {
+    const code = "{{ code }}"; 
+    getJsonIlbong(code);
+})();
+</script>
+
+
+
+
+<script>
+
+(function(){
+    const code = "{{ code }}";
+
+    const basicTable = document.getElementById('basicTable_' + code);
+    if (basicTable) {
+        const basicData = window.currentBasicData;
+        if (basicData && basicData.length > 0) {
+
+            const b = basicData[0]; // 1줄짜리 데이터
+
+            // 🔥 basic 테이블 생성
+            let basicHTML = `
+                <div style="padding: 10px; font-size: 24px; color: red;">
+                    <div style="text-align:center; font-weight:bold; font-size:24px; margin-bottom:10px; color:#1E90FF;">
+                        ${basicData[0][1] || '종목명 없음'}
+                    </div>
+            
+                    <table border="1" cellspacing="0" cellpadding="1" border-collapse: collapse; table-layout: fixed;">
+                        <thead>
+                            <tr>
+                                <th style="width: 45px;">코드</th>
+                                <th style="width: 58px;">시총</th>
+                                <th style="width: 58px;">매출</th>
+                                <th style="width: 50px;">영업이익</th>
+                                <th style="width: 40px;">배당금</th>
+                                <th style="width: 36px;">외국인</th>
+                                <th style="width: 30px;">PER</th>
+                                <th style="width: 38px;">순위</th>
+                                <th>섹터</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>${b[0]}</td>
+                                <td style="text-align: right;">${Number(b[4]).toLocaleString()}</td>
+                                <td style="text-align: right;">${Number(b[5]).toLocaleString()}</td>
+                                <td style="text-align: right;">${Number(b[6]).toLocaleString()}</td>
+                                <td style="text-align: right;">${Number(b[7]).toLocaleString()}</td>
+                                <td style="text-align: right;">${Math.round(Number(b[8])).toLocaleString()}%</td>
+                                <td style="text-align: right;">${Math.round(Number(b[9])).toLocaleString()}</td>
+                                <td>${b[10]}</td>
+                                <td>${b[11] || ''}</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            `;
+
+            basicTable.innerHTML = basicHTML;
+        }
+    }
+
+
+
+
+    
+    const ilbongTable = document.getElementById('ilbongTable_' + code);
+    if (!ilbongTable) return;
+    
+    const ilbongData = window.currentIlbongData;
+    if (!ilbongData) { return; }
+
+    try {
+        let tableHTML = `
+            <div style="height: 300px; border-radius: 12px; padding: 10px;" >
+        
+                <table border="1" cellspacing="0" cellpadding="6" style="width: 480px; border-collapse: collapse; table-layout: fixed;">
+                    <thead>
+                        <tr>
+                            <th style="width: 65px;">일자</th>
+                            <th style="width: 58px;">시가</th>
+                            <th style="width: 58px;">고가</th>
+                            <th style="width: 58px;">저가</th>       
+                            <th style="width: 58px;">종가</th>
+                            <th style="width: 65px;">거래량</th>
+                            <th style="width: 30px;">RSI</th>
+                            <th style="width: 48px;">MACD</th>
+                            <th style="width: 47px;">MACD9</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+        `;
+
+        ilbongData.forEach(row => {
+            tableHTML += `
+                <tr>
+                    <td>${row.date.substring(0, 4)}.${row.date.substring(4, 6)}.${row.date.substring(6, 8)}</td>
+                    <td style="text-align: right;">${Number(row.open).toLocaleString()}</td>
+                    <td style="text-align: right;">${Number(row.high).toLocaleString()}</td>
+                    <td style="text-align: right;">${Number(row.low).toLocaleString()}</td>
+                    <td style="text-align: right;">${Number(row.close).toLocaleString()}</td>
+                    <td style="text-align: right;">${Number(row.volume).toLocaleString()}</td>
+                    <td style="text-align: right;">${Number(row.rsi14).toFixed(1).toLocaleString()}</td>
+                    <td style="text-align: right;">${Number(Math.round(Number(row.macd))).toLocaleString()}</td>
+                    <td style="text-align: right;">${Number(Math.round(Number(row.macd9))).toLocaleString()}</td>            
+                </tr>
+            `;
+        });
+        tableHTML += "</tbody></table></div>";
+
+        ilbongTable.innerHTML = tableHTML;
+
+    } catch(e) {
+        console.error("테이블 생성 오류:", e);
+        ilbongTable.innerHTML = "<p>데이터 로드 오류</p>";
+    }
+})();
+
+</script>
+
+
+
+
+
+<script>
+(function(){
+    const code = "{{ code }}";
+    const rawData = window.currentIlbongData; // [{date, close, volume, 종목명, high, low}, ...]
+    if (!rawData || rawData.length === 0) return;
+
+    function yyyymmddToUTC(dateStr) {
+        const year = parseInt(dateStr.slice(0,4), 10);
+        const month = parseInt(dateStr.slice(4,6), 10) - 1;
+        const day = parseInt(dateStr.slice(6,8), 10);
+        return Date.UTC(year, month, day);
+    }
+
+    function processDaily(data) {
+        const ohlc = [], volume = [], seenDates = new Set();
+        const individual = [] // 개인
+        const institute = []  // 기관
+        const foreign = []    // 외국인
+
+
+
+        data.forEach((row, i) => {
+            const time = yyyymmddToUTC(row.date.toString());
+            if (seenDates.has(time)) return;
+            seenDates.add(time);
+
+            const close = Number(row.close.toString().replace(/,/g,'')); 
+            // ⭐ 1. 시가(Open) 설정: row.open 값이 있으면 사용, 없으면 임시로 종가와 동일하게 설정
+            const open = Number(row.open?.toString().replace(/,/g,'')) || close;
+            
+            // ⭐ 2. 고가(High) 설정: high 값이 없으면 open/close 중 큰 값 사용
+            const high = Number(row.high?.toString().replace(/,/g,'')) || Math.max(open, close);
+            
+            // ⭐ 3. 저가(Low) 설정: low 값이 없으면 open/close 중 작은 값 사용
+            const low  = Number(row.low?.toString().replace(/,/g,'')) || Math.min(open, close);
+
+            // 4. Highcharts OHLC 배열 생성 (Time, Open, High, Low, Close)
+            ohlc.push([time, open, high, low, close]);
+            volume.push([time, Number(row.volume.toString().replace(/,/g,''))]);
+
+            // 5. row.개인, row.기관, row.외국인 속성 사용
+            individual.push([time, Number(row.개인.toString().replace(/,/g,''))]);
+            institute.push([time, Number(row.기관.toString().replace(/,/g,''))]);
+            foreign.push([time, Number(row.외국인.toString().replace(/,/g,''))]);
+
+        });
+        ohlc.sort((a,b)=>a[0]-b[0]);
+        volume.sort((a,b)=>a[0]-b[0]);
+        individual.sort((a,b)=>a[0]-b[0]);
+        institute.sort((a,b)=>a[0]-b[0]);
+        foreign.sort((a,b)=>a[0]-b[0]);
+        
+        return { ohlc, volume, individual, institute, foreign };
+    }
+
+
+    function aggregateData(data, type='week') {
+        const ohlcMap = new Map();
+        const supplyMap = new Map();
+
+        
+
+        data.forEach((row,i)=>{
+            const date = yyyymmddToUTC(row.date.toString());
+            let key;
+            if(type==='week'){
+                const d = new Date(date);
+                const day = d.getUTCDay();
+                d.setUTCDate(d.getUTCDate() - day + 1); // 월요일 기준
+                key = d.getTime();
+            } else if(type==='month'){
+                const d = new Date(date);
+                d.setUTCDate(1);
+                key = d.getTime();
+            } else {
+                key = date;
+            }
+
+            const close = Number(row.close.toString().replace(/,/g,''));
+            // ⭐ 시가 설정: row.open 사용 (없으면 close와 동일)
+            const open = Number(row.open?.toString().replace(/,/g,'')) || close;
+            // ⭐ 고가/저가 설정: row.high, row.low 사용 (없으면 close와 동일)
+            const high = Number(row.high?.toString().replace(/,/g,'')) || close;
+            const low  = Number(row.low?.toString().replace(/,/g,'')) || close;
+            const vol  = Number(row.volume.toString().replace(/,/g,''));
+
+            if(!ohlcMap.has(key)){
+                // ⭐ 첫 번째 데이터의 open을 해당 주/월의 시가로 설정
+                ohlcMap.set(key, { open, high, low, close, volume: vol });
+            } else {
+                const item = ohlcMap.get(key);
+                item.high = Math.max(item.high, high);
+                item.low  = Math.min(item.low, low);
+                // 마지막 데이터의 close가 해당 주/월의 종가가 됩니다.
+                item.close = close; 
+                item.volume += vol;
+            }
+
+            if (!supplyMap.has(key)) {
+                supplyMap.set(key, { 
+                    individual: Number(row.개인), 
+                    institute: Number(row.기관), 
+                    foreign: Number(row.외국인) 
+                });
+            } else {
+                const sdItem = supplyMap.get(key);
+                sdItem.individual += Number(row.개인);
+                sdItem.institute += Number(row.기관);
+                sdItem.foreign += Number(row.외국인);
+            }
+        });
+
+
+        const ohlc = [], volume = [];
+        const individual = [], institute = [], foreign = [];
+        
+        Array.from(ohlcMap.keys()).sort((a,b)=>a-b).forEach(time=>{
+            const item = ohlcMap.get(time);
+            const actualHigh = item.high > Math.max(item.open, item.close) ? item.high : Math.max(item.open, item.close);
+            const actualLow  = item.low  < Math.min(item.open, item.close) ? item.low  : Math.min(item.open, item.close);
+            ohlc.push([time, item.open, actualHigh, actualLow, item.close]);
+            volume.push([time, item.volume]);
+
+            const sdItem = supplyMap.get(time);
+            individual.push([time, sdItem.individual]);
+            institute.push([time, sdItem.institute]);
+            foreign.push([time, sdItem.foreign]);
+
+        });
+        return { ohlc, volume, individual, institute, foreign };
+    }
+
+    
+
+
+
+
+    let chart;
+    
+    function renderChart(ohlc, volume, individual, institute, foreign){
+        if(chart) chart.destroy();    
+
+        const coloredVolume = volume.map((v, i) => {
+                const candle = ohlc[i];
+                // candle[4] = 종가 (Close), candle[1] = 시가 (Open)
+                // 종가 >= 시가(양봉)이면 빨강(#FF0000), 아니면 파랑(#0000FF)
+                const color = candle[4] >= candle[1] ? '#FF0000' : '#0000FF'; 
+                
+                return {
+                    x: v[0], // Time
+                    y: v[1], // Volume
+                    color: color
+                };
+            });
+
+
+
+
+                                         
+
+        chart = Highcharts.stockChart('container_{{ code }}', {
+
+            chart: {
+                spacingRight: 50,   // 금액 라벨 위해 유지
+            },
+
+
+
+
+            
+            xAxis: {                 // 일자 표시
+                offset:-187,         // 높이
+                labels: { style: { fontSize: '10px' } }
+            },
+
+
+
+
+
+
+
+
+
+            navigator: {
+                height: 20,       // navigator 높이 (기본 40)
+                margin: -180      // plot 영역과 navigator 사이 간격
+            },
+
+
+            accessibility: { enabled: false },
+            <!-- rangeSelector: { selected: 1 }, -->
+
+
+rangeSelector: {
+    enabled: true,       // 켜야 범위를 컨트롤하기 쉽습니다
+    buttons: [],
+    selected: null,
+    inputEnabled: false  // 날짜 입력창은 지저분하니까 끕니다
+},
+
+            
+
+        plotOptions: {
+                candlestick: { 
+                    color: '#0000FF', upColor: '#FF0000', lineColor: '#0000FF', upLineColor: '#FF0000' 
+                },
+                series: {
+                    dataGrouping: { enabled: false } 
+                },
+                // 👇 요청하신 area 설정을 여기에 추가합니다.
+                area: {
+                    stacking: 'percent', // ⭐ 핵심: 전체 높이를 100%로 유지
+                    lineColor: '#ffffff', // 구분선을 명확히 하기 위해 흰색 선 사용
+                    lineWidth: 1,
+                    marker: {
+                        enabled: false
+                    }
+                }
+            },
+            
+            yAxis: [{
+                // 0. 캔들 차트
+                labels: {
+                    align: 'right',
+                    x: 36,
+                    style: { fontSize: '10px' },
+                    formatter: function() { return Highcharts.numberFormat(this.value, 0); }
+                    },
+                height: '300',
+                lineWidth: 0
+
+                },{
+                    // ⭐ 1. 거래량 차트 (추가된 부분)
+                labels: { enabled: false },
+                title: { text: null },
+                top: '350', // 캔들 아래 위치
+                height: '40', // 거래량 높이
+                offset: 0,
+                lineWidth: 0,
+                gridLineWidth: 0,
+                minPadding: 0,
+                maxPadding: 0
+                },{
+                // ⭐ 2. RSI 지표
+                labels: {
+                    align: 'right',
+                    x: 36,
+                    style: { fontSize: '10px' },
+                    formatter: function() { return Highcharts.numberFormat(this.value, 0); }
+                },
+                title: { text: null },
+                top: '410', // 거래량 (350 + 40) 아래에 위치
+                height: '70', // RSI 높이
+                offset: 0,
+                lineWidth: 1, 
+                opposite: false,
+                min: 0, max: 100,
+                plotLines: [{
+                    value: 70, color: 'rgba(255, 0, 0, 0.5)', width: 1, dashStyle: 'Dash',
+                    label: { text: '70', align: 'right' }
+                }, {
+                    value: 30, color: 'rgba(0, 0, 255, 0.5)', width: 1, dashStyle: 'Dash',
+                    label: { text: '30', align: 'right' }
+                }]
+                },{
+                // ✅ 3. MACD 추가
+                labels: {
+                    align: 'right',
+                    x: 36,
+                    style: { fontSize: '10px' },
+                    formatter: function() { return Highcharts.numberFormat(this.value, 0); }
+                },
+                title: { text: null },
+                top: '488',
+                height: '90',    // MACD 공간
+                offset: 0,
+                lineWidth: 1,
+                opposite: false
+                },
+
+
+                { // yAxis[4]: 수급 축 (MACD 아래)
+                    labels: {
+                        align: 'right',
+                        x: -3,
+                        // ⭐ 왼쪽 숫자 레이블을 확실히 제거합니다.
+                        enabled: false,
+                        offset: 0,       // 꼭 필요
+
+                        formatter: function() {
+                            // 이 설정은 enabled: false로 인해 실행되지 않지만 유지합니다.
+                            return Highcharts.numberFormat(this.value, 0, '.', ',') + 'K';
+                        }
+                    },
+                    title: {
+                        // text: `<span style="color:#004C99; font-weight: bold; font-size: 10px;">개인</span> <span style="color:#CC0000; font-weight: bold; font-size: 10px;">기관</span> <span style="color:#55BF3B; font-weight: bold; font-size: 10px;">외국인</span>`,
+
+
+                        // text: `<span style="color:#004C99; font-weight: bold; font-size: 10px;">개인</span>`,
+
+
+                        // text: `개인 기관`,
+                        
+                        align: 'high', 
+                        rotation: 0, 
+                        x: 200,  
+                        y: -87, // 수급 영역(높이 80) 내의 하단에 위치하도록 조정
+                        useHTML: true
+                    },
+
+
+                    align: 'high',
+                    // updateOffsets에서 동적으로 덮어쓰일 설정들
+                    top: '500', 
+                    height: '80', 
+                    lineWidth: 0,
+                    opposite: false, 
+                    resize: {
+                        enabled: true
+                    }
+                },
+
+
+        ],
+
+
+
+            
+
+            plotOptions: {
+                candlestick: {
+                    color: '#0000FF',    // 음봉 몸통
+                    upColor: '#FF0000',  // 양봉 몸통
+                    lineColor: '#0000FF', // 음봉 꼬리
+                    upLineColor: '#FF0000' // 양봉 꼬리
+                }
+            },
+
+
+
+
+
+
+
+
+
+
+
+tooltip: {
+    
+    valueDecimals: 0,
+    split: false,          // 좌상단 고정용
+    shadow: false,
+    borderWidth: 1,
+    connectorWidth: 0,     
+    followPointer: false,
+    shared: true,          // 여러 시리즈 정보 가져오기 위해 필요
+    formatter: function() {
+        const date = Highcharts.dateFormat('%Y-%m-%d', this.x);
+        let s = `<span style="font-size: 12px">${date}</span><br/>`;
+        let rsiValue = null;
+
+        if(this.points) {   // shared:true일 때 points 사용
+            this.points.forEach(point => {
+                if (point.series.name === '캔들') {
+                    s += `Close: <b>${Highcharts.numberFormat(point.point.close, 0)}</b><br/>`;
+                } else if (point.series.name === '거래량') {
+                    s += `${point.series.name}: <b>${Highcharts.numberFormat(point.y, 0)}</b><br/>`;
+                } else if (point.series.name.startsWith('RSI')) {
+                    rsiValue = Highcharts.numberFormat(point.y, 2);
+                }
+            });
+        }
+
+        if (rsiValue !== null) s += `RSI: <b>${rsiValue}</b>`;
+        return s;
+    },
+    positioner: function(labelWidth, labelHeight, point) {
+        return {
+            x: this.chart.plotLeft + 10, 
+            y: this.chart.plotTop + 10
+        };
+    }
+},
+
+
+
+
+
+
+            
+            series: [{
+                type: 'candlestick',
+                name: '캔들',
+                data: ohlc,
+                // ⭐ 해결: ID 추가
+                id: '캔들', 
+                color: '#0000FF', 	// 음봉 몸통
+                upColor: '#FF0000',	// 양봉 몸통
+                lineColor: '#0000FF',	
+                upLineColor: '#FF0000'
+                },
+
+
+
+{
+    type: 'sma', // 또는 'sma' (단순이동평균선)
+    id: 'ma5',
+    name: 'MA(5)',
+    linkedTo: '캔들', // 캔들 시리즈의 ID를 참조
+    yAxis: 0,
+    color: '#FF00BF', // Pure Pink/마젠타 계열
+    params: { period: 5 },
+    lineWidth: 1,
+    marker: { enabled: false },
+    states: { hover: { enabled: false } }
+}, {
+    type: 'sma', // 또는 'sma'
+    id: 'ma20',
+    name: 'MA(20)',
+    linkedTo: '캔들', // 캔들 시리즈의 ID를 참조
+    yAxis: 0,
+    color: '#F89C00', // 골드 계열
+    params: { period: 20 },
+    lineWidth: 1,
+    marker: { enabled: false },
+    states: { hover: { enabled: false } }
+    
+},
+
+{
+    type: 'sma',
+    id: 'ma60',    
+    name: 'MA(60)',
+    linkedTo: '캔들', // 캔들 시리즈의 ID를 참조
+    yAxis: 0,
+    color: '#008000', // ⭐ 짙은 녹색
+    params: { period: 60 },
+    lineWidth: 1,
+    marker: { enabled: false },
+    states: { hover: { enabled: false } }
+},
+
+{
+    type: 'sma',
+    id: 'ma120',
+    name: 'MA(120)',
+    linkedTo: '캔들', // 캔들 시리즈의 ID를 참조
+    yAxis: 0,
+    color: '#808080', // ⭐ 회색
+    params: { period: 120 },
+    lineWidth: 1,
+    marker: { enabled: false },
+    states: { hover: { enabled: false } }
+},
+
+
+{
+    type: 'ema', // 지수 이동평균선 사용
+    id: 'ema26',
+    name: 'EMA(26)',
+    linkedTo: '캔들', // 캔들 시리즈의 ID를 참조
+    yAxis: 0,
+    color: '#000000', // ⭐ 검정색
+    params: { period: 26 },
+    lineWidth: 2,
+    getExtremesFromAll: false,
+    marker: { enabled: false },
+    states: { hover: { enabled: false } }
+},
+
+{
+    type: 'bb',           // Bollinger Bands
+    id: 'bb',
+    linkedTo: '캔들',     // 캔들 시리즈 ID
+    name: 'Bollinger Bands(20,2)',
+    visible: false,
+    params: {
+        period: 20,       // 이동평균 기간
+        standardDeviation: 2 // 표준편차
+    },
+    color: '#3333AA',
+    lineWidth: 0,
+    dashStyle: 'Dot'    
+},
+
+
+
+{
+    type: 'ikh',
+    id: 'ikh',
+    name: '일목 구름대', 
+    linkedTo: '캔들',
+    yAxis: 0,
+    visible: false,
+    params: {
+        // 선행 스팬 A/B 및 구름대만 포함
+        includeComponents: [ 'senkouSpanA', 'senkouSpanB', 'kumo' ] 
+    },
+    kumo: {
+        fill: {
+            up: 'rgba(255, 102, 102, 0.25)', // 양운
+            down: 'rgba(102, 178, 255, 0.25)' // 음운
+        }
+    },
+    // 선행 스팬 A/B 라인 색상 설정 (구름 경계선)
+    senkouSpanA: { styles: { lineWidth: 1, lineColor: '#FF6666' } },
+    senkouSpanB: { styles: { lineWidth: 1, lineColor: '#66B2FF' } }
+    
+},
+
+
+
+
+
+                     {
+                type: 'column',
+                name: '거래량',
+                data: coloredVolume,
+                yAxis:1,
+
+
+                colorByPoint: false,
+                colors: ohlc.map(c => c[4] >= c[1] ? '#FF0000' : '#0000FF'),
+                },{
+                // RSI 시리즈
+                type: 'rsi',
+                name: 'RSI(14)',
+                linkedTo: '캔들', // ID 참조
+                yAxis: 2, 
+                color: '#8A2BE2',
+                params: {
+                    period: 14,
+                },
+                // ⭐ 여기에 marker 옵션을 추가합니다.
+                marker: { enabled: false },
+                states: { hover: { enabled: false } },
+                // 선 굵기를 1로 설정 (기본값 2보다 얇아집니다.)
+                lineWidth: 1
+                },
+                {
+                    type: 'macd',
+                    id: 'MACD_main',
+                    name: 'MACD',
+                    linkedTo: '캔들',
+                    yAxis: 3,
+                    dataGrouping: { enabled: false}, 
+                    macdLine: { styles: { stroke: '#2ECC71', lineWidth: 1 } },
+                    signalLine: { styles: { stroke: '#E74C3C', lineWidth: 1 } },
+                    histogram: { color: '#FF0000', negativeColor: '#0000FF', lineWidth: 1 },
+                    params: { shortPeriod: 12, longPeriod: 26, signalPeriod: 9 }
+                },
+
+            { // 개인 수급
+                id: 'individual-supply',
+                name: '개인',
+                type: 'column', // 막대 차트
+                data: individual, // aggregateData에서 준비된 데이터
+                yAxis: 4, // yAxis[4] 사용
+                color: '#004C99', // 파란색 계열
+                tooltip: {
+                    valueSuffix: 'K'
+                }
+            }, 
+            { // 기관 수급
+                id: 'institute-supply',
+                name: '기관',
+                type: 'column',
+                data: institute, // ⭐ renderChart 함수 인자로 받은 data 사용
+                yAxis: 4,
+                color: '#CC0000', 
+                tooltip: { valueSuffix: 'K' }
+            }, 
+            { // 외국인 수급
+                id: 'foreign-supply',
+                name: '외국인',
+                type: 'column',
+                data: foreign, // ⭐ renderChart 함수 인자로 받은 data 사용
+                yAxis: 4,
+                color: '#55BF3B', 
+                tooltip: { valueSuffix: 'K' }
+            }
+
+
+
+                     ]
+
+
+            
+        }); // chart = Highcharts.stockChart()
+
+
+chart.xAxis[0].setExtremes( ohlc[ohlc.length - 500][0],
+                            ohlc[ohlc.length - 1][0] );
+                                     
+
+        
+chart.xAxis[0].update({
+    offset: - chart.yAxis[0].height - 3
+});
+
+    } // renderChart(ohlc, volume)
+
+    
+
+
+
+    const daily = processDaily(rawData);
+    // 초기 렌더링 (일봉)
+    renderChart(daily.ohlc, daily.volume, daily.individual, daily.institute, daily.foreign);
+
+
+    // ⭐⭐ 수정된 부분: 라디오 버튼 그룹 이벤트 처리 ⭐⭐
+    const radioGroup = document.querySelectorAll(`input[name="chartType_{{ code }}"]`);
+
+    radioGroup.forEach(radio => {
+        radio.addEventListener('change', (e) => {
+            const chartType = e.target.value;
+            let data;
+            
+            if (chartType === 'daily') {
+                data = daily; // 이미 처리된 일봉 데이터 사용
+            } else if (chartType === 'weekly') {
+                data = aggregateData(rawData, 'week');
+            } else if (chartType === 'monthly') {
+                data = aggregateData(rawData, 'month');
+            }
+
+            if (data) {
+                // renderChart(data.ohlc, data.volume, daily.individual, daily.institute, daily.foreign);
+                renderChart(data.ohlc, data.volume, data.individual, data.institute, data.foreign);
+
+                updateOffsets();
+            }
+        });
+    });
+
+
+
+
+
+        
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    const volumeCheckbox = document.getElementById('toggle-volume-' + code);
+    const rsiCheckbox = document.getElementById('toggle-rsi-' + code);        
+    const macdCheckbox = document.getElementById('toggle-macd-' + code);
+    const supplyCheckbox = document.getElementById('toggle-supply-' + code);        
+    const navigatorCheckbox = document.getElementById('toggle-navigator-' + code);
+
+
+
+    function updateOffsets() {
+        if (!chart) return;
+
+        const code = "{{ code }}";
+        const volumeChecked = volumeCheckbox ? volumeCheckbox.checked : false;
+        const naviChecked = navigatorCheckbox ? navigatorCheckbox.checked : false;
+        const rsiChecked = rsiCheckbox ? rsiCheckbox.checked : false;
+        const macdChecked = macdCheckbox ? macdCheckbox.checked : false;
+        const supplyChecked = supplyCheckbox ? supplyCheckbox.checked : false;
+
+               
+        const volumeAxis = chart.yAxis[1];
+        const rsiAxis = chart.yAxis[2]; // RSI 축 인덱스 2
+        const macdAxis = chart.yAxis[3];
+        const supplyAxis = chart.yAxis[4]; // 수급 축 (yAxis[4])
+
+
+
+        
+
+        
+
+        // RSI 축의 새 위치 계산
+        const rsiTop = volumeChecked ? '410' : '380';
+
+        var top_xAxis = -81;
+        var macdTop = 488;
+        var supplyTop = 587;
+        
+
+
+
+        
+
+
+
+
+        // 거래량, 네비게이터 체크 => 차트 전체, 일자축 높이 변경
+        const container = document.getElementById('container_' + code);
+                                       
+        if (volumeChecked && rsiChecked && macdChecked && supplyChecked && naviChecked) {
+            container.style.height = 736;
+            top_xAxis = -190;
+            macdTop = 488;
+            supplyTop = 587;
+        }
+
+        if (!volumeChecked && rsiChecked && macdChecked && supplyChecked && naviChecked) {
+            container.style.height = 736 - 30;
+            top_xAxis = -190 - 3;
+            macdTop = 488 - 30;
+            supplyTop = 587 - 30;
+        }
+
+        if (volumeChecked && !rsiChecked && macdChecked && supplyChecked && naviChecked) {
+            container.style.height = 736  - 80;
+            top_xAxis = -190 + 80;
+            macdTop = 488 - 78;
+            supplyTop = 587 - 80;
+        }
+
+        if (!volumeChecked && !rsiChecked && macdChecked && supplyChecked && naviChecked) {
+            container.style.height = 736  - 78 - 30;
+            top_xAxis = -190 + 80 - 5;
+            macdTop = 488 - 30 - 78;
+            supplyTop = 587 - 30 - 80 + 2;
+        }
+
+        if (volumeChecked && rsiChecked && !macdChecked && supplyChecked && naviChecked) {
+            container.style.height = 736  - 80 - 19;
+            top_xAxis = -190 + 80 + 19;
+            macdTop = 488;
+            supplyTop = 587 - 80 - 19;
+        }
+
+        if (!volumeChecked && rsiChecked && !macdChecked && supplyChecked && naviChecked) {
+            container.style.height = 736  - 30 - 98;
+            top_xAxis = -190 + 80 + 15;
+            macdTop = 488 - 30 - 8;
+            supplyTop = 587 - 80 - 50 + 2;
+
+        }
+
+        if (volumeChecked && !rsiChecked && !macdChecked && supplyChecked && naviChecked) {
+            container.style.height = 736  - 78 - 100 + 1;
+            top_xAxis = -81 + 67;
+            macdTop = 488 - 78;
+            supplyTop = 587 - 80 - 100 + 3;
+
+        }
+
+        if (!volumeChecked && !rsiChecked && !macdChecked && supplyChecked && naviChecked) {
+            container.style.height = 736  - 78 - 129;
+            top_xAxis = -81 + 65;
+            macdTop = 488 - 30 - 78;
+            supplyTop = 587 - 80 - 127;
+        }
+
+        if (volumeChecked && rsiChecked && macdChecked && supplyChecked && !naviChecked) {
+            container.style.height = 736  - 48;
+            top_xAxis = -190 + 18;
+            macdTop = 488;
+            supplyTop = 587;
+        }
+        
+
+        if (!volumeChecked && rsiChecked && macdChecked && supplyChecked && !naviChecked) {
+            container.style.height = 736 - 30 - 48;
+            top_xAxis = -190 + 15;
+            macdTop = 488 - 30;
+            supplyTop = 587 - 30;
+        }
+
+        if (volumeChecked && !rsiChecked && macdChecked && supplyChecked && !naviChecked) {
+            container.style.height = 736  - 78 - 48;
+            top_xAxis = -190 + 80 + 15;
+            macdTop = 488 - 78;
+            supplyTop = 587 - 80;            
+        }
+
+        if (!volumeChecked && !rsiChecked && macdChecked && supplyChecked && !naviChecked) {
+            container.style.height = 536 + 200  - 78 - 30 - 48;
+            top_xAxis = -81 - 16;
+            macdTop = 488 - 30 - 78;
+            supplyTop = 587 - 30 - 80 + 2;
+        }
+
+        if (volumeChecked && rsiChecked && !macdChecked && supplyChecked && !naviChecked) {
+            container.style.height = 536 + 200  - 98 - 48;
+            top_xAxis = -81 + 7;
+            macdTop = 488;
+            supplyTop = 587 - 80 - 19;
+        }
+
+        if (!volumeChecked && rsiChecked && !macdChecked && supplyChecked && !naviChecked) {
+            container.style.height = 736  - 30 - 98 - 48;
+            top_xAxis = -81 + 4;
+            macdTop = 488 - 30;
+            supplyTop = 587 - 80 - 50 + 2;            
+        }
+
+        if (volumeChecked && !rsiChecked && !macdChecked && supplyChecked && !naviChecked) {
+            container.style.height =736  - 78 - 90 - 48;
+            top_xAxis = -5;
+            macdTop = 488 - 78;
+            supplyTop = 587 - 80 - 100 + 3;            
+        }
+
+        if (!volumeChecked && !rsiChecked && !macdChecked && supplyChecked && !naviChecked) {
+            container.style.height = 736 - 78 - 30 - 90 - 48;
+            top_xAxis = -81 + 74;
+            macdTop = 488 - 30 - 78;
+            supplyTop = 587 - 207;            
+        }
+
+
+
+
+
+
+
+
+
+
+
+        if (volumeChecked && rsiChecked && macdChecked && !supplyChecked && naviChecked) {
+            container.style.height = 736 - 100;
+            top_xAxis = -190 + 100;
+            macdTop = 488;
+            supplyTop = 587;
+        }
+
+        if (!volumeChecked && rsiChecked && macdChecked && !supplyChecked && naviChecked) {
+            container.style.height = 736 - 30 - 100;
+            top_xAxis = -190 - 3 + 100;
+            macdTop = 488 - 30;
+            supplyTop = 587 - 30;
+        }
+
+        if (volumeChecked && !rsiChecked && macdChecked && !supplyChecked && naviChecked) {
+            container.style.height = 736  - 180;
+            top_xAxis = -190 + 180;
+            macdTop = 488 - 78;
+            supplyTop = 587 - 80;
+        }
+
+        if (!volumeChecked && !rsiChecked && macdChecked && !supplyChecked && naviChecked) {
+            container.style.height = 736  - 178 - 30;
+            top_xAxis = -190 + 180 - 5;
+            macdTop = 488 - 30 - 78;
+            supplyTop = 587 - 30 - 80 + 2;
+        }
+
+        if (volumeChecked && rsiChecked && !macdChecked && !supplyChecked && naviChecked) {
+            container.style.height = 736  - 180 - 19;
+            top_xAxis = -190 + 180 + 19;
+            macdTop = 488;
+            supplyTop = 587 - 80 - 19;
+        }
+
+        if (!volumeChecked && rsiChecked && !macdChecked && !supplyChecked && naviChecked) {
+            container.style.height = 736  - 30 - 198;
+            top_xAxis = -190 + 180 + 15;
+            macdTop = 488 - 30 - 8;
+            supplyTop = 587 - 80 - 50 + 2;
+        }
+
+        if (volumeChecked && !rsiChecked && !macdChecked && !supplyChecked && naviChecked) {
+            container.style.height = 736  - 178 - 100 + 1;
+            top_xAxis = -81 + 167;
+            macdTop = 488 - 78;
+            supplyTop = 587 - 80 - 100 + 3;
+
+        }
+
+        if (!volumeChecked && !rsiChecked && !macdChecked && !supplyChecked && naviChecked) {
+            container.style.height = 736  - 178 - 129;
+            top_xAxis = -81 + 165;
+            macdTop = 488 - 30 - 78;
+            supplyTop = 587 - 80 - 127;
+        }
+
+        if (volumeChecked && rsiChecked && macdChecked && !supplyChecked && !naviChecked) {
+            container.style.height = 736  - 148 - 3;
+            top_xAxis = -190 + 118 + 3;
+            macdTop = 488;
+            supplyTop = 587;
+        }
+        
+
+        if (!volumeChecked && rsiChecked && macdChecked && !supplyChecked && !naviChecked) {
+            container.style.height = 736 - 130 - 48 - 3;
+            top_xAxis = -190 + 118;
+            macdTop = 488 - 30;
+            supplyTop = 587 - 30;
+        }
+
+        if (volumeChecked && !rsiChecked && macdChecked && !supplyChecked && !naviChecked) {
+            container.style.height = 736  - 178 - 48 - 3;
+            top_xAxis = -190 + 183 + 15;
+            macdTop = 488 - 78;
+            supplyTop = 587 - 80;            
+        }
+
+        if (!volumeChecked && !rsiChecked && macdChecked && !supplyChecked && !naviChecked) {
+            container.style.height = 536 + 200  - 178 - 30 - 48 - 3;
+            top_xAxis = -81 - 16 + 103;
+            macdTop = 488 - 30 - 78;
+            supplyTop = 587 - 30 - 80 + 2;
+        }
+
+        if (volumeChecked && rsiChecked && !macdChecked && !supplyChecked && !naviChecked) {
+            container.style.height = 536 + 100  - 98 - 48 - 3;
+            top_xAxis = -81 + 110;
+            macdTop = 488;
+            supplyTop = 587 - 80 - 19;
+        }
+
+        if (!volumeChecked && rsiChecked && !macdChecked && !supplyChecked && !naviChecked) {
+            container.style.height = 736  - 130 - 98 - 48 -3;
+            top_xAxis = -81 + 107
+            macdTop = 488 - 30;
+            supplyTop = 587 - 80 - 50 + 2;            
+        }
+
+        if (volumeChecked && !rsiChecked && !macdChecked && !supplyChecked && !naviChecked) {
+            container.style.height =736  - 178 - 90 - 48 - 3;
+            top_xAxis = -5 + 103;
+            macdTop = 488 - 78;
+            supplyTop = 587 - 80 - 100 + 3;            
+        }
+
+        if (!volumeChecked && !rsiChecked && !macdChecked && !supplyChecked && !naviChecked) {
+            container.style.height = 736 - 78 - 30 - 90 - 48 - 103;
+            top_xAxis = -81 + 74 + 103;
+            macdTop = 488 - 30 - 78;
+            supplyTop = 587 - 207;            
+        }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                                   
+        if (volumeChecked) {
+            // 거래량 보이기: 높이 38, top 350
+            volumeAxis.update({
+                height: '38',
+                top: '343', // ⭐ '378'이 아닌 '350'이 맞습니다 (캔들 300 + 공백 50)
+                minPadding: 0, maxPadding: 0
+            }, false);
+        } else {
+                // 거래량 숨기기: 높이 0
+                volumeAxis.update({
+                    height: 0,
+                    top: '343', // 위치는 유지해도 되지만 높이를 0으로 설정
+                    minPadding: 0, maxPadding: 0
+                }, false);
+        }
+
+
+
+        if (rsiChecked) {
+            rsiAxis.update({
+                top: rsiTop, // 계산된 위치 적용
+                height: '70',
+                minPadding: 0, maxPadding: 0,
+                labels: {enabled: true }
+                }, false);
+        } else {
+            rsiAxis.update({
+                top: rsiTop, // 계산된 위치 적용
+                height: '0',
+                minPadding: 0, maxPadding: 0,
+                labels: {enabled: false }
+                }, false);
+        }
+
+
+        if (macdChecked) {
+            macdAxis.update({
+                top: macdTop, // 여기에 동적으로 계산된 값을 넣을 수 있습니다.
+                height: '90',
+                minPadding: 0, maxPadding: 0,
+                labels: {enabled: true }}, false);
+        } else {
+            macdAxis.update({
+                top: macdTop, // 여기에 동적으로 계산된 값을 넣을 수 있습니다.
+                height: '0',
+                minPadding: 0, maxPadding: 0,
+                labels: {enabled: false }}, false);
+        }
+
+
+
+
+        if (supplyChecked) {
+            document.getElementById('supply-legend-' + code).style.display = '';     // 수급 범례
+            document.getElementById('supply-legend-' + code).style.top = supplyTop + 21;
+
+            // 외국인 보이기: 높이 38, top 350
+            supplyAxis.update({
+                height: '100',
+                top: supplyTop,
+                minPadding: 0, maxPadding: 0
+            }, false);
+
+            
+        } else {
+            document.getElementById('supply-legend-' + code).style.display = 'none';     // 수급 범례
+
+            // 외국인 보이기: 높이 0
+            supplyAxis.update({
+                height: '0',
+                top: supplyTop,
+                minPadding: 0, maxPadding: 0
+            }, false);
+            
+
+        }
+
+
+        
+
+
+
+
+
+        chart.xAxis[0].update({ labels: { style: { fontSize: '10px' } } }, false);
+
+
+        
+
+
+        chart.xAxis[0].update({ top: top_xAxis }, false);    // 일자축 출력
+
+
+        chart.update({
+           //     tooltip: { enabled: false },
+            navigator: { enabled: naviChecked,}, // 네비 체크할 때만 네비 배경 표시
+            scrollbar: { enabled: naviChecked }  // 네비 체크할 때만 네비 스크롤 표시
+            }, false); // 아직 redraw 하지 않음
+
+
+
+        // 네비게이터 내부 요소의 표시/숨김은 유지
+        const selectors = [
+            '.highcharts-navigator-series',
+            '.highcharts-navigator-xaxis',
+            '.highcharts-navigator-mask-inside',
+            '.highcharts-navigator-outline',
+            '.highcharts-navigator-handle',
+            ];
+
+        selectors.forEach(sel => { chart.container.querySelectorAll(sel).forEach(el => { el.style.display = naviChecked ? '' : 'none'; }); });
+
+
+
+
+
+
+        document.getElementById('toggle-ma-{{ code }}').addEventListener('change', function () {
+            const visible = this.checked;
+
+            ['ma5', 'ma20', 'ma60', 'ma120'].forEach(id => {
+                const s = chart.get(id);
+                if (s) s.setVisible(visible, false);
+            });
+
+            });
+
+
+        document.getElementById('toggle-ema26-{{ code }}').addEventListener('change', function () {
+            const visible = this.checked;
+            const s = chart.get('ema26');
+            if (s) s.setVisible(visible, false);
+            chart.redraw();
+        });
+
+
+
+
+        const bbCheckbox = document.getElementById('toggle-bb-' + code);
+        bbCheckbox.addEventListener('change', () => {
+            chart.get('bb').setVisible(bbCheckbox.checked);
+        });
+
+        const ikhCheckbox = document.getElementById('toggle-ikh-' + code);
+        ikhCheckbox.addEventListener('change', () => {
+            chart.get('ikh').setVisible(ikhCheckbox.checked);
+        });
+
+
+
+
+        
+        
+        chart.redraw();
+    }
+
+
+
+    // 체크박스 이벤트
+    if (volumeCheckbox) volumeCheckbox.addEventListener('change', updateOffsets);
+    if (rsiCheckbox) rsiCheckbox.addEventListener('change', updateOffsets);
+    if (macdCheckbox) macdCheckbox.addEventListener('change', updateOffsets);
+    if (supplyCheckbox) supplyCheckbox.addEventListener('change', updateOffsets);        
+    if (navigatorCheckbox) navigatorCheckbox.addEventListener('change', updateOffsets);
+
+
+    
+    updateOffsets();   // 초기 적용
+
+
+})();
+
+
+</script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
