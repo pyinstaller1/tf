@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>Knowledge System v3.0</title>
+    <style>
+        :root { --bright-blue: #007bff; --light-blue: #e7f1ff; --dark-blue: #0056b3; --text: #334155; --bg: #f8fafc; }
+        body { font-family: 'Segoe UI', 'Malgun Gothic', sans-serif; background: var(--bg); margin: 0; padding: 20px; color: var(--text); }
+        .wrap { max-width: 1250px; margin: 0 auto; background: #fff; padding: 30px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,123,255,0.1); border-top: 6px solid var(--bright-blue); min-height: 650px; display: flex; flex-direction: column; }
+        
+        h2 { text-align: center; color: var(--bright-blue); font-size: 24px; letter-spacing: 2px; margin-bottom: 10px; }
+
+        /* UI 컴포넌트 */
+        input, textarea { width: 100%; border: 2px solid var(--bright-blue); border-radius: 8px; font-size: 15px; outline: none; background: #fff; box-sizing: border-box; }
+        input { padding: 12px 20px; color: var(--bright-blue); font-weight: bold; }
+        .search-area { margin-bottom: 15px; }
+        .btn-group { display: flex; gap: 8px; margin-bottom: 25px; }
+        button { flex: 1; padding: 10px; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 13px; transition: 0.2s; border: none; }
+        .btn-p { background: var(--bright-blue); color: white; }
+        .btn-p:hover { background: var(--dark-blue); }
+        .btn-outline { border: 1.5px solid var(--bright-blue); background: white; color: var(--bright-blue); }
+        .btn-outline.active { background: var(--light-blue); }
+
+        /* 탭 시스템 */
+        .tabs { display: flex; gap: 5px; margin-bottom: 20px; border-bottom: 2px solid var(--light-blue); }
+        .tab-btn { flex: none; padding: 10px 25px; background: #f1f5f9; border-radius: 8px 8px 0 0; color: #64748b; font-size: 14px; }
+        .tab-btn.active { background: var(--bright-blue); color: white; }
+        .tab-content { display: none; padding: 20px; border: 1px solid #edf2f7; border-top: none; border-radius: 0 0 10px 10px; }
+        .tab-content.active { display: block; animation: fadeIn 0.3s; }
+
+        /* 폼 스타일 */
+        .form-row { margin-bottom: 15px; }
+        .form-row label { display: block; font-size: 13px; font-weight: bold; color: var(--dark-blue); margin-bottom: 5px; }
+
+        /* 5단 그리드 */
+        .grid-view { display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; }
+        .grid-item { padding: 8px 10px; background: #fff; border: 1px solid #dee2e6; border-left: 3px solid var(--bright-blue); border-radius: 4px; font-size: 12px; color: var(--dark-blue); font-weight: bold; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; cursor: pointer; }
+        .grid-item span { color: #8a94a6; font-size: 10px; font-weight: normal; margin-left: 4px; }
+        .grid-item:hover { background: var(--bright-blue); color: white; }
+
+        .card { padding: 25px; border-radius: 10px; background: #fff; border: 1px solid #edf2f7; margin-bottom: 15px; animation: slideUp 0.3s; }
+        .ko { font-size: 20px; font-weight: 800; color: var(--bright-blue); border-bottom: 2px solid var(--light-blue); padding-bottom: 10px; }
+        .en { color: #adb5bd; margin-left: 10px; font-size: 14px; font-weight: normal; }
+        .content { font-size: 15px; color: #4a5568; margin-top: 15px; line-height: 1.7; white-space: pre-wrap; }
+
+        .page { display: none; } .active { display: block; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        @keyframes slideUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        .footer { margin-top: auto; padding-top: 30px; text-align: center; font-size: 11px; color: #cbd5e0; font-weight: bold; }
+    </style>
+</head>
+<body>
+
+<div class="wrap">
+    <div id="u" class="page active">
+        <h2>CENTRAL KNOWLEDGE BASE</h2>
+        <div class="search-area"><input type="text" id="s" placeholder="검색어를 입력하세요..." oninput="handleSearch()" autofocus></div>
+        <div class="btn-group">
+            <button id="toggleBtn" class="btn-outline" onclick="toggleAll()">OPEN CATALOG (5-COL)</button>
+            <button class="btn-p" onclick="go('a')">DB ADMIN</button>
+        </div>
+        <div id="l"></div>
+        <div class="footer">STRICT INTEGRITY: word.html mode</div>
+    </div>
+
+    <div id="a" class="page">
+        <h3 style="color:var(--bright-blue); margin-bottom: 20px;">DB MANAGEMENT</h3>
+        
+        <div class="tabs">
+            <button class="tab-btn active" onclick="openTab('t-single')">단일 등록</button>
+            <button class="tab-btn" onclick="openTab('t-bulk')">대량 등록</button>
+        </div>
+
+        <div id="t-single" class="tab-content active">
+            <div class="form-row"><label>한글명</label><input type="text" id="inKo"></div>
+            <div class="form-row"><label>영문명</label><input type="text" id="inEn"></div>
+            <div class="form-row"><label>내용</label><textarea id="inContent" rows="3" style="padding:12px;"></textarea></div>
+            <button class="btn-p" style="width:100%; padding:15px;" onclick="addSingle()">단일 데이터 저장</button>
+        </div>
+
+        <div id="t-bulk" class="tab-content">
+            <p style="font-size:12px; color:#6c757d; margin-bottom:10px;"># 한글명 (영문명) 내용... 형식으로 입력하세요.</p>
+            <textarea id="bulkText" rows="12" style="padding:15px; font-family: monospace; font-size:13px; margin-bottom:15px;"></textarea>
+            <button class="btn-p" style="width:100%; padding:15px;" onclick="parseBulk()">대량 데이터 저장</button>
+        </div>
+
+        <button class="btn-outline" style="width:100%; margin-top:20px;" onclick="go('u')">EXIT TO MAIN</button>
+    </div>
+</div>
+
+<script id="mainScript">
+    // [DATA_START]
+    let db = [
+        {"ko":"가용성","en":"Availability","content":"사용자가 필요할 때 즉시 서비스를 이용할 수 있는 상태입니다."},
+
+        {"ko":"가용성7","en":"Availability7","content":"사용자가 필요할 때 즉시 서비스를 이용할 수 있는 상태입니다."},
+
+        
+    ];
+    // [DATA_END]
+
+    let isShowingAll = false;
+
+    // 탭 전환 로직
+    function openTab(tabId) {
+        document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+        document.getElementById(tabId).classList.add('active');
+        event.currentTarget.classList.add('active');
+    }
+
+    // 중복 체크 로직 (상세 로그용 리턴 포함)
+    function isDuplicate(ko, en) {
+        const cKo = ko.replace(/\s+/g, '').toLowerCase();
+        const cEn = (en || "").replace(/\s+/g, '').toLowerCase();
+        return db.some(i => i.ko.replace(/\s+/g, '').toLowerCase() === cKo || (cEn !== "" && (i.en || "").replace(/\s+/g, '').toLowerCase() === cEn));
+    }
+
+    // 단일 추가
+    function addSingle() {
+        const ko = document.getElementById('inKo').value.trim();
+        const en = document.getElementById('inEn').value.trim();
+        const content = document.getElementById('inContent').value.trim();
+        if(!ko || !content) { alert("한글명과 내용은 필수입니다."); return; }
+        if(isDuplicate(ko, en)) { alert(`중복 오류: [${ko}${en?` (${en})`:''}]은(는) 이미 존재합니다.`); }
+        else { db.push({ ko, en, content }); saveSelf(); alert("성공적으로 저장되었습니다."); }
+    }
+
+    // 벌크 추가
+    function parseBulk() {
+        const text = document.getElementById('bulkText').value.trim();
+        if(!text) return;
+        const raw = text.split('#').filter(e => e.trim().length > 0);
+        let added = 0; let dups = [];
+        raw.forEach(e => {
+            const clean = e.replace(/\s+/g, ' ').trim();
+            const match = clean.match(/^([^(]+)\(([^)]+)\)(.*)/);
+            let ko, en, content;
+            if(match) { ko = trip(match[1]); en = trip(match[2]); content = match[3].trim(); }
+            else { const p = clean.split(/\s+(.+)/); ko = trip(p[0]); en = ""; content = p[1] ? p[1].trim() : ""; }
+            if(ko && content) {
+                if(!isDuplicate(ko, en)) { db.push({ ko, en, content }); added++; }
+                else { dups.push(`${ko}${en ? ` (${en})` : ''}`); }
+            }
+        });
+        if(added > 0) { saveSelf(); alert(`${added}건 반영!${dups.length>0?`\n\n[중복 제외]\n- ${dups.join('\n- ')}`:''}`); }
+        else { alert(`반영할 새 데이터가 없습니다.\n\n[중복 항목]\n- ${dups.join('\n- ')}`); }
+    }
+
+    // 공용 함수
+    function go(id) { document.querySelectorAll('.page').forEach(p => p.classList.remove('active')); document.getElementById(id).classList.add('active'); }
+    function handleSearch() {
+        const q = document.getElementById('s').value.trim().toLowerCase();
+        const list = document.getElementById('l'); isShowingAll = false; updateBtnState();
+        if(!q) { list.innerHTML = ''; return; }
+        list.classList.remove('grid-view');
+        const f = db.filter(i => i.ko.includes(q) || (i.en && i.en.toLowerCase().includes(q)) || i.content.includes(q));
+        list.innerHTML = f.map(i => `<div class="card"><div class="ko">${i.ko}${i.en ? `<span class="en">(${i.en})</span>` : ''}</div><div class="content">${i.content}</div></div>`).join('');
+
+           
+        /*
+        // handleSearch 함수 내부의 map 부분을 아래와 같이 수정
+        list.innerHTML = f.map(i => `
+            <div class="card">
+                <div class="ko">
+                    ${i.ko}${i.en ? `<span class="en">(${i.en})</span>` : ''}
+                    <div style="float:right;">
+                        <button onclick="editItem('${i.ko}')" style="background:none; color:var(--bright-blue); cursor:pointer; font-size:12px; border:none;">[수정]</button>
+                        <button onclick="deleteItem('${i.ko}')" style="background:none; color:red; cursor:pointer; font-size:12px; border:none;">[삭제]</button>
+                    </div>
+                </div>
+                <div class="content">${i.content}</div>
+            </div>
+        `).join(''); */
+
+
+
+
+
+
+
+
+        
+    }
+    function toggleAll() {
+        const list = document.getElementById('l');
+        if (isShowingAll) { list.innerHTML = ''; isShowingAll = false; } 
+        else {
+            document.getElementById('s').value = ''; list.classList.add('grid-view');
+            list.innerHTML = db.map(i => `<div class="grid-item" onclick="viewOne('${i.ko}')">${i.ko}<span>(${i.en})</span></div>`).join('');
+            isShowingAll = true;
+        }
+        updateBtnState();
+    }
+    function updateBtnState() { const btn = document.getElementById('toggleBtn'); btn.innerText = isShowingAll ? "CLOSE CATALOG" : "OPEN CATALOG (5-COL)"; btn.classList.toggle('active', isShowingAll); }
+    function viewOne(name) { document.getElementById('s').value = name; handleSearch(); }
+    function trip(str) { return str ? str.replace(/[#()]/g, "").trim() : ""; }
+    function saveSelf() {
+        db.sort((a,b) => a.ko.localeCompare(b.ko));
+        const html = document.documentElement.outerHTML;
+        const dataRegex = /(\/\/ \[DATA_START\]\s+let db = )[\s\S]*?(\;\s+\/\/ \[DATA_END\])/;
+        const finalHtml = "<!DOCTYPE html>\n<html lang='ko'>" + html.replace(dataRegex, `$1${JSON.stringify(db, null, 4)}$2`) + "</html>";
+        const blob = new Blob([finalHtml], { type: 'text/html' });
+        const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = "word.html"; a.click();
+    }
+
+
+    // 데이터 삭제 함수
+    function deleteItem(ko) {
+        if(!confirm(`'${ko}' 데이터를 삭제하시겠습니까?`)) return;
+        db = db.filter(i => i.ko !== ko); // 해당 항목 제외하고 재구성
+        saveSelf(); // 파일 저장 실행
+        handleSearch(); // 화면 갱신
+    }
+
+    // 데이터 수정 함수 (단일 등록 폼 활용)
+    function editItem(ko) {
+        const item = db.find(i => i.ko === ko);
+        if(!item) return;
+
+        // 관리자 페이지의 입력창에 값 세팅
+        document.getElementById('inKo').value = item.ko;
+        document.getElementById('inEn').value = item.en;
+        document.getElementById('inContent').value = item.content;
+
+        // 데이터 삭제 후 관리자 페이지로 이동 (수정 후 재등록 유도)
+        db = db.filter(i => i.ko !== ko);
+        go('a'); 
+        alert("내용을 수정한 후 '단일 데이터 저장'을 눌러주세요.");
+    }
+
+
+
+    
+</script>
+</body>
+</html>
