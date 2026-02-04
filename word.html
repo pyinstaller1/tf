@@ -2,13 +2,39 @@
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
-    <title>Knowledge System v3.0</title>
+    <title>IT 용어 사전</title>
     <style>
         :root { --bright-blue: #007bff; --light-blue: #e7f1ff; --dark-blue: #0056b3; --text: #334155; --bg: #f8fafc; }
         body { font-family: 'Segoe UI', 'Malgun Gothic', sans-serif; background: var(--bg); margin: 0; padding: 20px; color: var(--text); }
         .wrap { max-width: 1250px; margin: 0 auto; background: #fff; padding: 30px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,123,255,0.1); border-top: 6px solid var(--bright-blue); min-height: 650px; display: flex; flex-direction: column; }
         
         h2 { text-align: center; color: var(--bright-blue); font-size: 24px; letter-spacing: 2px; margin-bottom: 10px; }
+
+        .top-controls { 
+            display: flex; 
+            gap: 10px; 
+            margin: 0 auto 30px auto; 
+            max-width: 500px; /* 전체 너비를 500px로 제한하여 콤팩트함 유지 */
+            align-items: center;
+        }
+
+        .top-controls input { 
+            flex: 1; /* 검색창이 남은 공간을 다 차지함 */
+            height: 45px; 
+            padding: 0 15px;
+            font-size: 14px;
+        } 
+
+        .top-controls button#toggleBtn { 
+            width: 80px; /* 버튼 너비를 100px로 고정 */
+            flex: none; /* 너비 고정을 위해 flex 팽창 방지 */
+            height: 45px; 
+            white-space: nowrap; 
+            padding: 0;
+            font-size: 13px;
+        }
+
+
 
         /* UI 컴포넌트 */
         input, textarea { width: 100%; border: 2px solid var(--bright-blue); border-radius: 8px; font-size: 15px; outline: none; background: #fff; box-sizing: border-box; }
@@ -32,6 +58,7 @@
         .form-row { margin-bottom: 15px; }
         .form-row label { display: block; font-size: 13px; font-weight: bold; color: var(--dark-blue); margin-bottom: 5px; }
 
+
         /* 5단 그리드 */
         .grid-view { display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; }
         .grid-item { padding: 8px 10px; background: #fff; border: 1px solid #dee2e6; border-left: 3px solid var(--bright-blue); border-radius: 4px; font-size: 12px; color: var(--dark-blue); font-weight: bold; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; cursor: pointer; }
@@ -47,44 +74,170 @@
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
         @keyframes slideUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
         .footer { margin-top: auto; padding-top: 30px; text-align: center; font-size: 11px; color: #cbd5e0; font-weight: bold; }
+
+
+        .entry-row {
+            display: flex;
+            gap: 30px; /* 한글 세트와 영문 세트 사이의 여백 */
+            margin-bottom: 20px;
+            justify-content: flex-start; /* 왼쪽 정렬 */
+        }
+
+        .input-group {
+            display: flex;
+            align-items: center;
+            gap: 5px; /* 라벨과 입력칸을 더 바짝 붙임 */
+        }
+
+        .input-group label {
+            white-space: nowrap;
+            font-size: 13px;
+            font-weight: bold;
+            color: var(--dark-blue);
+            width: auto; /* 라벨 길이에 딱 맞춤 */
+        }
+
+        .input-group input {
+            width: 170px; /* [핵심] 입력칸을 짧게 고정 */
+            height: 38px;
+            padding: 0 10px;
+            border: 2px solid var(--bright-blue);
+            border-radius: 6px;
+        }
+
+
+
+
+        /* 버튼들을 가로로 정렬하고 높이를 맞춤 */
+        .form-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+            width: 100%;       /* 부모 너비에 맞춤 */
+            max-width: 500px;  /* 500px로 딱 제한 */
+        }
+
+        .form-actions button {
+            flex: 1;           /* 저장과 복귀 버튼 너비를 1:1로 */
+            height: 48px;      /* 단일 등록 버튼과 동일하게 고정 */
+            font-size: 14px;
+            font-weight: bold;
+            cursor: pointer;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+
+        /* 대량 등록 탭 전체 컨테이너 너비 제한 */
+        #t-bulk {
+            max-width: 500px; /* 가로 너비를 500px로 딱 고정 */
+        }
+
+        /* 입력창 슬림화 */
+        #t-bulk textarea {
+            width: 100%;      /* 부모 너비(500px)에 맞춤 */
+            height: 350px;    /* 높이는 충분히 확보 */
+            border: 2px solid var(--bright-blue);
+            border-radius: 8px;
+            padding: 15px;
+            box-sizing: border-box; /* 패딩이 너비를 침범하지 않게 */
+            resize: none;      /* 크기 조절 방지하여 디자인 유지 */
+        }
+
+        /* 대량 등록 버튼 */
+        #t-bulk .btn-p {
+            width: 100%;
+            padding: 15px;
+            font-size: 15px;
+        }
+
+
+
+       
     </style>
 </head>
 <body>
 
 <div class="wrap">
     <div id="u" class="page active">
-        <h2>CENTRAL KNOWLEDGE BASE</h2>
-        <div class="search-area"><input type="text" id="s" placeholder="검색어를 입력하세요..." oninput="handleSearch()" autofocus></div>
-        <div class="btn-group">
-            <button id="toggleBtn" class="btn-outline" onclick="toggleAll()">OPEN CATALOG (5-COL)</button>
-            <button class="btn-p" onclick="go('a')">DB ADMIN</button>
+        <h2>정보관리실 <span style="color: #555;">IT</span> 용어사전</h2>
+
+        <div class="top-controls">
+            <input type="text" id="s" placeholder="검색어를 입력하세요..." oninput="handleSearch()" autofocus>
+            <button id="toggleBtn" class="btn-outline" onclick="toggleAll()">전체보기</button>
         </div>
+
+
+
+
+
+                  
         <div id="l"></div>
-        <div class="footer">STRICT INTEGRITY: word.html mode</div>
+
+        <div class="footer">
+            <span onclick="go('a')" style="cursor:pointer; opacity: 0.5;">용어 등록</span>
+        </div>
+
+
+
+
+
+                  
     </div>
 
     <div id="a" class="page">
-        <h3 style="color:var(--bright-blue); margin-bottom: 20px;">DB MANAGEMENT</h3>
+        <h3 style="color:var(--bright-blue); margin-bottom: 20px;">용어 등록</h3>
         
         <div class="tabs">
             <button class="tab-btn active" onclick="openTab('t-single')">단일 등록</button>
             <button class="tab-btn" onclick="openTab('t-bulk')">대량 등록</button>
         </div>
 
+
         <div id="t-single" class="tab-content active">
-            <div class="form-row"><label>한글명</label><input type="text" id="inKo"></div>
-            <div class="form-row"><label>영문명</label><input type="text" id="inEn"></div>
-            <div class="form-row"><label>내용</label><textarea id="inContent" rows="3" style="padding:12px;"></textarea></div>
-            <button class="btn-p" style="width:100%; padding:15px;" onclick="addSingle()">단일 데이터 저장</button>
+            <div class="entry-row">
+                <div class="input-group">
+                    <label>한글명</label>
+                    <input type="text" id="inKo">
+                </div>
+                <div class="input-group">
+                    <label>영문명</label>
+                    <input type="text" id="inEn">
+                </div>
+            </div>
+            
+            <div class="form-row">
+                <label>내용</label>
+                <textarea id="inContent" rows="10" style="width:100%; max-width:500px;"></textarea>
+            </div>
+            
+            <div class="form-actions">
+                <button class="btn-p" onclick="addSingle()">저장</button>
+                <button class="btn-outline" onclick="go('u')">검색 화면 복귀</button>
+            </div>
         </div>
+
+
+
+
 
         <div id="t-bulk" class="tab-content">
-            <p style="font-size:12px; color:#6c757d; margin-bottom:10px;"># 한글명 (영문명) 내용... 형식으로 입력하세요.</p>
-            <textarea id="bulkText" rows="12" style="padding:15px; font-family: monospace; font-size:13px; margin-bottom:15px;"></textarea>
-            <button class="btn-p" style="width:100%; padding:15px;" onclick="parseBulk()">대량 데이터 저장</button>
+            <p style="font-size:12px; color:#6c757d; margin: 0 0 10px 5px;">
+                # 한글명 (영문명) 내용... 형식으로 입력
+            </p>
+            
+            <textarea id="bulkText" style="width:100%; max-width:500px; height:300px; display: block;" placeholder="# 단어 (English) 설명..."></textarea>
+
+            <div class="form-actions">
+                <button class="btn-p" onclick="parseBulk()">저장</button>
+                <button class="btn-outline" onclick="go('u')" style="border: 1.5px solid var(--bright-blue); background: white; color: var(--bright-blue);">검색 화면 복귀</button>
+            </div>
         </div>
 
-        <button class="btn-outline" style="width:100%; margin-top:20px;" onclick="go('u')">EXIT TO MAIN</button>
+                          
+
     </div>
 </div>
 
@@ -192,17 +345,32 @@
         }
         updateBtnState();
     }
-    function updateBtnState() { const btn = document.getElementById('toggleBtn'); btn.innerText = isShowingAll ? "CLOSE CATALOG" : "OPEN CATALOG (5-COL)"; btn.classList.toggle('active', isShowingAll); }
+    function updateBtnState() { const btn = document.getElementById('toggleBtn'); btn.innerText = isShowingAll ? "전체보기 닫기" : "전체보기"; btn.classList.toggle('active', isShowingAll); }
     function viewOne(name) { document.getElementById('s').value = name; handleSearch(); }
     function trip(str) { return str ? str.replace(/[#()]/g, "").trim() : ""; }
+
+
+
+
     function saveSelf() {
+        go('u'); 
+
         db.sort((a,b) => a.ko.localeCompare(b.ko));
-        const html = document.documentElement.outerHTML;
-        const dataRegex = /(\/\/ \[DATA_START\]\s+let db = )[\s\S]*?(\;\s+\/\/ \[DATA_END\])/;
-        const finalHtml = "<!DOCTYPE html>\n<html lang='ko'>" + html.replace(dataRegex, `$1${JSON.stringify(db, null, 4)}$2`) + "</html>";
-        const blob = new Blob([finalHtml], { type: 'text/html' });
-        const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = "word.html"; a.click();
+        
+        // 현재 DOM 상태를 가져오기 전에 화면 전환이 반영되도록 처리
+        setTimeout(() => {
+            const html = document.documentElement.outerHTML;
+            const dataRegex = /(\/\/ \[DATA_START\]\s+let db = )[\s\S]*?(\;\s+\/\/ \[DATA_END\])/;
+            const finalHtml = "<!DOCTYPE html>\n<html lang='ko'>" + html.replace(dataRegex, `$1${JSON.stringify(db, null, 4)}$2`) + "</html>";
+            const blob = new Blob([finalHtml], { type: 'text/html' });
+            const a = document.createElement('a'); 
+            a.href = URL.createObjectURL(blob); 
+            a.download = "word.html"; 
+            a.click();
+        }, 100); // 아주 짧은 딜레이를 주어 안정적으로 메인 화면 상태를 캡처
     }
+
+
 
 
     // 데이터 삭제 함수
