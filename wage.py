@@ -1,4 +1,5 @@
 import sys
+import PyQt5
 from PyQt5.QtWidgets import *
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QFont, QCursor
@@ -26,61 +27,11 @@ import os
 import json
 from datetime import datetime
 import pyperclip
+import re
 
 
 
 
-# --- 1. 파란색 하이라이트 전용 메뉴 클래스 ---
-class CustomMenu(QDialog):
-    def __init__(self, parent=None):
-        super().__init__(parent)
-        # 테두리 없고 최상단 팝업 설정
-        self.setWindowFlags(Qt.Popup | Qt.FramelessWindowHint)
-        
-        # QPushButton:hover를 이용해 파란 배경 강제 적용
-        self.setStyleSheet("""
-            QDialog { 
-                background-color: white; 
-                border: 1px solid #888888; 
-            }
-            QPushButton { 
-                border: none; 
-                text-align: left; 
-                padding: 8px 25px; 
-                background-color: white; 
-                color: black;
-            }
-            QPushButton:hover { 
-                background-color: #0078d7; 
-                color: white; 
-            }
-        """)
-        
-        layout = QVBoxLayout(self)
-        layout.setContentsMargins(1, 1, 1, 1)
-        layout.setSpacing(0)
-
-        # 메뉴 버튼 (참조하신 스타일 유지)
-        self.btn_copy = QPushButton("복사 (Ctrl+C)")
-        self.btn_paste = QPushButton("붙여넣기 (Ctrl+V)")
-        
-        layout.addWidget(self.btn_copy)
-        layout.addWidget(self.btn_paste)
-
-        # 클릭 시 메뉴 닫기 (결과값 반환)
-        self.btn_copy.clicked.connect(self.accept)
-        self.btn_paste.clicked.connect(self.reject)
-
-
-
-
-
-
-import sys
-from PyQt5.QtWidgets import (QApplication, QDialog, QVBoxLayout, 
-                             QTextEdit, QPushButton)
-from PyQt5.QtCore import Qt
-from PyQt5.QtGui import QFont, QCursor
 
 # --- 1. 파란색 하이라이트 커스텀 메뉴 (우클릭용) ---
 class CustomMenu(QDialog):
@@ -114,6 +65,7 @@ class CustomMenu(QDialog):
 class VerificationResultWindow(QDialog):
     def __init__(self, parent=None):
         super().__init__(parent)
+
         self.setWindowTitle("검증 결과")
         self.resize(1500, 880)
         
@@ -285,29 +237,15 @@ class MainWindow(QMainWindow):
         
         widget = QWidget()
         self.setCentralWidget(widget)
-        layout = QVBoxLayout(widget)
-        layout.setContentsMargins(10, 5, 10, 5)
+        self.layout = QVBoxLayout(widget)
+        self.layout.setContentsMargins(10, 5, 10, 5)
 
         # 1. 상단 버튼바 (간격 최소화: spacing=2)
         nav_layout = QHBoxLayout()
         nav_layout.setSpacing(2) # 버튼 사이 간격을 2픽셀로 고정
-        layout.addLayout(nav_layout)
+        self.layout.addLayout(nav_layout)
         
 
-
-        # 엑셀 버튼
-        '''
-        btn_excel = QPushButton("Excel 내보내기")
-        btn_excel.setStyleSheet("""
-            QPushButton {
-                background-color: #217346; color: white; border-radius: 2px;
-                padding: 3px 12px; font-weight: bold;
-            }
-            QPushButton:hover { background-color: #1a5a37; }
-        """)
-        nav_layout.addWidget(btn_excel)
-        layout.addLayout(nav_layout)
-        '''
 
         # 2. 하단 시트 탭
         self.tabs = QTabWidget()
@@ -331,90 +269,6 @@ class MainWindow(QMainWindow):
         color: #000;
     }
 """)
-
-
-        sheet_names = {
-            1: "(2)인건비집계", 2: "(3)총인건비인상률", 3: "(3-1)증원소요인건비", 4: "(3-2)직급별평균인원", 5: "(3-3)근속및증원", 
-            6: "나.근속승진", 7: "다.증원", 8: "(3-4)직급별단가", 9: "(3-6)초임직급", 10: "나.인건비효과",
-            11: "(3-5)가.별도직군", 12: "(3-5)나.인원", 13: "(3-5)다.미승진자", 14: "(3-5)라.인건비효과",
-            15: "(4)노동생산성", 16: "(6)일반관리비", 17: "4.총보수", 18: "직무급"
-        }
-        
-        
-        # 각 번호에 맞는 시트 클래스를 연결
-        for i in range(1, 19):
-
-            if i == 1:
-                self.s1 = Sheet1Page()
-                page = self.s1
-            elif i == 2:
-                self.s2 = Sheet2Page()
-                page = self.s2
-            elif i == 3:
-                self.s3 = Sheet3Page()
-                page = self.s3
-            elif i == 4:
-                self.s4 = Sheet4Page(self)
-                page = self.s4
-            elif i == 5:
-                self.s5 = Sheet5Page()
-                page = self.s5
-            elif i == 6:
-                self.s6 = Sheet6Page()
-                page = self.s6
-            elif i == 7:
-                self.s7 = Sheet7Page()
-                page = self.s7
-            elif i == 8:
-                self.s8 = Sheet8Page()
-                page = self.s8
-            elif i == 9:
-                self.s9 = Sheet9Page(self)
-                page = self.s9
-            elif i == 10:
-                self.s10 = Sheet10Page()
-                page = self.s10
-            elif i == 11:
-                self.s11 = Sheet11Page()
-                page = self.s11
-            elif i == 12:
-                self.s12 = Sheet12Page()
-                page = self.s12
-            elif i == 13:
-                self.s13 = Sheet13Page()
-                page = self.s13
-            elif i == 14:
-                self.s14 = Sheet14Page()
-                page = self.s14
-            elif i == 15:
-                self.s15 = Sheet15Page()
-                page = self.s15
-            elif i == 16:
-                self.s16 = Sheet16Page()
-                page = self.s16
-            elif i == 17:
-                self.s17 = Sheet17Page()
-                page = self.s17
-            elif i == 18:
-                self.s18 = Sheet18Page()
-                page = self.s18
-            else:
-                page = QWidget() # 나머지는 아직 빈 페이지
-
-
-
-
-
-
-                
-                
-            # self.tabs.addTab(page, f"Sheet{i}")
-            self.tabs.addTab(page, sheet_names.get(i, f"Sheet{i}"))
-
-
-        self.tabs.setCurrentIndex(0)
-        layout.addWidget(self.tabs)
-
 
 
         btn_style = """
@@ -476,14 +330,6 @@ class MainWindow(QMainWindow):
         # 주변 레이아웃에 영향을 주지 않도록 높이 고정 (선택 사항)
         btn_verify.setFixedHeight(32)
 
-
-
-
-
-
-
-
-        
         nav_layout.addWidget(btn_verify)
         self.btns["검증"] = btn_verify
 
@@ -491,20 +337,164 @@ class MainWindow(QMainWindow):
         self.btns["검증"].clicked.connect(self.run_verification)
 
 
+        self.run_verification()
+
+
+
+    def init_sheet(self):
+
+
+        global company, year, list_years2, list_years3, check_3_5, check_3_6, check_4
+
+        
+        self.tabs.clear()
+        
+        sheet_names = {
+            1: "(2)인건비집계", 2: "(3)총인건비인상률", 3: "(3-1)증원소요인건비", 4: "(3-2)직급별평균인원", 5: "(3-3)가.정원및현원", 
+            6: "(3-3)나.근속승진", 7: "(3-3)다.증원", 8: "(3-4)직급별단가", 9: "(3-6)가.초임정원", 10: "(3-6)나.인건비효과",
+            11: "(3-5)가.별도직군", 12: "(3-5)나.인원", 13: "(3-5)다.미승진자", 14: "(3-5)라.인건비효과",
+            15: "(4)노동생산성", 16: "(6)일반관리비", 17: "4.총보수", 18: "4.기준보수"
+        }
+
+
+
+
+
+        
+
+        # 각 번호에 맞는 시트 클래스를 연결
+        for i in range(1, 19):
+
+            page = None
+
+            if i == 1:
+                self.s1 = Sheet1Page(company, year, list_years2, list_years3, check_3_5, check_3_6, check_4)
+                page = self.s1
+            elif i == 2:
+                self.s2 = Sheet2Page(company, year, list_years2, list_years3, check_3_5, check_3_6, check_4)
+                page = self.s2
+            elif i == 3:
+                self.s3 = Sheet3Page(self)
+                page = self.s3
+            elif i == 4:
+                self.s4 = Sheet4Page(self)
+                page = self.s4
+            elif i == 5:
+                self.s5 = Sheet5Page(self)
+                page = self.s5
+            elif i == 6:
+                self.s6 = Sheet6Page(self)
+                page = self.s6
+            elif i == 7:
+                self.s7 = Sheet7Page(self)
+                page = self.s7
+            elif i == 8:
+                self.s8 = Sheet8Page(self)
+                page = self.s8
+
+
+            elif i == 9 and check_3_6:
+                self.s9 = Sheet9Page(self)
+                page = self.s9
+            elif i == 10 and check_3_6:
+                self.s10 = Sheet10Page(self)
+                page = self.s10
+
+
+            elif i == 11 and check_3_5:
+                self.s11 = Sheet11Page(self)
+                page = self.s11
+            elif i == 12 and check_3_5:
+                self.s12 = Sheet12Page(self)
+                page = self.s12
+            elif i == 13 and check_3_5:
+                self.s13 = Sheet13Page(self)
+                page = self.s13
+            elif i == 14 and check_3_5:
+                self.s14 = Sheet14Page(self)
+                page = self.s14
+
+
+            # elif i == 15:
+            #    self.s15 = Sheet15Page(self)
+            #    page = self.s15
+            # elif i == 16:
+            #   self.s16 = Sheet16Page(self)
+            #   page = self.s16
+            
+
+            elif i == 17 and check_4:
+                self.s17 = Sheet17Page(self)
+                page = self.s17
+            elif i == 18 and check_4:
+                self.s18 = Sheet18Page(self)
+                page = self.s18
+
+            '''   
+            else:
+                page = QWidget() # 나머지는 아직 빈 페이지
+            '''
+
+            if page:
+                self.tabs.addTab(page, sheet_names.get(i, f"Sheet{i}"))
 
 
 
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+            
+
+
+
+
+
+
+
+
+
+
+
+        self.tabs.setCurrentIndex(0)
+        self.layout.addWidget(self.tabs)
 
 
         self.s5.table.itemChanged.connect(lambda: self.s6.sync_from_s5(self.s5.get_data_for_s6()))
         self.s6.table.itemChanged.connect(lambda: self.s7.sync_s7_data(self.s4.get_data_to7(), self.s6.get_data_to7()))
-
-
-        
-        
 
 
         def on_s4_changed():
@@ -515,11 +505,12 @@ class MainWindow(QMainWindow):
             # S3(갑) 업데이트
             self.s3.sync_unit_price_from_s8(self.s8.get_unit_price_to3())
             self.s2.sync_from_s3(self.s3.get_gab_to_s2())
-            
-            # S10(을) 업데이트 및 S2 전송
-            self.s10.sync_unit_price_from_s8(self.s8.get_unit_price_to10())
-            self.s10.calculate_s10()
-            self.s2.sync_eul_from_s10(self.s10.get_eul_to_s2())
+
+            if check_3_6:
+                # S10(을) 업데이트 및 S2 전송
+                self.s10.sync_unit_price_from_s8(self.s8.get_unit_price_to10())
+                self.s10.calculate_s10()
+                self.s2.sync_eul_from_s10(self.s10.get_eul_to_s2())
 
         # 기존의 단순 s8.sync_from_s4 연결을 위 함수로 교체
         self.s4.table.itemChanged.connect(on_s4_changed)
@@ -536,12 +527,7 @@ class MainWindow(QMainWindow):
             self.s2.sync_from_s3(self.s3.get_gab_to_s2())
         ])
 
-        # --- [2] S9(데이터) -> S10 -> S2 (을 전송) ---
-        self.s9.table.itemChanged.connect(lambda: [
-            self.s10.sync_from_s9(self.s9.get_data_to10()),
-            self.s10.calculate_s10(), 
-            self.s2.sync_eul_from_s10(self.s10.get_eul_to_s2())
-        ])
+
 
         # --- [3] S8(단가)은 S3(갑)와 S10(을) 모두에 영향을 주므로 통합 처리 ---
         def on_s8_changed(item):
@@ -550,11 +536,13 @@ class MainWindow(QMainWindow):
                 # 1. S3(갑) 업데이트 및 S2 전송
                 self.s3.sync_unit_price_from_s8(self.s8.get_unit_price_to3())
                 self.s2.sync_from_s3(self.s3.get_gab_to_s2())
-                
-                # 2. S10(을) 업데이트 및 S2 전송
-                self.s10.sync_unit_price_from_s8(self.s8.get_unit_price_to10())
-                self.s10.calculate_s10()
-                self.s2.sync_eul_from_s10(self.s10.get_eul_to_s2())
+
+
+                if check_3_6:                
+                    # 2. S10(을) 업데이트 및 S2 전송
+                    self.s10.sync_unit_price_from_s8(self.s8.get_unit_price_to10())
+                    self.s10.calculate_s10()
+                    self.s2.sync_eul_from_s10(self.s10.get_eul_to_s2())
 
         self.s8.table.itemChanged.connect(on_s8_changed)
 
@@ -563,13 +551,24 @@ class MainWindow(QMainWindow):
         self.s1.table.itemChanged.connect(lambda: self.s2.sync_from_s1(self.s1.get_data_to_s2()))
         
         self.s3.table.itemChanged.connect(lambda item: self.s2.sync_from_s3(self.s3.get_gab_to_s2()))
-        self.s10.table.itemChanged.connect(lambda item: self.s2.sync_eul_from_s10(self.s10.get_eul_to_s2()))
-
-
-        self.run_verification()
 
 
 
+
+        if check_3_6:
+            self.s10.table.itemChanged.connect(lambda item: self.s2.sync_eul_from_s10(self.s10.get_eul_to_s2()))
+
+            # --- [2] S9(데이터) -> S10 -> S2 (을 전송) ---
+            self.s9.table.itemChanged.connect(lambda: [
+                self.s10.sync_from_s9(self.s9.get_data_to10()),
+                self.s10.calculate_s10(), 
+                self.s2.sync_eul_from_s10(self.s10.get_eul_to_s2())
+            ])
+
+
+
+
+        
 
 
 
@@ -625,6 +624,14 @@ class MainWindow(QMainWindow):
             if not path: return
 
         try:
+            rank_count_03 = len(list(self.list_title_03))
+            rank_count_04 = len(list(self.list_title_04))
+            rank_count_05 = len(list(self.list_title_05))
+            rank_count_06 = len(list(self.list_title_06))
+            rank_count_07 = len(list(self.list_title_07))
+            rank_count_08 = len(list(self.list_title_08))
+            rank_count_09 = len(list(self.list_title_09))
+            rank_count_10 = len(list(self.list_title_10))
 
             if data != 'excel_input':
                 with open(path, 'r', encoding='utf-8') as f:
@@ -633,7 +640,7 @@ class MainWindow(QMainWindow):
                 pass
 
             if 1==1:
-
+                
                 for i in range(self.tabs.count()):
 
 
@@ -698,7 +705,8 @@ class MainWindow(QMainWindow):
                         
                         if calc_func.__name__ == "calculate_s3":
                             # 3번 시트 데이터 행: 표1(0~7), 표2(11~18)
-                            active_rows = list(range(0, 8)) + list(range(11, 19))
+                            # active_rows = list(range(0, 8)) + list(range(11, 19))
+                            active_rows = list(range(0, rank_count_03)) + list(range((rank_count_03+3), (rank_count_03*2)+3))
                             
                             # 1. 모든 데이터 행의 가로 평균(14열) 계산 (행 순회)
                             for r in active_rows:
@@ -713,16 +721,16 @@ class MainWindow(QMainWindow):
                             for c in range(2, 15):
                                 # 표1의 마지막 데이터(7행)와 표2의 마지막 데이터(18행)를 찔러서
                                 # 하단의 '계' 행이 현재 채워진 모든 가로 데이터를 합산하게 만듦
-                                t1, t2 = table.item(7, c), table.item(18, c)
+                                t1, t2 = table.item(rank_count_03-1, c), table.item((rank_count_03*2)+2, c)
                                 try:
                                     if t1: calc_func(t1)
                                     if t2: calc_func(t2)
                                 except: pass
 
                         elif calc_func.__name__ == "calculate_s4":
-                            s4_rank = 8 
+                            
                             # 데이터 행만 순회 (0~6, 11~17)
-                            active_rows = list(range(0, s4_rank - 1)) + list(range(s4_rank + 3, s4_rank + 3 + s4_rank - 1))
+                            active_rows = list(range(0, len(self.list_title_04) - 1)) + list(range(len(self.list_title_04) + 3, len(self.list_title_04) + 3 + len(self.list_title_04) - 1))
                             
                             for r in active_rows:
                                 # r이 현재 테이블의 행 수보다 적은지 확인하는 안전장치
@@ -735,25 +743,23 @@ class MainWindow(QMainWindow):
                             # 세로 합계 트리거
                             for c in range(2, 14):
                                 # 전년도(0행), 당년도(11행) 기준
-                                for base_r in [0, s4_rank + 3]:
+                                for base_r in [0, len(self.list_title_04) + 3]:
                                     if base_r < table.rowCount():
                                         trigger_it = table.item(base_r, c)
                                         if trigger_it:
                                             try: calc_func(trigger_it)
                                             except: pass
 
-                            self.s8.sync_from_s4(self.s4.get_avg_data_to8())                                
+                            self.s8.sync_from_s4(self.s4.get_avg_data_to8())
 
 
 
 
                         elif calc_func.__name__ == "calculate_s5":
-                            # rank_count = 8 기준 (0~7행 데이터, 8행 계 / 11~18행 데이터, 19행 계)
-                            s5_rank = 8 
                             
                             # 1. 누적차 및 합계 트리거링할 행 (각 표의 첫 번째 데이터 행만 찔러도 전체 계산됨)
                             # 하지만 안전하게 데이터가 있는 첫 행인 0행과 11행만 사용
-                            rows_to_trigger = [0, s5_rank + 3] # [0, 11]
+                            rows_to_trigger = [0, len(self.list_title_05) + 3] # [0, 11]
                             
                             # 2. 각 월의 시작 열 (정원 열: 2, 6, 10, 14, 18, 22)
                             month_cols = [2, 6, 10, 14, 18, 22] 
@@ -775,20 +781,16 @@ class MainWindow(QMainWindow):
 
 
 
-
-
-
-
-
-
-
-                        elif calc_func.__name__ in ["calculate_s7", "calculate_s8"]:
+                        elif calc_func.__name__ in ["calculate_s7"]:
                         # elif "s7" in sheet_name or "s8" in sheet_name:
                             # 7번 시트 특성: 1~12월 데이터를 기반으로 14열(평균)과 8행/19행(합계) 계산
                             # 표 1: 0~7행 데이터, 8행 합계 / 표 2: 11~18행 데이터, 19행 합계
                             
                             # 1. 모든 데이터 행에 대해 '가로 평균' 계산 트리거
-                            active_rows = list(range(0, 8)) + list(range(11, 19))
+                            # active_rows = list(range(0, 8)) + list(range(11, 19))
+                            active_rows = list(range(0, rank_count_07)) + list(range((rank_count_07+3), (rank_count_07*2)+3))
+
+                            
                             for r in active_rows:
                                 # 2열(1월) 아이템을 던져서 해당 행의 가로 평균(14열)을 계산하게 함
                                 trigger = table.item(r, 2)
@@ -806,7 +808,44 @@ class MainWindow(QMainWindow):
                                     except: pass
                                 
                                 # 표 2 합계 트리거 (11행의 셀을 던짐)
-                                t2 = table.item(11, c)
+                                # t2 = table.item(11, c)
+                                t2 = table.item(rank_count_07+3, c)
+
+                                if t2:
+                                    try: calc_func(t2)
+                                    except: pass
+
+
+
+
+                        elif calc_func.__name__ in ["calculate_s8"]:
+                        # elif "s7" in sheet_name or "s8" in sheet_name:
+                            # 7번 시트 특성: 1~12월 데이터를 기반으로 14열(평균)과 8행/19행(합계) 계산
+                            # 표 1: 0~7행 데이터, 8행 합계 / 표 2: 11~18행 데이터, 19행 합계
+                            
+                            # 1. 모든 데이터 행에 대해 '가로 평균' 계산 트리거
+                            # active_rows = list(range(0, 8)) + list(range(11, 19))
+                            active_rows = list(range(0, rank_count_08)) + list(range((rank_count_08+3), (rank_count_08*2)+3))
+
+                            
+                            for r in active_rows:
+                                # 2열(1월) 아이템을 던져서 해당 행의 가로 평균(14열)을 계산하게 함
+                                trigger = table.item(r, 2)
+                                if trigger:
+                                    try: calc_func(trigger)
+                                    except: pass
+
+                            # 2. 모든 열(1월~평균열)에 대해 '세로 합계' 계산 트리거
+                            # 2열(1월)부터 14열(평균)까지
+                            for c in range(2, 15):
+                                # 표 1 합계 트리거 (0행의 셀을 던짐)
+                                t1 = table.item(0, c)
+                                if t1:
+                                    try: calc_func(t1)
+                                    except: pass
+                                
+                                # 표 2 합계 트리거 (11행의 셀을 던짐)
+                                t2 = table.item(rank_count_08+3, c)
                                 if t2:
                                     try: calc_func(t2)
                                     except: pass
@@ -821,16 +860,13 @@ class MainWindow(QMainWindow):
 
 
 
-
-
-
-
                                     
 
                         elif calc_func.__name__ == "calculate_s9":
                             # 데이터 행: 표1(0~7), 표2(11~18)
-                            active_rows = list(range(0, 8)) + list(range(11, 19))
-                            
+                            # active_rows = list(range(0, 8)) + list(range(11, 19))
+                            active_rows = list(range(0, rank_count_09)) + list(range((rank_count_09+3), (rank_count_09*2)+3))
+
                             # 1. 모든 데이터 행의 가로 평균(14열)부터 먼저 계산 (행 순회)
                             for r in active_rows:
                                 # 1월(2열) 데이터를 트리거로 던져서 해당 행의 평균을 먼저 뽑음
@@ -843,7 +879,7 @@ class MainWindow(QMainWindow):
                             # 1월(2열)부터 평균열(14열)까지 전체 순회
                             for c in range(2, 15):
                                 # 상반기(8행)와 하반기(19행) 합계를 위해 데이터 끝 행인 7행과 18행을 트리거
-                                t1, t2 = table.item(7, c), table.item(18, c)
+                                t1, t2 = table.item(rank_count_09-1, c), table.item((rank_count_09*2)+2, c)
                                 try:
                                     if t1: calc_func(t1)
                                     if t2: calc_func(t2)
@@ -859,7 +895,7 @@ class MainWindow(QMainWindow):
 
                         elif calc_func.__name__ == "calculate_s10":
                             # 1. 가로 연산 (증감C, 효과E) 및 기본 합계 트리거
-                            for r in range(8):
+                            for r in range(rank_count_10):
                                 # 2열(개편)을 찔러서 가로 연산을 먼저 끝냄
                                 trigger_main = table.item(r, 2)
                                 if trigger_main:
@@ -915,6 +951,47 @@ class MainWindow(QMainWindow):
 
 
 
+    def notice(self, title='로봇 작업'):
+        import tkinter as tk
+        
+        root = tk.Tk()
+
+        root.overrideredirect(True)   # 타이틀바 없애기
+
+        screenwidth = root.winfo_screenwidth()
+        screenheight = root.winfo_screenheight()
+
+        window_width = int(screenwidth / 1.0)
+        window_height = int(screenheight / 1.0)   # 2.5
+        
+        position_top = int(screenheight / 2 - window_height / 2)
+        position_right = int(screenwidth / 2 - window_width / 2)
+
+        root.geometry(f'{window_width}x{window_height}+{position_right}+{position_top}')
+
+        root.config(bg='white')  # 배경 흰색
+
+        label = tk.Label(root, text=title, font=("Helvetica", 145, "bold"), bg='white')    # 145
+        label.pack(padx=20, pady=388)   # 118
+        
+        root.after(3000, root.destroy) # 3초 후에 창 닫기 3000
+        root.mainloop()
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -925,125 +1002,280 @@ class MainWindow(QMainWindow):
 
         current_index = self.tabs.currentIndex()+1
 
-        
+        global recent_temp, excel_temp, excel_original, excel_original_01, excel_original_02, excel_original_03, excel_original_04, excel_original_05, excel_original_06, excel_original_07, excel_original_08, excel_original_09, excel_original_10
+        global excel_original_11, excel_original_12, excel_original_13, excel_original_14, excel_original_18
+        recent_temp = ''
+        excel_temp = ''
+        excel_original = ''
 
-        
+        import pygetwindow as gw
+        import win32gui
+        import time
+
         try:
-            # if self.rpa(current_index) in ["Excel", "excel_original_no"]:
-            #    return
+            rpa01 = self.rpa(1)
 
-            '''
-            if self.rpa(1) in ["Excel", "excel_original_no"]: return
-            if self.rpa(2) in ["Excel", "excel_original_no"]: return
-            if self.rpa(3) in ["Excel", "excel_original_no"]: return
-            if self.rpa(4) in ["Excel", "excel_original_no"]: return
-            if self.rpa(5) in ["Excel", "excel_original_no"]: return
-            if self.rpa(6) in ["Excel", "excel_original_no"]: return
-            if self.rpa(7) in ["Excel", "excel_original_no"]: return
-            '''
+            if rpa01 in ["excel_original_no"]: return
+            if rpa01 in ["open_found"]:   # 인건비 엑셀이 열려있는 경우
 
+                excel_original += excel_temp.replace(' ', '').replace('\t-\t', '\t\t')
+                recent_temp = excel_temp
 
-            import win32com.client as win32
-            # 1. PyQt5 앱 실행 (이미 앱이 실행 중이면 QApplication.instance() 사용)
-            app = QApplication.instance() or QApplication(sys.argv)
-
-            # 2. 파일 선택 창 (PyQt5 스타일)
-            selected_file, _ = QFileDialog.getOpenFileName(None, "엑셀 파일을 선택하세요", "", "Excel Files (*.xlsx *.xls *.xlsm)")
-
-            if not selected_file:
-                print("파일 선택이 취소되었습니다.")
-                sys.exit()
-                return 'Excel'
-
-            # 3. 엑셀 조종 (이후는 동일)
-            excel = win32.Dispatch("Excel.Application")
-            file_path = os.path.abspath(selected_file)
-            wb = excel.Workbooks.Open(file_path, False, True, None, '00258')
-
-            def get_repr(ws):
-                data = ws.UsedRange.Value
-                if not data: return "''"
-                txt = "".join(["\t".join([str(i) if i is not None else "" for i in row]) + "\r\n" for row in data])
-                return repr(txt).replace('\\t', '\t').replace('\\n', '\n').replace('\\r', '\r').replace(' ', '').replace('\t-\t', '\t\t')
-
-            global excel_original01, excel_original02, excel_original03, excel_original04, excel_original05, excel_original06, excel_original07
-
-            excel_original01 = get_repr(wb.Sheets(1))
-            excel_original02 = get_repr(wb.Sheets(2))
-            excel_original03 = get_repr(wb.Sheets(3))
-            excel_original04 = get_repr(wb.Sheets(4))
-            excel_original05 = get_repr(wb.Sheets(5))
-            excel_original06 = get_repr(wb.Sheets(6))
-            excel_original07 = get_repr(wb.Sheets(7))
+                for i in range(2, 12):
+                    
+                    if self.rpa(i) in ["Excel", "excel_original_no"]:
+                       return
 
 
-            def data(self, role):
-                if role == Qt.ForegroundRole:
-                    val = super().data(Qt.EditRole)
-                    try:
-                        if val is not None and float(str(val).replace(',', '')) < 0:
-                            return QColor(Qt.red)
-                    except:
-                        pass
-                    return super().data(role) # 음수가 아니면 기본 색상
-                
-
-
-            '''
-            ¤£²¥ ¦§¨© ™š›œ ¡¢£¤ ¥¦§¨ ©ª«¬ ®¯°± ²³´µ ¶·¸¹ º»¼½ ¾¿ÀÁ ÂÃÄÅ ÆÇÈÉ ÊËÌÍ
-            ÎÏÐÑ ÒÓÔÕ Ö×ØÙ ÚÛÜÝ Þßàá âãäå æçèé êëìí îïðñ òóôõ ö÷øù úûüý þÿ
-            !@$%^&*()_+ ºÅ° °ªÀÌ ¾Æ´Ñ µ¥ÀÌÅÍ°¡ Æ÷Ç
-
-            암호화: "기본급" → Êþº¾¤£ (사람이 읽을 수 없음)
-
-            복호화: Êþº¾¤£ → "기본급" (DRM 엔진이 다시 계산해서 돌려줌)
-
-            '''
+                    
+                    if recent_temp == excel_temp:
+                        break
+                    if '(2)-1. 임금관련 세부자료' in excel_temp:
+                        continue
 
 
 
 
-            
-            
-            wb.Close(False)
-            excel.Quit()
+                    
+                    excel_original += excel_temp.replace(' ', '').replace('\t-\t', '\t\t')
+                    recent_temp = excel_temp
+
+                    if '나.초임직급' in excel_original: break
 
 
 
+                    # if '나.초임직급' in excel_original: break
+                    # if excel_original.count('\t1급\t') + excel_original.count('\t1직급\t') + excel_original.count('\r\n1급\t') + excel_original.count('\r\n1직급\t') > 12: break
 
 
 
+                for item in gw.getAllWindows():
+                    if '인건비' in item.title and win32gui.GetClassName(item._hWnd) == 'XLMAIN':
+                        win = item
+                        break
+                time.sleep(0.1)
+                if win:
+                    import win32con
+                    win32gui.ShowWindow(win._hWnd, win32con.SW_SHOWMINIMIZED)
+
+                self.notice('엑셀 탐색 완료')
+
+            global company, year, list_years2, list_years3, check_3_5, check_3_6, check_4
+            company = 'nhis'
+            year = '2025'
+            check_3_5 = False
+            check_3_6 = False
+            check_4 = False
+
+            excel_original_01 = excel_original.split('_$$$$$_')[0][10:]
+            excel_original_02 = excel_original.split('_$$$$$_')[1][10:]
+            excel_original_03 = excel_original.split('_$$$$$_')[2]
+            excel_original_04 = excel_original.split('_$$$$$_')[3]
+            excel_original_05 = excel_original.split('_$$$$$_')[4].split('\t1월\t')[1]
+            excel_original_06 = excel_original.split('_$$$$$_')[4].split('\t1월\t')[2]
+            excel_original_07 = excel_original.split('_$$$$$_')[4].split('\t1월\t')[3]
+            excel_original_08 = excel_original.split('_$$$$$_')[5]
+
+            if '당해' in repr(excel_original.split('_$$$$$_')[6][:300]):
+                check_3_5 = True
+                excel_original_11 = excel_original.split('_$$$$$_')[6].split('\t1월\t')[1]
+                excel_original_12 = excel_original.split('_$$$$$_')[6].split('\t1월\t')[2]
+                excel_original_13 = excel_original.split('_$$$$$_')[6].split('\t1월\t')[3] + excel_original.split('_$$$$$_')[6].split('\t1월\t')[4].split('미승진')[0]
+                excel_original_14 = excel_original.split('_$$$$$_')[6].split('\t1월\t')[4].split('미승진')[1].replace('인원', '')
 
 
 
+                '''
+                excel_original_13 = str(excel_original.split('_$$$$$_')[6].split('\t1월\t')[3:5]).split('증감')[0]
+                excel_original_14 = str(excel_original.split('_$$$$$_')[6].split('\t1월\t')[4].split('증감')[1:])
+                '''
+            else:
+                check_3_6 = True
+                excel_original_09 = excel_original.split('_$$$$$_')[6].split('증감')[0]
+                excel_original_10 = excel_original.split('_$$$$$_')[6].split('증감')[1]
+
+            if len(excel_original.split('_$$$$$_')) > 8:
+                check_4 = True
+                if '직무급' in excel_original.split('_$$$$$_')[7]:
+                    excel_original_18 = excel_original.split('_$$$$$_')[7]
+
+            list_years2 = re.findall(r'20[0-8]\d', excel_original_01.split('기본급')[0])
+            list_years3 = re.findall(r'\d+', excel_original_02.split('인센')[0].replace('1.', '')) # (3) ['2024', '2023']
+
+            year = max(list_years3)
+            if year < '2023': year = '2023'
+
+            list_years3 = list_years3[:3]
 
 
-
-
-
-
-
-
-
+        
         except Exception as e:
             import traceback
             error_details = traceback.format_exc()            
             with open("log.txt", "a", encoding="utf-8") as f:
                 f.write(f"\n[{datetime.now().strftime('%m/%d %H:%M')}] RPA 오류: " + str(current_index) + "번 표\n")
                 f.write(f"{error_details}\n\n")
-                print(error_details)
-                QMessageBox.information(self, "RPA 오류: " + str(current_index) + "번 표", "RPA 오류: " + str(current_index) + "번 표\n\n해결되지 않는 경우, log.txt를 경영정보부로 보내주세요.\n\n(run.bat와 같은 폴더에 위치)")
+            print(error_details)
+            QMessageBox.information(self, "RPA 오류: " + str(current_index) + "번 표", "RPA 오류: " + str(current_index) + "번 표\n\n해결되지 않는 경우, log.txt를 보내주세요.\n\n(run.bat와 같은 폴더에 위치)")
 
-            
-            print(f"\n[!] 오류: {e}")
             return
+
+        excel_original_03 = excel_original_03.replace('\t직급', '').replace('\r\n직급', '').replace('직급별', '')
+        excel_original_04 = excel_original_04.replace('\t직급', '').replace('\r\n직급', '').replace('직급별', '')
+        excel_original_05 = excel_original_05.replace('\t직급', '').replace('\r\n직급', '').replace('직급별', '')
+        excel_original_06 = excel_original_06.replace('\t직급', '').replace('\r\n직급', '').replace('직급별', '')
+        excel_original_07 = excel_original_07.replace('\t직급', '').replace('\r\n직급', '').replace('직급별', '')
+        excel_original_08 = excel_original_08.replace('\t직급', '').replace('\r\n직급', '').replace('직급별', '').replace('통합직급', '').replace('인건비총계', '')
+
+
+
+        self.list_title_03 = (lambda x: x[: (next((i for i,v in enumerate(x) if v in ('계','총계','합계')), len(x)-1)) + 1])(re.findall(r'(?m)^.*?\t*((?:계|총계|합계)|[가-힣0-9]+(?:급|직|장|사|위원|군|우))\t', excel_original_03))
+        self.list_title_04 = (lambda x: x[: (next((i for i,v in enumerate(x) if v in ('계','총계','합계')), len(x)-1)) + 1])(re.findall(r'(?m)^.*?\t*((?:계|총계|합계)|[가-힣0-9]+(?:급|직|장|사|위원|군|우))\t', excel_original_04))
+        self.list_title_05 = (lambda x: x[: (next((i for i,v in enumerate(x) if v in ('계','총계','합계')), len(x)-1)) + 1])(re.findall(r'(?m)^.*?\t*((?:계|총계|합계)|[가-힣0-9]+(?:급|직|장|사|위원|군|우))\t', excel_original_05))
+        self.list_title_06 = (lambda x: x[: (next((i for i,v in enumerate(x) if v in ('계','총계','합계')), len(x)-1)) + 1])(re.findall(r'(?m)^.*?\t*((?:계|총계|합계)|[가-힣0-9]+(?:급|직|장|사|위원|군|우))\t', excel_original_06))
+        self.list_title_07 = (lambda x: x[: (next((i for i,v in enumerate(x) if v in ('계','총계','합계')), len(x)-1)) + 1])(re.findall(r'(?m)^.*?\t*((?:계|총계|합계)|[가-힣0-9]+(?:급|직|장|사|위원|군|우))\t', excel_original_07))
+        self.list_title_08 = (lambda x: x[: (next((i for i,v in enumerate(x) if v in ('계','총계','합계')), len(x)-1)) + 1])(re.findall(r'(?m)^.*?\t*((?:계|총계|합계)|[가-힣0-9]+(?:급|직|장|사|위원|군|우))\t', excel_original_08))
+
+
+
+        if check_3_5 == False and check_3_6 == True:
+            excel_original_09 = excel_original_09.replace('\t직급', '').replace('\r\n직급', '').replace('직급별', '')
+            excel_original_10 = excel_original_10.replace('\t직급', '').replace('\r\n직급', '').replace('직급별', '')            
+            self.list_title_09 = (lambda x: x[: (next((i for i,v in enumerate(x) if v in ('계','총계','합계')), len(x)-1)) + 1])(re.findall(r'(?m)^.*?\t*((?:계|총계|합계)|[가-힣0-9]+(?:급|직|장|사|위원|군|우))\t', excel_original_09))
+            self.list_title_10 = (lambda x: x[: (next((i for i,v in enumerate(x) if v in ('계','총계','합계')), len(x)-1)) + 1])(re.findall(r'(?m)^.*?\t*((?:계|총계|합계)|[가-힣0-9]+(?:급|직|장|사|위원|군|우))\t', excel_original_10))
+
+        if check_3_5 == True and check_3_6 == False:
+            excel_original_11 = excel_original_11.replace('\t직급', '').replace('\r\n직급', '').replace('직급별', '')            
+            excel_original_12 = excel_original_12.replace('\t직급', '').replace('\r\n직급', '').replace('직급별', '')            
+            excel_original_13 = excel_original_13.replace('\t직급', '').replace('\r\n직급', '').replace('직급별', '')            
+            excel_original_14 = excel_original_14.replace('\t직급', '').replace('\r\n직급', '').replace('직급별', '')                        
+            self.list_title_11 = (lambda x: x[: (next((i for i,v in enumerate(x) if v in ('계','총계','합계')), len(x)-1)) + 1])(re.findall(r'(?m)^.*?\t*((?:계|총계|합계)|[가-힣0-9]+(?:급|직|장|사|위원|군|우))\t', excel_original_11))
+            self.list_title_12 = (lambda x: x[: (next((i for i,v in enumerate(x) if v in ('계','총계','합계')), len(x)-1)) + 1])(re.findall(r'(?m)^.*?\t*((?:계|총계|합계)|[가-힣0-9]+(?:급|직|장|사|위원|군|우))\t', excel_original_12))
+            self.list_title_13 = (lambda x: x[: (next((i for i,v in enumerate(x) if v in ('계','총계','합계')), len(x)-1)) + 1])(re.findall(r'(?m)^.*?\t*((?:계|총계|합계)|[가-힣0-9]+(?:급|직|장|사|위원|군|우))\t', excel_original_13))
+            self.list_title_14 = (lambda x: x[: (next((i for i,v in enumerate(x) if v in ('계','총계','합계')), len(x)-1)) + 1])(re.findall(r'(?m)^.*?\t*((?:계|총계|합계)|[가-힣0-9]+(?:급|직|장|사|위원|군|우))\t', excel_original_14))
+
+
+
+        '''
+        print(repr(excel_original_05))
+        print(555555555)
+
+        print(repr(excel_original_06))
+        print(666666666)
+
+        
+
+        print(repr(excel_original_11))
+        print(777777777777)
+
+        print(repr(excel_original_12))
+        print(22222222)
+
+        print(repr(excel_original_13))
+        print(333333333)
+
+        print(repr(excel_original_14))
+        print(4444444444)
+
+
+
+        print(self.list_title_03)
+        print(self.list_title_04)
+        print(self.list_title_05)
+        print(self.list_title_06)
+        print(self.list_title_07)
+        print(self.list_title_08)
+        print()
+
+        if check_3_5 == False and check_3_6 == True:
+            print(self.list_title_09)
+            print(self.list_title_10)
+
+
+        if check_3_5 == True and check_3_6 == False:
+            print(self.list_title_11)
+            print(self.list_title_12)
+            print(self.list_title_13)
+            print(self.list_title_14)
+
+
+        print(company)
+        print(year)
+
+        print(list_years2)
+        print(list_years3)
+
+        print(check_3_5)
+        print(check_3_6)
+        print(check_4)
+        '''
+
+
+
+
+
+
+
+        self.init_sheet()
+
+
+        self.excel_input()
+
+        return
+
+
+
+
+
+        '''
+        excel_original_01 = excel_original.split('\t2024')[0]
+        excel_original_02 = re.split(r'\t1급\t|\t1직급\t|\r\n1급\t|\r\n1직급\t', excel_original.split('\t2024')[1])[0]
+        excel_original_03 = "".join(re.split(r'(\t1급\t|\t1직급\t|\r\n1급\t|\r\n1직급\t)', excel_original.split('\t2024')[1])[1:3])
+        excel_original_04 = "".join(re.split(r'(\t1급\t|\t1직급\t|\r\n1급\t|\r\n1직급\t)', excel_original.split('\t2024')[1])[3:7])
+        excel_original_05 = "".join(re.split(r'(\t1급\t|\t1직급\t|\r\n1급\t|\r\n1직급\t)', excel_original.split('\t2024')[1])[7:11])
+        excel_original_06 = "".join(re.split(r'(\t1급\t|\t1직급\t|\r\n1급\t|\r\n1직급\t)', excel_original.split('\t2024')[1])[11:13])
+        excel_original_07 = "".join(re.split(r'(\t1급\t|\t1직급\t|\r\n1급\t|\r\n1직급\t)', excel_original.split('\t2024')[1])[13:17])
+        excel_original_08 = "".join(re.split(r'(\t1급\t|\t1직급\t|\r\n1급\t|\r\n1직급\t)', excel_original.split('\t2024')[1])[17:21])
+        excel_original_09 = "".join(re.split(r'(\t1급\t|\t1직급\t|\r\n1급\t|\r\n1직급\t)', excel_original.split('\t2024')[1])[21:25])
+        excel_original_10 = "".join(re.split(r'(\t1급\t|\t1직급\t|\r\n1급\t|\r\n1직급\t)', excel_original.split('\t2024')[1])[25:27])
+        '''
+
+
 
 
 
 
 
         
-        self.excel_input()
+        excel_original_01 = excel_original.split('\t2024')[0]
+        excel_original_02 = re.split(r'\t1급\t|\t1직급\t|\r\n1급\t|\r\n1직급\t', excel_original.split('\t2024')[1])[0]
+        excel_original_03 = "".join(excel_original.split('평균단가')[1]).split('\t1월\t')[0]
+        excel_original_04 = "".join(excel_original.split('\t1월\t')[1:3])
+        excel_original_05 = "".join(excel_original.split('\t1월\t')[3:4])
+        # excel_original_05 = "".join(re.split(r'(\t1월\t|\t1월정원\t)', excel_original.split('\t2024')[1])[7:11])
+        # excel_original_05 = "".join(re.split(r'(\t1월\t|\t1월정원\t)', excel_original.split('\t2024')[1])[5:7])            
+        excel_original_06 = "".join(excel_original.split('\t1월\t')[4:5])
+        excel_original_07 = "".join(excel_original.split('\t1월\t')[5:7])
+        
+        # excel_original_08 = "".join(excel_original.split('\t1월\t')[7:9])
+        # excel_original_09 = "".join(excel_original.split('\t1월\t')[9:11])
+        # excel_original_10 = "".join(excel_original.split('\t1월\t')[10:]).split('평균단가')[1]
+
+
+        if '202401' in str(excel_original.split('\t1월\t')[6]):
+            excel_original_08 = "".join(excel_original.split('\t202401\t')[1].split('\t1월\t')[0])
+            excel_original_09 = "".join(excel_original.split('\t1월\t')[7:9])
+            excel_original_10 = "".join(excel_original.split('\t1월\t')[8:]).split('평균단가')[1]
+        else:
+            excel_original_08 = "".join(excel_original.split('\t1월\t')[7:9])
+            excel_original_09 = "".join(excel_original.split('\t1월\t')[9:11])
+            excel_original_10 = "".join(excel_original.split('\t1월\t')[10:]).split('평균단가')[1]
+
+
+
+
+
+
 
 
         
@@ -1059,14 +1291,7 @@ class MainWindow(QMainWindow):
             print(error_details)
             with open("log.txt", "a", encoding="utf-8") as f:
                 f.write(f"\n[{datetime.now().strftime('%m/%d %H:%M')}] Compare 오류: " + str(current_index) + "번 표\n")
-                f.write(f"{error_details}\n\n")
-                if current_index == 4: f.write(str(excel_original04.split('당년도')))
-                if current_index == 5: f.write(str(excel_original05.split('나.근속승진')))
-                if current_index == 6: f.write(str(excel_original05.split('나.근속승진')))
-                if current_index == 7: f.write(str(excel_original05.split('다.증원소요인건비대상인원')))
-                if current_index == 8: f.write(str(excel_original06.split('당년도')))
-                if current_index == 9: f.write(str(excel_original07.split('나.초임직급정원변동에따른인건비효과')))
-                if current_index == 10: f.write(str(excel_original07.split('나.초임직급정원변동에따른인건비효과')))                
+                f.write(f"{error_details}\n\n")        
                 QMessageBox.information(self, "RPA 오류: " + str(current_index) + "번 표", "엑셀과 프로그램 데이터 비교 오류: " + str(current_index) + "번 표\n\n해결되지 않는 경우, log.txt를 경영정보부로 보내주세요.\n\n(run.bat와 같은 폴더에 위치)")
             
             print(f"\n[!] 오류: {e}")
@@ -1074,16 +1299,24 @@ class MainWindow(QMainWindow):
 
 
         
-        win_verify = VerificationResultWindow(self)   # 1. 검증 창 인스턴스 생성
+        self.win_verify = VerificationResultWindow(None)   # 1. 검증 창 인스턴스 생성
         
         result_text = "-------------------------------------\n"
         result_text += "    인건비 집계 정합성 검증    \n"
         result_text += "-------------------------------------\n\n"
         result_text += str_err
         
-        win_verify.set_content(result_text)   # 3. 텍스트 박스에 내용 설정
-        win_verify.exec_()
-        
+        self.win_verify.set_content(result_text)   # 3. 텍스트 박스에 내용 설정
+        # self.notice('엑셀 탐색 완료')
+
+
+        self.win_verify.show()
+        self.win_verify.raise_()
+        self.win_verify.activateWindow()
+
+
+        # win_verify.exec_()
+
 
 
 
@@ -1116,31 +1349,34 @@ class MainWindow(QMainWindow):
 
     def table_str(self, p, r, c):
 
-        if not self.tabs.currentWidget().table.item(r, c) or self.tabs.currentWidget().table.item(r, c).text() in ['', '-', 'n/a']:
-            if (p in [1, 8]) or (p == 9 and c != 14) or (p in [3, 10] and c in [4, 5]) or (p == 2 and r not in [43, 44]):
+        if not self.tabs.widget(p-1).table.item(r, c) or self.tabs.widget(p-1).table.item(r, c).text() in ['', '-', 'n/a']:
+
+            if (p in [5, 6]) or (p in [4, 7] and c != 14):
+                return '0.00'
+            elif (p in [1, 8]) or (p == 9 and c != 14) or (p in [3, 10] and c in [4, 5]) or (p == 2 and r not in [43, 44]):
                 return '0'
             elif p == 2 and r in [43, 44]:
-                return '0.000'
-            elif (p == 3 and c in [1, 2, 3]) or (p in [5, 6]) or (p == 7 and c != 14):
+                return '0.0' # 0.000
+            elif (p == 3 and c in [1, 2, 3]):
                 return '0.0'
             else:
-                return '0.00'
+                return '0.0'
             return '0'
-        # return self.tabs.currentWidget().table.item(r, c).text().replace('%', '')
         return self.tabs.widget(p-1).table.item(r, c).text().replace('%', '')
 
 
     def excel_str(self, text, p, r, c):
-
         if not text or text.strip() in ['-', '']:
-            if (p in [1, 8]) or (p == 9 and c != 13) or (p in [3, 10] and c in [4, 5]) or (p == 2 and r not in [43, 44]):
+            if (p in [5, 6]) or (p in [4, 7] and c != 13):
+                return '0.00'
+            elif (p in [1, 8]) or (p == 9 and c != 13) or (p in [3, 10] and c in [4, 5]) or (p == 2 and r not in [43, 44]):
                 return '0'
             elif p == 2 and r in [43, 44]:
-                return '0.000'
-            elif (p == 3 and c in [1, 2, 3]) or (p in [5, 6]) or (p == 7 and c != 13):
+                return '0.0' # 0.000
+            elif (p == 3 and c in [1, 2, 3]):
                 return '0.0'
             else:
-                return '0.00'
+                return '0.0'
         return(text.replace('%', '').replace('△', '-'))
 
 
@@ -1163,9 +1399,7 @@ class MainWindow(QMainWindow):
         from pynput.mouse import Controller, Button
         import time
 
-
-        global excel_original01, excel_original02, excel_original03, excel_original04, excel_original05, excel_original06, excel_original07
-
+        global excel_temp, excel_original
 
 
 
@@ -1173,9 +1407,12 @@ class MainWindow(QMainWindow):
 
             open_found = False
 
+            import win32gui
+
             for item in gw.getAllWindows():
-                if item.title.startswith('★2024년도 계량지표_총인건비'):
+                if '인건비' in item.title and win32gui.GetClassName(item._hWnd) == 'XLMAIN':
                     win = item
+                    self.notice('엑셀 탐색 시작')
 
                     if win.isMinimized:
                         win.restore()
@@ -1189,394 +1426,185 @@ class MainWindow(QMainWindow):
                         win32functions.ShowWindow(win._hWnd, 9)
                         win32functions.SetForegroundWindow(win._hWnd)
 
-                    # target_win.click_input(coords=(100, 10))
                     open_found = True
-                    time.sleep(0.5)
-                
+                    break
+                    # time.sleep(0.3)
+
+
             if not open_found:
-                QMessageBox.information(self, "엑셀 파일을 열어주세요.", "★2024년도 계량지표_총인건비~ 엑셀 파일을 직접 열어주세요.\n\n기밀 문서라서 로봇이 자동으로 엑셀 데이터를 가져올 수 없습니다.\n파일에 걸린 암호를 RPA로 푸는 것은 보안 정책 위반이므로 직접 열어주세요.")
-                return "Excel"
 
-                '''
-                try:
-                    # 현재 폴더에서 해당 파일 찾기
-                    target_file = [f for f in os.listdir('.') if f.startswith('★2024년도 계량지표_총인건비')][0]
-                    os.startfile(target_file)
-                    
-                    # 파일이 열리고 창이 나타날 때까지 대기 (최대 10초)
-                    for _ in range(20):
-                        time.sleep(0.5)
-                        for item in gw.getAllWindows():
-                            if item.title.startswith('★2024년도 계량지표_총인건비'):
-                                win = item
-                                open_found = True
-                                break
-                        if open_found: 
-                            # 창을 찾은 직후, '복구 팝업' 방지를 위해 ESC 입력
-                            time.sleep(1) # 엑셀 로딩 대기
-                            keyboard.press_and_release('esc') 
-                            
-                            # 다시 한번 포커스 잡아주기
-                            app = Application().connect(handle=win._hWnd)
-                            target_win = app.window(handle=win._hWnd)
-                            target_win.set_focus()
+                import win32com.client as win32
+                import win32clipboard
+                
+                # PyQt5 앱 실행 (이미 앱이 실행 중이면 QApplication.instance() 사용)
+                app = QApplication.instance() or QApplication(sys.argv)
 
-                            target_win.click_input(coords=(100, 10))
+                selected_file, _ = QFileDialog.getOpenFileName(None, "엑셀 파일을 선택하세요", "", "Excel Files (*.xlsx *.xls *.xlsm)")
+
+                if not selected_file:
+                    print("파일 선택이 취소되었습니다.")
+                    sys.exit()
+                    return 'Excel'
+
+
+                excel = win32.Dispatch("Excel.Application")
+                excel.Visible = False
+
+                file_path = os.path.abspath(selected_file)
+                wb = excel.Workbooks.Open(file_path, False, True)
+                # wb = excel.Workbooks.Open(file_path, False, True, None, '0025')
+
+                list_all = []
+                str_all = ""
+
+                cnt = 0
+
+                list_stop = ["(2)-1. 임금관련 세부자료", "계량관리업무비"]
+
+                for sheet in wb.Sheets:
+                    flag_stop = False
+                    for word in list_stop:
+                        if sheet.UsedRange.Find(word):
+                            flag_stop = True
                             break
-                except IndexError:
-                    QMessageBox.critical(self, "파일 오류", "현재 경로에 ★2024년도 계량지표_총인건비~ 엑셀 파일이 없습니다.\n\n이 파일을 run.bat와 같은 폴더에 놓으시면 열 수 있습니다.")
-                    return
-                '''
+                    if flag_stop:
+                        continue
+
+                    sheet.UsedRange.Copy()
+                    excel_original += pyperclip.paste()
+                    excel_original += '_$$$$$_'
+                    time.sleep(1)
                     
+                                        
+                    win32clipboard.OpenClipboard()
+                    win32clipboard.EmptyClipboard()
+                    win32clipboard.CloseClipboard()
 
-            time.sleep(1)        
+                excel_original = excel_original.replace(' ', '')
+                
+
+                    
+                wb.Close(False)
+                excel.Quit()
+
+
+                return
+                
+
+
+            app = Application().connect(handle=win._hWnd)
+            target_win = app.window(handle=win._hWnd)
+
+            try:
+                target_win.set_focus()
+            except Exception:
+                win32functions.ShowWindow(win._hWnd, 9)
+                win32functions.SetForegroundWindow(win._hWnd)
+                time.sleep(0.3)
+                
             keyboard.press_and_release('win + up')
+            for _ in range(12): keyboard.press_and_release('ctrl + pageup')
+            time.sleep(0.3)
 
-
-            time.sleep(2)
-            keyboard.press_and_release('ctrl + pageup')
-            keyboard.press_and_release('ctrl + pageup')
-            keyboard.press_and_release('ctrl + pageup')
-            keyboard.press_and_release('ctrl + pageup')
-            keyboard.press_and_release('ctrl + pageup')
-            keyboard.press_and_release('ctrl + pageup')
-            keyboard.press_and_release('ctrl + pageup')
-            keyboard.press_and_release('ctrl + pageup')
-            keyboard.press_and_release('ctrl + pageup')
-            keyboard.press_and_release('ctrl + pageup')
-
-        time.sleep(2)
+        time.sleep(0.1)
 
         if current_index != 1:
             keyboard.press_and_release('ctrl + pagedown')
 
-        '''
-        if current_index in [2]:
-            keyboard.press_and_release('ctrl + pagedown')
-        if current_index in [3]:
-            for i in range(2): keyboard.press_and_release('ctrl + pagedown')
 
-        if current_index in [4]:
-            for i in range(3): keyboard.press_and_release('ctrl + pagedown')
 
-        if current_index in [5, 6, 7]:
-            for i in range(4): keyboard.press_and_release('ctrl + pagedown')
-
-        if current_index in [8]:
-            for i in range(5): keyboard.press_and_release('ctrl + pagedown')
-
-        if current_index in [9, 10]:
-            for i in range(6): keyboard.press_and_release('ctrl + pagedown')
-
+        import ctypes
+                
+        # 클립보드 조작을 위한 Windows API 상수
+        user32 = ctypes.windll.user32
+                
+        for _ in range(3): # 실패 대비 3회 재시도
+            try:
+                # 1. 클립보드 열기 시도 (None은 현재 프로세스가 소유권을 가짐을 의미)
+                if user32.OpenClipboard(None):
+                    user32.EmptyClipboard()   # 2. 강제로 비우기
+                    user32.CloseClipboard()   # 3. 반드시 닫아줘야 다른 작업 가능
+            except Exception as e:
+                time.sleep(0.1)
         time.sleep(0.3)
-        '''
 
         mouse = Controller()
-
-        '''
-        if current_index >= 5 or current_index in [1, 2]:
-            mouse.position = (1500, 880)
-        else:
-            mouse.position = (70, 800)
-        '''
-
         mouse.position = (1500, 880)
         mouse.click(Button.left, 1)
-
-        time.sleep(1)
+        time.sleep(0.1)
+        
         keyboard.press_and_release('ctrl + a')
-        time.sleep(1)
+        time.sleep(0.1)
+        keyboard.press_and_release('ctrl + a')       
         keyboard.press_and_release('ctrl + c')
-        time.sleep(1)
 
-
-
-
-        # global excel_original01, excel_original02, excel_original03, excel_original04, excel_original05, excel_original06, excel_original07
 
         from PyQt5.QtCore import QThread
 
         if current_index == 1:
-
-            QThread.msleep(300)
+            pyperclip.copy("")
+            excel_temp = ""
+            
+            QThread.msleep(1000)
             for _ in range(10):
                 try:
-                    excel_original01 = pyperclip.paste()
-                    if excel_original01: break  # 데이터를 가져오면 루프 탈출
+                    excel_temp = pyperclip.paste()
+                    if excel_temp:
+                        excel_temp += '_$$$$$_'
+                        break  # 데이터를 가져오면 루프 탈출
                 except:
                     QThread.msleep(100)  # 에러 발생 시 0.1초 대기 후 재시도
 
+            keyboard.press_and_release('right')
+            keyboard.press_and_release('esc')
 
-
-            time.sleep(0.5)
-
-            
-            excel_original01 = excel_original01.replace(' ', '').replace('\t-\t', '\t\t')
-
-            if not excel_original01 or excel_original01[0:2] not in ['(2', '(3']:
+            if not excel_temp:
                 with open("log.txt", "a", encoding="utf-8") as f:
-                    f.write(f"\n[{datetime.now().strftime('%m/%d %H:%M')}] 엑셀 데이터를 확보하지 못했습니다.\n")
-                    if not excel_original01:
-                        f.write("excel_original01: None\n\n")
-                    else:
-                        f.write("excel_original01: " + repr(excel_original01[:30])  + '\n\n')
+                    f.write(f"\n[{datetime.now().strftime('%m/%d %H:%M')}] 엑셀 Sheet1 데이터를 확보하지 못했습니다.\n")
 
                 screen = QApplication.primaryScreen()
                 screenshot = screen.grabWindow(0) # 전체 화면 캡처
                 screenshot.save("log.jpg", "jpg")
 
-                # win.minimize()
-                QMessageBox.information(self, "엑셀 데이터를 확보하지 못했습니다.", "(2) 인건비 집계\n\n엑셀 파일이 제대로 열렸는지 확인해주세요.\n엑셀 양식이 변경되었는지 확인해주세요.\n\n해결되지 않는 경우, log.txt, log.jpg 를 경영정보부로 보내주세요.\n\n(run.bat와 같은 폴더에 위치)")
+                QMessageBox.information(self, "엑셀 Sheet1 데이터를 확보하지 못했습니다.", "(2) 인건비 집계\n\n엑셀 파일이 제대로 열렸는지 확인해주세요.\n엑셀 양식이 변경되었는지 확인해주세요.\n\n해결되지 않는 경우, log.txt, log.jpg 를 보내주세요.\n\n(run.bat와 같은 폴더에 위치)")
                 return "excel_original_no"
-            
-        if current_index == 2:
 
-            QThread.msleep(300)
+            return 'open_found'
+
+
+
+        if current_index != 1:
+
+            pyperclip.copy("")
+            excel_temp = ""
+
+            QThread.msleep(1000)
             for _ in range(10):
                 try:
-                    excel_original02 = pyperclip.paste()
-                    if excel_original02: break  # 데이터를 가져오면 루프 탈출
+                    excel_temp = pyperclip.paste()
+                    if excel_temp:
+                        excel_temp += '_$$$$$_'
+                        break  # 데이터를 가져오면 루프 탈출
                 except:
-                    QThread.msleep(100)  # 에러 발생 시 0.1초 대기 후 재시도
+                    QThread.msleep(100)   # 에러 발생 시 0.1초 대기 후 재시도
                     
-            
-            excel_original02 = excel_original02.replace(' ', '').replace('\t-\t', '\t\t')
-            time.sleep(0.5)
 
-            if not excel_original02 or excel_original02[0:2] not in ['(2', '(3']:
+            if not excel_temp:
                 with open("log.txt", "a", encoding="utf-8") as f:
-                    f.write(f"\n[{datetime.now().strftime('%m/%d %H:%M')}] 엑셀 데이터를 확보하지 못했습니다.\n")
-                    if not excel_original02:
-                        f.write("excel_original02: None\n\n")
-                    else:
-                        f.write("excel_original02: " + repr(excel_original02[:100]) + '\n\n')
-
+                    f.write(f"\n[{datetime.now().strftime('%m/%d %H:%M')}] 엑셀 Sheet1 데이터를 확보하지 못했습니다.\n")
                 screen = QApplication.primaryScreen()
                 screenshot = screen.grabWindow(0) # 전체 화면 캡처
                 screenshot.save("log.jpg", "jpg")
+                QMessageBox.information(self, "엑셀 Sheet" + str(current_index) + " 데이터를 확보하지 못했습니다.", "엑셀 Sheet" + str(current_index) + "\n\n엑셀 파일이 제대로 열렸는지 확인해주세요.\n엑셀 양식이 변경되었는지 확인해주세요.\n\n해결되지 않는 경우, log.txt, log.jpg 를 보내주세요.\n\n(run.bat와 같은 폴더에 위치)")
+                return "excel_original_no"
 
-                # win.minimize()
-                QMessageBox.information(self, "엑셀 데이터를 확보하지 못했습니다.", "(3) 총인건비 인상률\n\n엑셀 파일이 제대로 열렸는지 확인해주세요.\n엑셀 양식이 변경되었는지 확인해주세요.\n\n해결되지 않는 경우, log.txt, log.jpg 를 경영정보부로 보내주세요.\n\n(run.bat와 같은 폴더에 위치)")
-                return "excel_original_no"            
+            keyboard.press_and_release('right')
+            keyboard.press_and_release('esc')
+
+        return
             
-        if current_index == 3:
-
-            QThread.msleep(300)
-            for _ in range(10):
-                try:
-                    excel_original03 = pyperclip.paste()
-                    if excel_original03: break  # 데이터를 가져오면 루프 탈출
-                except:
-                    QThread.msleep(100)  # 에러 발생 시 0.1초 대기 후 재시도
-
-            
-            excel_original03 = excel_original03.replace(' ', '').replace('\t-\t', '\t\t')
-            time.sleep(0.5)
-            
-            
-            if not excel_original03 or excel_original03[0:2] not in ['(2', '(3']:
-                with open("log.txt", "a", encoding="utf-8") as f:
-                    f.write(f"\n[{datetime.now().strftime('%m/%d %H:%M')}] 엑셀 데이터를 확보하지 못했습니다.\n\n")
-                    if not excel_original03:
-                        f.write("excel_original03: None\n\n")
-                    else:
-                        f.write("excel_original03: " + repr(excel_original03[:100]) + '\n\n')
-
-                screen = QApplication.primaryScreen()
-                screenshot = screen.grabWindow(0) # 전체 화면 캡처
-                screenshot.save("log.jpg", "jpg")
-
-                # win.minimize()
-                QMessageBox.information(self, "엑셀 데이터를 확보하지 못했습니다.", "(3-1) 증원소요 인건비\n\n엑셀 파일이 제대로 열렸는지 확인해주세요.\n엑셀 양식이 변경되었는지 확인해주세요.\n\n해결되지 않는 경우, log.txt, log.jpg 를 경영정보부로 보내주세요.\n\n(run.bat와 같은 폴더에 위치)")
-                return "excel_original_no" 
-
-            
-            
-        if current_index == 4:
-
-            QThread.msleep(300)
-            for _ in range(10):
-                try:
-                    excel_original04 = pyperclip.paste()
-                    if excel_original04: break  # 데이터를 가져오면 루프 탈출
-                except:
-                    QThread.msleep(100)  # 에러 발생 시 0.1초 대기 후 재시도          
-
-            
-            excel_original04 = excel_original04.replace(' ', '').replace('\t-\t', '\t\t')
-            time.sleep(0.5)
-
-            if not excel_original04 or excel_original04[0:2] not in ['(2', '(3']:
-                with open("log.txt", "a", encoding="utf-8") as f:
-                    f.write(f"\n[{datetime.now().strftime('%m/%d %H:%M')}] 엑셀 데이터를 확보하지 못했습니다.\n\n")
-                    if not excel_original04:
-                        f.write("excel_original04: None\n\n")
-                    else:
-                        f.write("excel_original04: " + repr(excel_original04[:100]) + '\n\n')
-
-                screen = QApplication.primaryScreen()
-                screenshot = screen.grabWindow(0) # 전체 화면 캡처
-                screenshot.save("log.jpg", "jpg")
-
-                # win.minimize()
-                QMessageBox.information(self, "엑셀 데이터를 확보하지 못했습니다.", "(3-2) 직급별 평균 인원\n\n엑셀 파일이 제대로 열렸는지 확인해주세요.\n엑셀 양식이 변경되었는지 확인해주세요.\n\n해결되지 않는 경우, log.txt, log.jpg 를 경영정보부로 보내주세요.\n\n(run.bat와 같은 폴더에 위치)")
-                return "excel_original_no" 
-            
-            
-        if current_index in [5, 6, 7]:
-
-            QThread.msleep(300)
-            for _ in range(10):
-                try:
-                    excel_original05 = pyperclip.paste()
-                    if excel_original05: break  # 데이터를 가져오면 루프 탈출
-                except:
-                    QThread.msleep(100)  # 에러 발생 시 0.1초 대기 후 재시도
 
 
-            
-            excel_original05 = excel_original05.replace(' ', '').replace('\t-\t', '\t\t')
-            time.sleep(0.5)
-            
-            if not excel_original05 or excel_original05[0:2] not in ['(2', '(3']:
-                with open("log.txt", "a", encoding="utf-8") as f:
-                    f.write(f"\n[{datetime.now().strftime('%m/%d %H:%M')}] 엑셀 데이터를 확보하지 못했습니다.\n\n")
-                    if not excel_original05:
-                        f.write("excel_original05: None\n\n")
-                    else:
-                        f.write("excel_original05: " + repr(excel_original05[:100]) + '\n\n')
-
-                screen = QApplication.primaryScreen()
-                screenshot = screen.grabWindow(0) # 전체 화면 캡처
-                screenshot.save("log.jpg", "jpg")
-
-                # win.minimize()
-                QMessageBox.information(self, "엑셀 데이터를 확보하지 못했습니다.", "(3-3) 근속 및 증원\n\n엑셀 파일이 제대로 열렸는지 확인해주세요.\n엑셀 양식이 변경되었는지 확인해주세요.\n\n해결되지 않는 경우, log.txt, log.jpg 를 경영정보부로 보내주세요.\n\n(run.bat와 같은 폴더에 위치)")
-                return "excel_original_no" 
-
-            
-            
-        if current_index == 8:
-
-            QThread.msleep(300)
-            for _ in range(10):
-                try:
-                    excel_original06 = pyperclip.paste()
-                    if excel_original06: break  # 데이터를 가져오면 루프 탈출
-                except:
-                    QThread.msleep(100)  # 에러 발생 시 0.1초 대기 후 재시도
-
-
-
-            excel_original06 = excel_original06.replace(' ', '').replace('\t-\t', '\t\t')
-            time.sleep(0.5)
-            
-            if not excel_original06 or excel_original06[0:2] not in ['(2', '(3']:
-                with open("log.txt", "a", encoding="utf-8") as f:
-                    f.write(f"\n[{datetime.now().strftime('%m/%d %H:%M')}] 엑셀 데이터를 확보하지 못했습니다.\n\n")
-                    if not excel_original07:
-                        f.write("excel_original06: None\n\n")
-                    else:
-                        f.write("excel_original06: " + repr(excel_original06[:100]) + '\n\n')
-
-                screen = QApplication.primaryScreen()
-                screenshot = screen.grabWindow(0) # 전체 화면 캡처
-                screenshot.save("log.jpg", "jpg")
-
-                # win.minimize()
-                QMessageBox.information(self, "엑셀 데이터를 확보하지 못했습니다.", "(3-4) 증원소요 인건비\n\n엑셀 파일이 제대로 열렸는지 확인해주세요.\n엑셀 양식이 변경되었는지 확인해주세요.\n\n해결되지 않는 경우, log.txt, log.jpg 를 경영정보부로 보내주세요.\n\n(run.bat와 같은 폴더에 위치)")
-                return "excel_original_no" 
-
-
-            
-            
-        if current_index in [9, 10]:
-
-            QThread.msleep(300)
-            for _ in range(10):
-                try:
-                    excel_original07 = pyperclip.paste()
-                    if excel_original07: break  # 데이터를 가져오면 루프 탈출
-                except:
-                    QThread.msleep(100)  # 에러 발생 시 0.1초 대기 후 재시도
-
-
-
-
-            
-            excel_original07 = excel_original07.replace(' ', '').replace('\t-\t', '\t\t')
-            time.sleep(0.5)
-            
-            if not excel_original07 or excel_original07[0:2] not in ['(2', '(3']:
-                with open("log.txt", "a", encoding="utf-8") as f:
-                    f.write(f"\n[{datetime.now().strftime('%m/%d %H:%M')}] 엑셀 데이터를 확보하지 못했습니다.\n\n")
-                    if not excel_original07:
-                        f.write("excel_original07: None\n\n")
-                    else:
-                        f.write("excel_original07: " + repr(excel_original07[:100]) + '\n\n')
-
-                screen = QApplication.primaryScreen()
-                screenshot = screen.grabWindow(0) # 전체 화면 캡처
-                screenshot.save("log.jpg", "jpg")
-
-                # win.minimize()
-                QMessageBox.information(self, "엑셀 데이터를 확보하지 못했습니다.", "(3-6) 초임직급\n\n엑셀 파일이 제대로 열렸는지 확인해주세요.\n엑셀 양식이 변경되었는지 확인해주세요.\n\n해결되지 않는 경우, log.txt, log.jpg 를 경영정보부로 보내주세요.\n\n(run.bat와 같은 폴더에 위치)")
-                return "excel_original_no" 
-
-            
-            
-        time.sleep(1)
-
-        keyboard.press_and_release('right')
-        time.sleep(0.5)
-        keyboard.press_and_release('esc')
-        time.sleep(0.5)
-
-
-
-
-        if current_index == 9:
-            for item in gw.getAllWindows():
-                if item.title.startswith('★2024년도 계량지표_총인건비'):
-                    win = item
-            win.minimize()
-
-
-
-
-
-
-
-
-
-
-
-
-        """
-        global excel_original01, excel_original02, excel_original03, excel_original04, excel_original05, excel_original06, excel_original07
-        
-        excel_original01 = '(2) 인건비 집계를 위한 Template\t\t\t\t\t\t\t\t\r\n\t\t\t\t\t\t\t\t(단위: 원)\r\n인건비 항목\t\t\t판관비\t영업외비용\t 제조원가\t타계정대체\t이익잉여금\t합계\r\n"급료\n임금\n제수당"\t기본급\t\t 744,433,839,400 \t\t\t\t\t 744,433,839,400 \r\n\t상여금\t인센티브 상여금\t 50,727,850,151 \t\t\t\t\t 50,727,850,151 \r\n\t\t그 외 상여금\t 48,367,494,910 \t\t\t\t\t 48,367,494,910 \r\n\t제수당\t법정수당\t 66,931,057,610 \t\t\t\t\t 66,931,057,610 \r\n\t\t해외근무수당\t 50,000,000 \t\t\t\t\t 50,000,000 \r\n\t\t그 외 제수당\t 202,750,281,360 \t\t\t\t\t 202,750,281,360 \r\n\t퇴직급여(명예퇴직금 포함)\t\t 168,793,866,818 \t\t\t\t\t 168,793,866,818 \r\n\t임원 인건비\t\t 983,482,250 \t\t\t\t\t 983,482,250 \r\n\t비상임이사 인건비\t\t 600,000,000 \t\t\t\t\t 600,000,000 \r\n\t"인상률 제외\n인건비"\t통상임금소송결과에 따른 실적급여 증가액\t 70,000,000 \t\t\t\t\t 70,000,000 \r\n\t\t기타 제외 인건비\t 8,000,000 \t\t\t\t\t 8,000,000 \r\n\t기타항목\t\t 74,870,000 \t\t\t\t\t 74,870,000 \r\n\t급료, 임금, 제수당 소계 ⓐ\t\t 1,283,790,742,499 \t - \t - \t - \t - \t 1,283,790,742,499 \r\n"복 리\n후생비"\t사내근로복지기금출연금\t\t 700,000,000 \t\t\t\t\t 700,000,000 \r\n\t국민연금사용자부담분\t\t 38,566,372,740 \t\t\t\t\t 38,566,372,740 \r\n\t건강보험사용자부담분\t\t 41,634,941,020 \t\t\t\t\t 41,634,941,020 \r\n\t고용보험사용자부담분\t\t 18,164,674,530 \t\t\t\t\t 18,164,674,530 \r\n\t산재보험료사용자부담분\t\t 5,325,440,550 \t\t\t\t\t 5,325,440,550 \r\n\t급식비\t\t 700,000,000 \t\t\t\t\t 700,000,000 \r\n\t교통보조비\t\t 800,000,000,000 \t\t\t\t\t 800,000,000,000 \r\n\t자가운전보조금\t\t 60,000,000 \t\t\t\t\t 60,000,000 \r\n\t학자보조금\t\t 49,525,720 \t\t\t\t\t 49,525,720 \r\n\t건강진단비 등(독감예방주사비용)\t\t 173,882,997 \t\t\t\t\t 173,882,997 \r\n\t선택적복지\t\t 9,194,447,060 \t\t\t\t\t 9,194,447,060 \r\n\t행사비\t\t 700,000,000 \t\t\t\t\t 700,000,000 \r\n\t포상품(비)\t\t 52,602,620 \t\t\t\t\t 52,602,620 \r\n\t기념품(비)\t\t 80,000,000 \t\t\t\t\t 80,000,000 \r\n\t격려품(비)\t\t 7,000,000 \t\t\t\t\t 7,000,000 \r\n\t장기근속관련 비용\t\t 8,000,000 \t\t\t\t\t 8,000,000 \r\n\t육아보조비 및 출산장려금\t\t 743,000,000 \t\t\t\t\t 743,000,000 \r\n\t자기계발비\t\t 80,000,000 \t\t\t\t\t 80,000,000 \r\n\t특별근로의 대가\t\t 8,000,000 \t\t\t\t\t 8,000,000 \r\n\t피복비\t\t 700,000,000 \t\t\t\t\t 700,000,000 \r\n\t경로효친비\t\t 800,000,000 \t\t\t\t\t 800,000,000 \r\n\t통신비\t\t 5,000,000 \t\t\t\t\t 5,000,000 \r\n\t축하금/조의금\t\t 70,000,000 \t\t\t\t\t 70,000,000 \r\n\t기타금품 등\t\t 100,927,240 \t\t\t\t\t 100,927,240 \r\n\t복리후생비 소계 ⓑ\t\t 917,923,814,477 \t - \t - \t - \t - \t 917,923,814,477 \r\n"\'잡급 및 무기계약직에\n대한 인건비\'\n(복리후생비, 인센티브포함) ⓒ"\t\t일반 급여(1)\t 15,823,215,150 \t - \t - \t - \t - \t 15,823,215,150 \r\n\t\t 인센티브 상여금\t 7,000,000 \t\t\t\t\t 7,000,000 \r\n\t\t 순액\t 15,816,215,150 \t\t\t\t\t 15,816,215,150 \r\n\t\t청년인턴 급여(2)\t 9,414,136,240 \t - \t - \t - \t - \t 9,414,136,240 \r\n\t\t 인센티브 상여금\t 8,000,000 \t\t\t\t\t 8,000,000 \r\n\t\t 순액\t 9,406,136,240 \t\t\t\t\t 9,406,136,240 \r\n\t\t무기계약직 급여(3)\t 26,694,838,746 \t - \t - \t - \t - \t 26,694,838,746 \r\n\t\t 인센티브 상여금\t 1,256,862,230 \t\t\t\t\t 1,256,862,230 \r\n\t\t 순액\t 25,437,976,516 \t\t\t\t\t 25,437,976,516 \r\n\t\t소계 ⓒ=(1)+(2)+(3)\t 51,932,190,136 \t - \t - \t - \t - \t 51,932,190,136 \r\n\t\t\t\t\t\t\t\t\r\n인건비 총계 : ⓓ=ⓐ+ⓑ+ⓒ\t\t\t 2,253,646,747,112 \t - \t - \t - \t - \t 2,253,646,747,112 \r\n인센티브 상여금 ⓔ=ⓔ-1+ⓔ-2\t\t\t 51,984,712,381 \t - \t - \t - \t - \t 51,984,712,381 \r\n- 인센티브 전환금 (ⓔ-1)\t\t\t 43,589,629,529 \t\t\t\t\t 43,589,629,529 \r\n- 인센티브 추가금 (ⓔ-2)\t\t\t 8,395,082,852 \t\t\t\t\t 8,395,082,852 \r\n인건비 해당금액 : ⓓ-ⓔ\t\t\t 2,201,662,034,731 \t - \t - \t - \t - \t 2,201,662,034,731 \r\n\t\t\t\t\t\t\t\t\r\n\t\t\t\t\t\t\t\t\r\n'
-        excel_original01 = excel_original01.replace(' ', '').replace('\t-\t', '\t\t')
-
-        excel_original02 = '(3)총인건비인상률지표의점수계산을위한Template\t\t\t\t\r\n\t\t\t\t(단위:원)\r\n구분\t\t\t2024\t2023\r\n\t1.인센티브상여금을제외한인건비총액\t\t\t\r\n\ta.판관비로처리한인건비\t\t1,397,001,034,731\t1,298,932,744,191\r\n\tb.영업외비용으로처리한인건비\t\t-\t-\r\n\tc.제조원가로처리한인건비\t\t-\t-\r\n\td.타계정대체로처리한인건비\t\t-\t-\r\n\te.이익잉여금의증감으로처리한인건비\t\t-\t-\r\n\t소계:(A)=a+b+c+d+e\t\t1,397,001,034,731\t1,298,932,744,191\r\n\t\t\t\t\r\n\t2.총인건비 인상률계산에서제외(조정)되는인건비\t\t\t\r\n\tf.퇴직급여(명예퇴직금포함)\t\t168,793,866,818\t141,500,433,647\r\n\tg.임원인건비\t\t983,482,250\t771,999,300\r\n\th.비상임이사인건비\t\t-\t-\r\n\ti.인상률제외인건비\t통상임금소송결과에따른실 적급여증가액\t-\t-\r\n\t\t기타제외인건비\t-\t-\r\n\tj.사내근로복지기금출연금\t\t-\t-\r\n\tk.잡급및무기계약직에대한인건비(복리후생비포함,인센티브상여금제외)\t\t50,660,327,906\t50,195,933,210\r\n\tl.공적보험사용자부담분\t\t103,691,428,840\t104,545,198,290\r\n\tm.연월차수당등조정(㉠-㉡+㉢)\t\t71,795,906,667\t-2,930,735,981\r\n\t-연월차수당등발생액(㉠)\t\t123,325,995,917\t63,001,832,519\r\n\t-연월차수당등지급액(㉡)\t\t51,530,089,250\t65,932,568,500\r\n\t-종업원저리대여금이 자관련인건비(㉢)\t\t-\t-\r\n\tn.저리·무상대여이익\t\t4,725,943,920\t5,598,293,980\r\n\to.지방이전관련직접인건비\t\t-\t-\r\n\tp.법령에따른특수건강진단비\t\t-\t-\r\n\tq.코로나19대응을위한시간외근로수당등\t\t-\t-\r\n\tr.해외근무수당\t\t-\t-\r\n\ts.직무발명보상금\t\t-\t-\r\n\tt.공무원수준내의자녀수당및출산격려금\t\t3,051,903,476\t1,832,315,628\r\n\tu.야간간호특별수당\t\t-\t-\r\n\tv.비상진료체계운영에따른특별수당등\t\t-\t-\r\n\tu.국민건강보험공단2023년도총인건비초과액에따른상환금액\t\t-\t22,500,000,000\r\n\t소계:(B)=f+g+h+i+j+k+l+m-n+o+p+q+r+s+t+u+v+w\t\t394,250,972,037\t312,816,850,114\r\n\t\t\t\t\r\n\t3.실집행액기준총인건비발생액(C)=(A)-(B)\t\t1,002,750,062,694\t986,115,894,077\r\n\t\t\t\t\r\n"전년대비\n조정된\n총인건비\n발생액\n산출"\t4.연도별증원소요인건비의영향을제거하기위한인건비의조정(D)\t\t\t-8,039,360,305\r\n\t5.별도직군승진시기차이에따른인건비효과조정(E)\t\t\t\r\n\t6.초임직급정원변동에따른인건비효과조정(F)\t\t\t-511,459,730\r\n\t7.정년이후재고용을전제로전환된정원외인력의인건비효과조정(G)\t\t\t\r\n\t8.생산량증가로인하여\'23년도\'에추가로지급된인건비의영향제거(H)\t\t\tn/a\r\n\t9.최저임금지급직원에대한인건비효과조정(I)\t\t\t\r\n\t10.파업등에따른인건비효과조정(J)\t\t\t\r\n\t11.코로나19로인한휴업의인건비효과조정(K)\t\t\t\r\n\t"12.총인건비인상률계산대상총인건비발생액\n=(C)+(D)+(E)-(F)-(G)-(H)+(I)+(J)+(K)+(L)"\t\t1,002,750,062,694\t978,587,993,501\r\n\t\t\t\t\r\n"당해연도\n총인건비\n인상률\n계산"\t13.총인건비인상률가이드라인에따른총인건비상한액\t\tn/a\tn/a\r\n\t(1)\'23년도총인건비인상률가이드라인을준수한경우\t\t\t978,587,993,501\r\n\t(2)\'23년도총인건비인상률가이드라인을준수경우하지않은경우\t\t\t-\r\n\t\t\t\t\r\n\t14.총인건비인상률 산출(\'24년도총인건비인상률가이드라인=2.5%)\t\tn/a\t\r\n\t(1)\'23년도총인건비인상률가이드라인을준수한경우\t\t2.469%\t\r\n\t(2)\'23년도총인건비인상률가이드라인을준수경우하지않은경우\t\t-\t\r\n\t\t\t\t\r\n\t\t\t\t\r\n\t\t\t\t\r\n\t\t\t\t\r\n\t\t\t\t\r\n\t\t\t\t\r\n\t\t\t\t\r\n\t\t\t\t\r\n'
-        excel_original02 = excel_original02.replace(' ', '').replace('\t-\t', '\t\t')
-        
-        excel_original03 = '(3-1) 증원소요 인건비 계산을 위한 Template\t\t\t\t\t\t\r\n\t\t\t\t\t(단위: 명, 원)\t\r\n직급\t인원\t\t\t"전년도의\n평균단가\n(D)"\t"증원소요 인건비\n(C) x (D)"\t\r\n\t"전년도\n(A)"\t"당년도\n(B)"\t"증감\n(C)=(B)-(A)"\t\t\t\r\n1급\t133.0 \t133.0 \t -  \t99,310,634 \t -  \t\r\n2급\t589.0 \t589.0 \t -  \t92,457,982 \t -  \t\r\n3급\t2,437.1 \t2,444.9 \t7.8 \t86,403,138 \t673,944,476 \t\r\n4급\t4,314.5 \t4,060.4 \t△254.1 \t77,428,700 \t△19,674,632,670 \t\r\n5급\t3,887.0 \t4,251.8 \t364.8 \t53,434,940 \t19,493,066,112 \t\r\n6급\t3,466.0 \t3,269.3 \t△196.7 \t44,091,356 \t△8,672,769,725 \t\r\n연 구직\t136.9 \t138.8 \t1.9 \t74,227,106 \t141,031,501 \t\r\n계\t14,963.5 \t14,887.2 \t△76.3 \t\t△8,039,360,305 \t\r\n\t\t\t\t\t\t\r\n\t\t\t\t\t\t\r\n\t\t\t\t\t\t\r\n\t\t\t\t\t\t\r\n\t\t\t\t\t\t\r\n\t\t\t\t\t\t\r\n\t\t\t\t\t\t\r\n\t\t\t\t\t\t\r\n\t\t\t\t\t\t\r\n\t\t\t\t\t\t\r\n'
-        excel_original03 = excel_original03.replace(' ', '').replace('\t-\t', '\t\t')
-
-        excel_original04 = '(3-2) 직급별 평균인원 계산을 위한 Template\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\r\n\t\t\t\t\t\t\t\t\t\t\t\t\t\t(단위: 명)\t\r\n전년도\t직급\t1월\t2월\t3월\t4월\t5월\t6월\t7월\t8월\t9월\t10월\t11월\t12월\t평균인원\t\r\n\t1급\t 166.0 \t 166.0 \t 167.0 \t 167.0 \t 167.0 \t 167.0 \t 159.0 \t 158.0 \t 158.0 \t 158.0 \t 158.0 \t 158.0 \t 162.4 \t\r\n\t2급\t 678.0 \t 678.0 \t 680.0 \t 680.0 \t 680.0 \t 678.0 \t 669.0 \t 669.0 \t 671.0 \t 670.0 \t 668.0 \t 670.0 \t 674.3 \t\r\n\t3급\t 2,598.0 \t 2,594.0 \t 2,591.0 \t 2,587.0 \t 2,584.0 \t 2,586.0 \t 2,555.0 \t 2,547.0 \t 2,548.0 \t 2,550.0 \t 2,549.0 \t 2,551.8 \t 2,570.1 \t\r\n\t4급\t 4,039.0 \t 4,189.8 \t 4,180.0 \t 4,174.5 \t 4,173.3 \t 4,168.3 \t 3,985.0 \t 3,967.5 \t 3,992.8 \t 3,981.3 \t 3,974.3 \t 3,977.5 \t 4,066.9 \t\r\n\t5급\t 4,011.3 \t 3,815.5 \t 3,797.0 \t 3,785.3 \t 3,773.5 \t 3,761.8 \t 3,966.8 \t 3,959.8 \t 3,988.0 \t 3,942.0 \t 3,916.0 \t 3,927.5 \t 3,887.0 \t\r\n\t6급\t 3,440.0 \t 3,432.0 \t 3,437.3 \t 3,440.5 \t 3,436.5 \t 3,439.8 \t 3,451.0 \t 3,439.0 \t 3,445.0 \t 3,423.5 \t 3,425.5 \t 3,782.0 \t 3,466.0 \t\r\n\t연구직\t 145.0 \t 140.0 \t 136.0 \t 133.0 \t 133.0 \t 133.0 \t 139.0 \t 138.0 \t 135.0 \t 135.0 \t 136.0 \t 139.8 \t 136.9 \t\r\n\t계\t 15,077.3 \t 15,015.3 \t 14,988.3 \t 14,967.3 \t 14,947.3 \t 14,933.8 \t 14,924.8 \t 14,878.3 \t 14,937.8 \t 14,859.8 \t 14,826.8 \t 15,206.5 \t 14,963.6 \t\r\n\t\t\t\t\t\t\t\t\t\t\t\t\t\t(단위: 명)\t\r\n당년도\t직급\t1월\t2월\t3월\t4월\t5월\t6월\t7월\t8월\t9월\t10월\t11월\t12월\t평균인원\t\r\n\t1급\t 162.00 \t 162.00 \t 161.00 \t 160.00 \t 159.00 \t 158.00 \t 165.00 \t 165.00 \t 165.00 \t 165.00 \t 165.00 \t 165.00 \t 162.70 \t\r\n\t2급\t 678.00 \t 678.00 \t 678.00 \t 678.00 \t 678.00 \t 678.00 \t 670.00 \t 669.00 \t 669.00 \t 669.00 \t 669.00 \t 667.00 \t 673.40 \t\r\n\t3급\t 2,583.00 \t 2,579.00 \t 2,573.75 \t 2,566.50 \t 2,556.75 \t 2,561.00 \t 2,575.00 \t 2,571.75 \t 2,572.75 \t 2,569.75 \t 2,568.50 \t 2,569.50 \t 2,570.60 \t\r\n\t4급\t 3,877.75 \t 3,854.75 \t 3,847.75 \t 3,840.75 \t 3,835.00 \t 3,842.50 \t 3,526.50 \t 3,855.75 \t 3,853.00 \t 3,842.25 \t 3,834.50 \t 3,837.50 \t 3,820.70 \t\r\n\t5급\t 4,149.25 \t 4,126.25 \t 4,119.00 \t 4,117.75 \t 4,105.75 \t 4,119.50 \t 4,673.25 \t 4,325.50 \t 4,348.25 \t 4,318.50 \t 4,312.25 \t 4,306.75 \t 4,251.80 \t\r\n\t6급\t 3,319.75 \t 3,318.00 \t 3,307.50 \t 3,302.75 \t 3,292.50 \t 3,292.00 \t 3,155.25 \t 3,156.00 \t 3,160.00 \t 3,160.00 \t 3,160.75 \t 3,607.50 \t 3,269.30 \t\r\n\t연구직\t 138.00 \t 139.00 \t 136.00 \t 135.00 \t 134.00 \t 136.00 \t 137.00 \t 141.00 \t 139.00 \t 139.00 \t 146.00 \t 145.00 \t 138.80 \t\r\n\t계\t 14,907.75 \t 14,857.00 \t 14,823.00 \t 14,800.75 \t 14,761.00 \t 14,787.00 \t 14,902.00 \t 14,884.00 \t 14,907.00 \t 14,863.50 \t 14,856.00 \t 15,298.25 \t 14,887.30 \t\r\n\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\r\n\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\r\n\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\r\n\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\r\n\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\r\n\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\r\n\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\r\n\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\r\n\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\r\n'
-        excel_original04 = excel_original04.replace(' ', '').replace('\t-\t', '\t\t')
-
-        excel_original05 = '(3-3) 근속승진 및 증원소요인건비 대상 인원의 파악\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\r\n가. 정원 및 현원 차이\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t(단위: 명)\t\t\t\t\t\t\t\t\r\n당년도\t직급\t1 월\t\t\t\t2월\t\t\t\t3월\t\t\t\t4월\t\t\t\t5월\t\t\t\t6월\t\t\t\t\t\t\t\t\t\t\t\r\n\t\t정원\t현원\t복직자\t누적차\t정원\t현원\t복직자\t누적차\t정원\t현원\t복직자\t누적차\t정원\t현원\t복직자\t누적차\t정원\t현원\t복직자\t누적차\t정원\t현원\t복직자\t누적차\t\t\t\t\t\t\t\t\r\n\t1급\t133 \t162.0 \t0.0 \t-29.0 \t133 \t162.0 \t0.0 \t-29.0 \t133 \t161.0 \t0.0 \t-28.0 \t133 \t160.0 \t0.0 \t-27.0 \t133 \t159.0 \t0.0 \t-26.0 \t133 \t158.0 \t0.0 \t-25.0 \t\t\t\t\t\t\t\t\r\n\t2급\t589 \t678.0 \t0.0 \t-118.0 \t589 \t678.0 \t0.0 \t-118.0 \t589 \t678.0 \t0.0 \t-117.0 \t589 \t678.0 \t0.0 \t-116.0 \t589 \t678.0 \t0.0 \t-115.0 \t589 \t678.0 \t0.0 \t-114.0 \t\t\t\t\t\t\t\t\r\n\t3급\t2,382 \t2,583.0 \t51.0 \t-268.0 \t2,382 \t2,579.0 \t47.0 \t-268.0 \t2,382 \t2,573.8 \t46.0 \t-262.8 \t2,382 \t2,566.5 \t47.0 \t-253.5 \t2,382 \t2,556.8 \t46.0 \t-243.8 \t2,382 \t2,561.0 \t46.0 \t-247.0 \t\t\t\t\t\t\t\t\r\n\t4급\t8,518 \t3,877.8 \t0.0 \t4,372.3 \t8,518 \t3,854.8 \t0.0 \t4,395.3 \t8,518 \t3,847.8 \t0.0 \t4,407.5 \t8,518 \t3,840.8 \t0.0 \t4,423.8 \t8,518 \t3,835.0 \t0.0 \t4,439.3 \t8,518 \t3,842.5 \t0.0 \t4,428.5 \t\t\t\t\t\t\t\t\r\n\t5급\t1,280 \t4,149.3 \t0.0 \t1,503.0 \t1,280 \t4,126.3 \t0.0 \t1,549.0 \t1,280 \t4,119.0 \t0.0 \t1,568.5 \t1,280 \t4,117.8 \t0.0 \t1,586.0 \t1,280 \t4,105.8 \t0.0 \t1,613.5 \t1,280 \t4,119.5 \t0.0 \t1,589.0 \t\t\t\t\t\t\t\t\r\n\t6급\t2,479 \t3,319.8 \t0.0 \t662.3 \t2,479 \t3,318.0 \t0.0 \t710.0 \t2,479 \t3,307.5 \t0.0 \t740.0 \t2,479 \t3,302.8 \t0.0 \t762.3 \t2,479 \t3,292.5 \t0.0 \t800.0 \t2,479 \t3,292.0 \t0.0 \t776.0 \t\t\t\t\t\t\t\t\r\n\t연구직\t157 \t138.0 \t0.0 \t0.0 \t157 \t139.0 \t0.0 \t0.0 \t157 \t136.0 \t0.0 \t0.0 \t157 \t135.0 \t0.0 \t0.0 \t157 \t134.0 \t0.0 \t0.0 \t157 \t136.0 \t0.0 \t0.0 \t\t\t\t\t\t\t\t\r\n\t계\t15,538 \t14,907.8 \t51.0 \t\t15,538 \t14,857.0 \t47.0 \t\t15,538 \t14,823.0 \t46.0 \t\t15,538 \t14,800.8 \t47.0 \t\t15,538 \t14,761.0 \t46.0 \t\t15,538 \t14,787.0 \t46.0 \t\t\t\t\t\t\t\t\t\r\n\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\r\n당년도\t직급\t7월\t\t\t\t8월\t\t\t\t9월\t\t\t\t10월\t\t\t\t11월\t\t\t\t12월\t\t\t\t\t\t\t\t\t\t\t\r\n\t\t정원\t 현원\t복직자\t누적차\t정원\t현원\t복직자\t누적차\t정원\t현원\t복직자\t누적차\t정원\t현원\t복직자\t누적차\t정원\t현원\t복직자\t누적차\t정원\t현원\t복직자\t누적차\t\t\t\t\t\t\t\t\r\n\t1급\t133 \t165.0 \t0.0 \t-32.0 \t133 \t165.0 \t0.0 \t-32.0 \t133 \t165.0 \t0.0 \t-32.0 \t133 \t165.0 \t0.0 \t-32.0 \t133 \t165.0 \t0.0 \t-32.0 \t133 \t165.0 \t0.0 \t-32.0 \t\t\t\t\t\t\t\t\r\n\t2급\t589 \t670.0 \t0.0 \t-113.0 \t589 \t669.0 \t0.0 \t-112.0 \t589 \t669.0 \t0.0 \t-112.0 \t589 \t669.0 \t0.0 \t-112.0 \t589 \t669.0 \t0.0 \t-112.0 \t589 \t667.0 \t0.0 \t-110.0 \t\t\t\t\t\t\t\t\r\n\t3급\t2,399 \t2,575.0 \t66.0 \t-223.0 \t2,399 \t2,571.8 \t63.0 \t-221.8 \t2,399 \t2,572.8 \t60.0 \t-225.8 \t2,399 \t2,569.8 \t60.0 \t-222.8 \t2,399 \t2,568.5 \t60.0 \t-221.5 \t2,399 \t2,569.5 \t61.0 \t-219.5 \t\t\t\t\t\t\t\t\r\n\t4급\t8,547 \t3,526.5 \t0.0 \t4,797.5 \t8,547 \t3,855.8 \t0.0 \t4,469.5 \t8,547 \t3,853.0 \t0.0 \t4,468.3 \t8,547 \t3,842.3 \t0.0 \t4,482.0 \t8,547 \t3,834.5 \t0.0 \t4,491.0 \t8,547 \t3,837.5 \t0.0 \t4,490.0 \t\t\t\t\t\t\t\t\r\n\t5급\t1,284 \t4,673.3 \t0.0 \t1,408.3 \t1,284 \t4,325.5 \t0.0 \t1,428.0 \t1,284 \t4,348.3 \t0.0 \t1,404.0 \t1,284 \t4,318.5 \t0.0 \t1,447.5 \t1,284 \t4,312.3 \t0.0 \t1,462.8 \t1,284 \t4,306.8 \t0.0 \t1,467.3 \t\t\t\t\t\t\t\t\r\n\t6급\t2,551 \t3,155.3 \t0.0 \t804.0 \t2,551 \t3,156.0 \t0.0 \t823.0 \t2,551 \t3,160.0 \t0.0 \t795.0 \t2,551 \t3,160.0 \t0.0 \t838.5 \t2,551 \t3,160.8 \t0.0 \t853.0 \t2,551 \t3,607.5 \t0.0 \t410.8 \t\t\t\t\t\t\t\t\r\n\t연구직\t157 \t137.0 \t0.0 \t0.0 \t157 \t141.0 \t0.0 \t0.0 \t157 \t139.0 \t0.0 \t0.0 \t157 \t139.0 \t0.0 \t0.0 \t157 \t146.0 \t0.0 \t0.0 \t157 \t145.0 \t0.0 \t0.0 \t\t\t\t\t\t\t\t\r\n\t계\t15,660 \t14,902.0 \t66.0 \t\t15,660 \t14,884.0 \t63.0 \t\t15,660 \t14,907.0 \t60.0 \t\t15,660 \t14,863.5 \t60.0 \t\t15,660 \t14,856.0 \t60.0 \t\t15,660 \t15,298.3 \t61.0 \t\t\t\t\t\t\t\t\t\r\n\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\r\n'
-        excel_original05 += '나. 근속승진\t\t\t\t\t\t\t\t\t\t\t\t\t(단위: 명)\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\r\n당년도\t직급\t1월\t2월\t3월\t4월\t5월\t6월\t7월\t8월\t9월\t10월\t11월\t12월\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\r\n\t1급\t29.0\t29.0\t28.0\t27.0\t26.0\t25.0\t32.0\t32.0\t32.0\t32.0\t32.0\t32.0\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\r\n\t2급\t89.0\t89.0\t89.0\t89.0\t89.0\t89.0\t81.0\t80.0\t80.0\t80.0\t80.0\t78.0\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\r\n\t3급\t150.0\t150.0\t145.8\t137.5\t128.8\t133.0\t110.0\t109.8\t113.8\t110.8\t109.5\t109.5\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\r\n\t4급\t-268.0\t-268.0\t-262.8\t-253.5\t-243.8\t-247.0\t-223.0\t-221.8\t-225.8\t-222.8\t-221.5\t-219.5\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\r\n\t5급\t0.0\t0.0\t0.0\t0.0\t0.0\t0.0\t0.0\t0.0\t0.0\t0.0\t0.0\t0.0\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\r\n\t6급\t0.0\t0.0\t0.0\t0.0\t0.0\t0.0\t0.0\t0.0\t0.0\t0.0\t0.0\t0.0\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\r\n\t연구직\t0.0\t0.0\t0.0\t0.0\t0.0\t0.0\t0.0\t0.0\t0.0\t0.0\t0.0\t0.0\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\r\n\t계\t0.0 \t0.0 \t0.0 \t0.0 \t0.0 \t0.0 \t0.0 \t0.0 \t0.0 \t0.0 \t0.0 \t0.0 \t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\r\n\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\r\n다. 증원소요인건비 대상 인원\t\t\t\t\t\t\t\t\t\t\t\t\t\t(단위: 명)\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\r\n당년도\t직급\t1월\t2월\t3월\t4 월\t5월\t6월\t7월\t8월\t9월\t10월\t11월\t12월\t평균인원\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\r\n\t1급\t133.0 \t133.0 \t133.0 \t133.0 \t133.0 \t133.0 \t133.0 \t133.0 \t133.0 \t133.0 \t133.0 \t133.0 \t133.0 \t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\r\n\t2급\t589.0 \t589.0 \t589.0 \t589.0 \t589.0 \t589.0 \t589.0 \t589.0 \t589.0 \t589.0 \t589.0 \t589.0 \t589.0 \t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\r\n\t3급\t2,433.0 \t2,429.0 \t2,428.0 \t2,429.0 \t2,428.0 \t2,428.0 \t2,465.0 \t2,462.0 \t2,459.0 \t2,459.0 \t2,459.0 \t2,460.0 \t2,444.9 \t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\r\n\t4급\t4,145.8 \t4,122.8 \t4,110.5 \t4,094.3 \t4,078.8 \t4,089.5 \t3,749.5 \t4,077.5 \t4,078.8 \t4,065.0 \t4,056.0 \t4,057.0 \t4,060.4 \t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\r\n\t5급\t4,149.3 \t4,126.3 \t4,119.0 \t4,117.8 \t4,105.8 \t4,119.5 \t4,673.3 \t4,325.5 \t4,348.3 \t4,318.5 \t4,312.3 \t4,306.8 \t4,251.8 \t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\r\n\t6급\t3,319.8 \t3,318.0 \t3,307.5 \t3,302.8 \t3,292.5 \t3,292.0 \t3,155.3 \t3,156.0 \t3,160.0 \t3,160.0 \t3,160.8 \t3,607.5 \t3,269.3 \t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\r\n\t연구직\t138.0 \t139.0 \t136.0 \t135.0 \t134.0 \t136.0 \t137.0 \t141.0 \t139.0 \t139.0 \t146.0 \t145.0 \t138.8 \t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\r\n\t계\t14,907.8 \t14,857.0 \t14,823.0 \t14,800.8 \t14,761.0 \t14,787.0 \t14,902.0 \t14,884.0 \t14,907.0 \t14,863.5 \t14,856.0 \t15,298.3 \t14,887.2 \t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\r\n\t\t\t\t\t\t\t\t\t\t\t\t\t\t(단위: 명)\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\r\n전년도\t직급\t1월\t2월\t3월\t4월\t5월\t6월\t7월\t8월\t9월\t10월\t11월\t12월\t평균인원\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\r\n\t1급\t133.0 \t133.0 \t133.0 \t133.0 \t133.0 \t133.0 \t133.0 \t133.0 \t133.0 \t133.0 \t133.0 \t133.0 \t133.0 \t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\r\n\t2급\t589.0 \t589.0 \t589.0 \t589.0 \t589.0 \t589.0 \t589.0 \t589.0 \t589.0 \t589.0 \t589.0 \t589.0 \t589.0 \t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\r\n\t3급\t2,435.8 \t2,434.8 \t2,435.0 \t2,435.8 \t2,434.8 \t2,436.5 \t2,443.3 \t2,441.3 \t2,438.0 \t2,437.0 \t2,437.0 \t2,436.0 \t2,437.1 \t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\r\n\t4급\t4,323.2 \t4,471.0 \t4,461.0 \t4,450.7 \t4,447.5 \t4,440.8 \t4,202.7 \t4,178.2 \t4,209.8 \t4,200.3 \t4,190.3 \t4,199.3 \t4,314.5 \t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\r\n\t5급\t4,011.3 \t3,815.5 \t3,797.0 \t3,785.3 \t3,773.5 \t3,761.8 \t3,966.8 \t3,959.8 \t3,988.0 \t3,942.0 \t3,916.0 \t3,927.5 \t3,887.0 \t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\r\n\t6급\t3,440.0 \t3,432.0 \t3,437.3 \t3,440.5 \t3,436.5 \t3,439.8 \t3,451.0 \t3,439.0 \t3,445.0 \t3,423.5 \t3,425.5 \t3,782.0 \t3,466.0 \t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\r\n\t연구직\t145.0 \t140.0 \t136.0 \t133.0 \t133.0 \t133.0 \t139.0 \t138.0 \t135.0 \t135.0 \t136.0 \t139.8 \t136.9 \t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\r\n\t계\t15,077.3 \t15,015.3 \t14,988.3 \t14,967.3 \t14,947.3 \t14,933.8 \t14,924.8 \t14,878.3 \t14,937.8 \t14,859.8 \t14,826.8 \t15,206.5 \t14,963.5 \t\tt\r\n'
-        excel_original05 = excel_original05.replace(' ', '').replace('\t-\t', '\t\t')
-        
-        excel_original06 = '(3-4) 직급별 평균단가 계산을 위한 Template\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\r\n\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t(단위: 원)\r\n전년도\t직급\t1월\t2월\t3월\t4월\t5월\t6월\t7월\t8월\t9월\t10월\t11월\t 12월 \t"인건비\n총계"\t평균인원\t"직급별\n평균단가\n(수정 전)"\t"공무원 수준 내\n가족(자녀)수당"\t"공무원 수준 내\n출산축하금"\t"총인건비 차감 액\n(225억원)"\t"인건비 총계\n(수정 후)"\t"직급별\n평균단가"\r\n\t1급\t 1,321,802,810 \t 1,291,429,920 \t 1,326,000,290 \t 1,326,201,640 \t 1,268,376,330 \t 1,330,114,040 \t 1,733,986,960 \t 1,320,458,570 \t 1,312,172,040 \t 1,312,139,870 \t 1,315,490,040 \t 1,637,182,180 \t 16,495,354,690 \t 162.4 \t 101,572,381 \t - \t - \t 367,307,772 \t 16,128,046,918 \t 99,310,634 \r\n\t2급\t 4,948,980,180 \t 4,863,629,030 \t 4,953,343,590 \t 4,954,987,280 \t 4,769,837,630 \t 4,975,979,063 \t 6,451,898,160 \t 5,095,134,530 \t 5,091,679,310 \t 5,094,012,550 \t 5,088,037,870 \t 7,476,759,374 \t 63,764,278,567 \t 674.3 \t 94,563,664 \t\t - \t 1,419,861,260 \t 62,344,417,307 \t 92,457,982 \r\n\t3급\t 19,111,270,460 \t 17,320,263,020 \t 19,035,988,790 \t 17,316,149,340 \t 17,301,048,560 \t 20,258,047,323 \t 17,060,089,490 \t 17,042,175,518 \t 20,405,748,920 \t 17,024,524,280 \t 17,062,985,470 \t 28,690,840,311 \t 227,629,131,482 \t 2,570.1 \t 88,568,200 \t 493,728,590 \t 2,000,000 \t 5,068,696,653 \t 222,064,706,239 \t 86,403,138 \r\n\t4급\t 27,973,217,490 \t 25,314,121,630 \t 27,873,909,550 \t 25,211,744,390 \t 25,201,347,530 \t 26,581,898,988 \t 23,809,210,590 \t 23,736,133,130 \t 28,723,590,960 \t 23,824,586,280 \t 23,750,159,250 \t 40,926,953,862 \t 322,926,873,650 \t 4,066.9 \t 79,403,692 \t 796,369,178 \t 45,000,000 \t 7,190,724,460 \t 314,894,780,012 \t 77,428,700 \r\n\t5급\t 17,284,675,850 \t 15,464,665,320 \t 17,260,224,060 \t 15,372,935,600 \t 15,371,757,040 \t 17,199,384,134 \t 16,081,394,090 \t 16,153,774,921 \t 20,025,879,960 \t 16,191,904,800 \t 16,111,683,600 \t 30,354,439,609 \t 212,872,718,984 \t 3,887.0 \t 54,765,299 \t 329,995,920 \t 101,000,000 \t 4,740,110,509 \t 207,701,612,555 \t 53,434,940 \r\n\t6급\t 12,923,915,810 \t 11,492,535,180 \t 12,878,647,990 \t 11,552,605,610 \t 11,568,258,340 \t 13,256,094,043 \t 11,055,966,180 \t 11,589,625,850 \t 14,279,261,000 \t 11,550,381,140 \t 11,561,789,550 \t 22,657,653,654 \t 156,366,734,347 \t 3,466.0 \t 45,114,465 \t 47,221,940 \t 17,000,000 \t 3,481,872,192 \t 152,820,640,215 \t 44,091,356 \r\n\t연구직\t 858,793,160 \t 842,878,770 \t 819,288,680 \t 794,829,380 \t 788,109,900 \t 787,871,080 \t 804,115,530 \t 825,729,100 \t 807,479,280 \t 790,436,900 \t 810,932,730 \t 1,462,653,475 \t 10,393,117,985 \t 136.9 \t 75,917,589 \t - \t - \t 231,427,155 \t 10,161,690,830 \t 74,227,106 \r\n\t계\t 84,422,655,760 \t 76,589,522,870 \t 84,147,402,950 \t 76,529,453,240 \t 76,268,735,330 \t 84,389,388,671 \t 76,996,661,000 \t 75,763,031,619 \t 90,645,811,470 \t 75,787,985,820 \t 75,701,078,510 \t 133,206,482,465 \t 1,010,448,209,705 \t 14,963.6 \t 67,527,080 \t 1,667,315,628 \t 165,000,000 \t 22,500,000,000 \t 986,115,894,077 \t 65,900,979 \r\n\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\r\n\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t(단위: 원)\t\t\t\t\t\r\n당년도\t직급\t1월\t2월\t3월\t4월\t5월\t6월\t7월\t8월\t9월\t10월\t11월\t 12월 \t"인건비\n총계"\t평균인원\t"직급별\n평균단가"\t\t\t\t\t\r\n\t1급\t 1,289,093,280 \t 1,301,470,470 \t 1,282,011,870 \t 1,294,314,070 \t 1,273,310,800 \t 1,266,833,110 \t 1,823,613,250 \t 1,377,821,680 \t 1,376,883,040 \t 1,377,071,790 \t 1,377,552,390 \t 1,543,436,610 \t 16,583,412,360 \t 162.7 \t 101,926,321 \t\t\t\t\t\r\n\t2급\t 5,041,228,250 \t 5,037,789,130 \t 5,038,918,830 \t 5,036,626,310 \t 5,028,001,270 \t 5,039,934,860 \t 6,644,537,710 \t 5,224,911,050 \t 5,219,179,220 \t 5,219,764,100 \t 5,220,681,520 \t 5,981,594,485 \t 63,733,166,735 \t 673.4 \t 94,643,847 \t\t\t\t\t\r\n\t3급\t 17,625,397,980 \t 19,344,193,980 \t 19,650,934,360 \t 17,536,858,650 \t 17,347,801,340 \t 19,553,311,730 \t 17,587,988,237 \t 17,519,558,340 \t 21,352,936,869 \t 17,542,838,840 \t 17,530,272,050 \t 24,306,822,638 \t 226,898,915,014 \t 2,570.6 \t 88,266,909 \t\t\t\t\t\r\n\t4급\t 23,541,146,470 \t 25,996,996,330 \t 26,409,785,160 \t 23,431,021,930 \t 23,228,242,220 \t 26,394,368,690 \t 21,477,194,120 \t 22,996,134,860 \t 28,449,719,510 \t 23,030,309,980 \t 23,019,346,970 \t 31,547,253,484 \t 299,521,519,724 \t 3,820.7 \t 78,394,409 \t\t\t\t\t\r\n\t5급\t 17,441,936,300 \t 19,518,492,260 \t 19,897,277,120 \t 17,437,728,740 \t 17,343,345,220 \t 19,981,102,910 \t 19,756,931,320 \t 18,280,688,130 \t 23,216,590,420 \t 18,386,888,560 \t 18,335,357,990 \t 27,101,369,172 \t 236,697,708,142 \t 4,251.8 \t 55,670,001 \t\t\t\t\t\r\n\t6급\t 11,643,907,510 \t 12,952,398,370 \t 13,176,416,364 \t 11,512,510,520 \t 11,503,845,320 \t 13,171,697,790 \t 10,234,872,400 \t 11,611,045,360 \t 13,778,287,160 \t 10,972,489,010 \t 10,996,629,300 \t 17,273,398,355 \t 148,827,497,459 \t 3,269.3 \t 45,522,741 \t\t\t\t\t\r\n\t연구직\t 879,506,520 \t 869,343,780 \t 865,985,430 \t 843,876,470 \t 826,613,590 \t 835,660,310 \t 841,369,650 \t 846,139,520 \t 869,109,910 \t 856,415,910 \t 853,742,870 \t 1,100,079,300 \t 10,487,843,260 \t 138.8 \t 75,560,830 \t\t\t\t\t\r\n\t계\t 77,462,216,310 \t 85,020,684,320 \t 86,321,329,134 \t 77,092,936,690 \t 76,551,159,760 \t 86,242,909,400 \t 78,366,506,687 \t 77,856,298,940 \t 94,262,706,129 \t 77,385,778,190 \t 77,333,583,090 \t 108,853,954,044 \t 1,002,750,062,694 \t 14,887.3 \t 67,356,073 \t\t\t\t\t\r\n\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\r\n\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\r\n\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\r\n\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\r\n\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\r\n\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\r\n\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\r\n\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\r\n\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\r\n\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\r\n\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\r\n\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\r\n\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\r\n\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\r\n\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\r\n\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\r\n\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\r\n\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\r\n\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\r\n\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\r\n\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\r\n\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\r\n\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\r\n\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\r\n\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\r\n\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\r\n\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\r\n'
-        excel_original06 = excel_original06.replace(' ', '').replace('\t-\t', '\t\t')
-
-        excel_original07 = '(3-6) 초임직급 정원변동에 따른 인건비 효과 조정을 위한 Template\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\r\n\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\r\n가. 초임직급 정원\t\t\t\t\t\t\t\t\t\t\t\t\t\t(단위: 명)\t\t\t\t\t\t\t\r\n당년도\t직급\t1월\t2월\t3월\t4월\t5월\t6월\t7월\t8월\t9월\t10월\t11월\t12월\t평균정원\t\t\t\t\t\t\t\r\n\t1급\t0 \t0 \t0 \t0 \t0 \t0 \t0 \t0 \t0 \t0 \t0 \t0 \t0.0 \t\t\t\t\t\t\t\r\n\t2급\t0 \t0 \t0 \t0 \t0 \t0 \t0 \t0 \t0 \t0 \t0 \t0 \t0.0 \t\t\t\t\t\t\t\r\n\t3급\t0 \t0 \t0 \t0 \t0 \t0 \t0 \t0 \t0 \t0 \t0 \t0 \t0.0 \t\t\t\t\t\t\t\r\n\t4급\t0 \t0 \t0 \t0 \t0 \t0 \t0 \t0 \t0 \t0 \t0 \t0 \t0.0 \t\t\t\t\t\t\t\r\n\t5급\t0 \t0 \t0 \t0 \t0 \t0 \t0 \t0 \t0 \t0 \t0 \t0 \t0.0 \t\t\t\t\t\t\t\r\n\t6급\t575 \t575 \t575 \t575 \t575 \t642 \t642 \t642 \t642 \t642 \t642 \t642 \t614.1 \t\t\t\t\t\t\t\r\n\t연구직\t0 \t0 \t0 \t0 \t0 \t0 \t0 \t0 \t0 \t0 \t0 \t0 \t0.0 \t\t\t\t\t\t\t\r\n\t기능직\t0 \t0 \t0 \t0 \t0 \t0 \t0 \t0 \t0 \t0 \t0 \t0 \t0.0 \t\t\t\t\t\t\t\r\n\t계\t575 \t575 \t575 \t575 \t575 \t642 \t642 \t642 \t642 \t642 \t642 \t642 \t614.1 \t\t\t\t\t\t\t\r\n\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\r\n전년도\t직급\t1월\t2월\t3월\t4월\t5월\t6월\t7월\t8월\t9월\t10월\t11월\t12월\t평균정원\t\t\t\t\t\t\t\r\n\t1급\t0 \t0 \t0 \t0 \t0 \t0 \t0 \t0 \t0 \t0 \t0 \t0 \t0.0 \t\t\t\t\t\t\t\r\n\t2급\t0 \t0 \t0 \t0 \t0 \t0 \t0 \t0 \t0 \t0 \t0 \t0 \t0.0 \t\t\t\t\t\t\t\r\n\t3급\t0 \t0 \t0 \t0 \t0 \t0 \t0 \t0 \t0 \t0 \t0 \t0 \t0.0 \t\t\t\t\t\t\t\r\n\t4급\t0 \t0 \t0 \t0 \t0 \t0 \t0 \t0 \t0 \t0 \t0 \t0 \t0.0 \t\t\t\t\t\t\t\r\n\t5급\t0 \t0 \t0 \t0 \t0 \t0 \t0 \t0 \t0 \t0 \t0 \t0 \t0.0 \t\t\t\t\t\t\t\r\n\t6급\t657 \t657 \t657 \t657 \t657 \t608 \t608 \t608 \t608 \t608 \t608 \t575 \t625.7 \t\t\t\t\t\t\t\r\n\t연구직\t0 \t0 \t0 \t0 \t0 \t0 \t0 \t0 \t0 \t0 \t0 \t0 \t0.0 \t\t\t\t\t\t\t\r\n\t기능직\t0 \t0 \t0 \t0 \t0 \t0 \t0 \t0 \t0 \t0 \t0 \t0 \t0.0 \t\t\t\t\t\t\t\r\n\t계\t657 \t657 \t657 \t657 \t657 \t608 \t608 \t608 \t608 \t608 \t608 \t575 \t625.7 \t\t\t\t\t\t\t\r\n\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\r\n나. 초임직급 정원 변동에 따른 인건비 효과\t\t\t\t\t\t(단위: 명, 원)\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\r\n구분\t정원\t\t\t"전년도의\n평균단가\n(D)"\t"인건비 효과\n(E) = (C) x (D)"\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\r\n\t"전년도\n(A)"\t"당년도\n(B)"\t"증감\n(C)=(B)-(A)"\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\r\n1급\t - \t - \t - \t - \t - \t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\r\n2급\t - \t - \t - \t - \t - \t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\r\n3급\t - \t - \t - \t - \t - \t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\r\n4급\t - \t - \t - \t - \t - \t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\r\n5급\t - \t - \t - \t - \t - \t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\r\n6급\t 625.7 \t 614.1 \t-11.6 \t44,091,356 \t-511,459,730 \t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\r\n연구직\t - \t - \t - \t - \t - \t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\r\n기능직\t - \t - \t - \t - \t - \t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\r\n계\t 625.7 \t 614.1 \t-11.6 \t\t-511,459,730 \t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\r\n\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\r\n\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\r\n\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\r\n\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\r\n\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\r\n'
-        excel_original07 = excel_original07.replace(' ', '').replace('\t-\t', '\t\t')
-        """
 
 
 
@@ -1589,7 +1617,8 @@ class MainWindow(QMainWindow):
 
     def compare(self, current_index):
 
-        global excel_original01, excel_original02, excel_original03, excel_original04, excel_original05, excel_original06, excel_original07
+        global excel_original_01, excel_original_02, excel_original_03, excel_original_04, excel_original_05, excel_original_06, excel_original_07, excel_original_08, excel_original_09, excel_original_10
+        global str_err
 
         str_err = ''
         str_err_total = ''
@@ -1598,60 +1627,108 @@ class MainWindow(QMainWindow):
 
         if 1==1 or current_index == 1:
             current_index = 1
-            list_title = ['기본급\t', '인센티브상여금', '그외상여금', '법정수당', '해외근무수당', '그외제수당', '퇴직급여(명예퇴직금포함)\t', '임원인건비\t', '비상임이사인건비\t',
-                          '통상임금소송결과에따른실적급여증가액', '기타제외인건비', '기타항목\t', '급료,임금,제수당소계ⓐ\t',  '사내근로복지기금출연금\t', '국민연금사용자부담분\t',
-                          '건강보험사용자부담분\t', '고용보험사용자부담분\t', '산재보험료사용자부담분\t', '급식비\t', '교통보조비\t', '자가운전보조금\t', '학자보조금\t','건강진단비등(독감예방주사비용)\t',
-                          '선택적복지\t', '행사비\t', '포상품(비)\t', '기념품(비)\t', '격려품(비)\t', '장기근속관련비용\t', '육아보조비및출산장려금\t', '자기계발비\t', '특별근로의대가\t',
-                          '피복비\t', '경로효친비\t', '통신비\t', '축하금/조의금\t', '기타금품등\t', '복리후생비소계ⓑ\t', '일반급여(1)', '인센티브상여금', '순액', '청년인턴급여(2)', '인센티브상여금', '순액', '무기계약직급여(3)',
-                          '인센티브상여금', '순액', '소계ⓒ=(1)+(2)+(3)', '인건비총계:ⓓ=ⓐ+ⓑ+ⓒ\t\t', '인센티브상여금ⓔ=ⓔ-1+ⓔ-2\t\t', '인센티브전환금(ⓔ-1)\t\t', '인센티브추가금(ⓔ-2)\t\t', '인건비해당금액:ⓓ-ⓔ\t\t']
+
+
+            list_title_01 = ['기본급', '인센티브 상여금', '그 외 상여금', '법정수당', '해외근무수당', '그 외 제수당', '퇴직급여(명예퇴직금 포함)', '임원 인건비', '비상임이사 인건비',
+                         '인상률 제외 인건비', '기타항목', '급료,임금,제수당 소계ⓐ',  '사내근로복지기금출연금', '국민연금사용자부담분',
+                         '건강보험사용자부담분', '고용보험사용자부담분', '산재보험료사용자부담분', '급식비', '교통보조비', '자가운전보조금', '학자보조금','건강진단비',
+                         '선택적복지', '행사비', '포상품(비)', '기념품(비)', '격려품(비)', '장기근속관련 비용', '육아보조비 및 출산장려금', '자기계발비', '특별근로의 대가',
+                         '피복비', '경로효친비', '통신비', '축하금/조의금', '기타 항목', '복리후생비 소계ⓑ', '일반 급여 (1)', '인센티브 상여금', '순액', '청년인턴 급여 (2)', '인센티브 상여금', '순액', '무기계약직 급여 (3)',
+                         '인센티브 상여금', '순액', '소계 ⓒ=(1)+(2)+(3)', '인건비 총계: ⓓ=ⓐ+ⓑ+ⓒ', '인센티브 상여금 ⓔ=ⓔ-1+ⓔ-2', '인센티브 전환금 (ⓔ-1)', '인센티브 추가금 (ⓔ-2)', '인건비 해당금액 : ⓓ-ⓔ']
+
+
+            list_keyword = ['기본', '인센', '그외상여', '법정', '해외', '그외제수', '퇴직급여', '임원', '비상임', '제외', '기타', '급료', '근로', '국민', '건강', '고용', '산재', '급식', '교통', '운전', '학자', '건강', '선택', '행사', '포상', '기념',
+                            '격려', '장기', '육아', '자기', '특별', '피복', '경로', '통신', '축하', '기타', '복리', '일반', '상여', '순액', '청년', '상여', '순액', '무기', '상여', '순액', '소계', '인건비', '상여', '전환', '추가', '해당']
+
+
+            
 
             str_err += '(2) 인건비 집계\n\n'
             str_err += '급료임금제수당\n'
             str_err += f"{'판영제타이 합':>21}{'판관비':>35}{'영업외':>36}{'제조원가':>34}{'타계정대체':>34}{'이익잉여금':>34}{'합계':>35}\n"
 
-            excel = excel_original01
             cnt_wrong = 0
-            
-            for i in range (0, 53):
-   
-                if i == 39: excel = excel_original01.split('일반급여(1)')[1]
-                if i == 42: excel = excel_original01.split('청년인턴급여(2)')[1]
-                if i == 45: excel = excel_original01.split('무기계약직급여(3)')[1]
-                if i == 49: excel = excel_original01.split('인건비총계:ⓓ=ⓐ+ⓑ+ⓒ')[1]
 
-                if i == 13: str_err += "\n복리후생비\n" + f"{'판영제타이 합':>21}{'판관비':>35}{'영업외':>36}{'제조원가':>34}{'타계정대체':>34}{'이익잉여금':>34}{'합계':>35}\n"
+
+            excel_original_01 = excel_original_01.replace(' ', '')
+            # print(excel_original_01)
+            
+            for i in range (0, len(list_title_01)):
+
+                if i == 12: str_err += "\n복리후생비\n" + f"{'판영제타이 합':>21}{'판관비':>35}{'영업외':>36}{'제조원가':>34}{'타계정대체':>34}{'이익잉여금':>34}{'합계':>35}\n"
 
                 if i == 38: str_err += "\n잡급\n" + f"{'판영제타이 합':>21}{'판관비':>35}{'영업외':>36}{'제조원가':>34}{'타계정대체':>34}{'이익잉여금':>34}{'합계':>35}\n"
-                if i == 49: str_err += "\n인건비\n" + f"{'판영제타이 합':>21}{'판관비':>35}{'영업외':>36}{'제조원가':>34}{'타계정대체':>34}{'이익잉여금':>34}{'합계':>35}\n"
+                # if i == 49: str_err += "\n인건비\n" + f"{'판영제타이 합':>21}{'판관비':>35}{'영업외':>36}{'제조원가':>34}{'타계정대체':>34}{'이익잉여금':>34}{'합계':>35}\n"
 
-                try:
-                    excel.split(list_title[i])[1]
-                except:
-                    with open("log.txt", "a", encoding="utf-8") as f:                    
-                        f.write("excel_original01 (2)인건비집계 오류: " + list_title[i]  + '\n')
-                    print("excel_original01 (2)인건비집계 오류: " + list_title[i]  + '\n')
-                    QMessageBox.information(self, "(2)인건비집계", "(2)인건비집계: " + list_title[i])
-                    
+                excel_original_01 = excel_original_01[excel_original_01.find(list_keyword[i]):]
+                excel_item = excel_original_01.split('\r\n')[0]
 
-                excel = excel.split(list_title[i])[1] # 기본급
-                excel_item = excel.split('\r\n')[0]
-                
-                # str_err += self.text_table(i, 0)[:6] + '\t   '
-                if i in [0, 7, 11, 18, 19, 21, 23, 24, 30, 32, 33, 34, 36]:
-                    str_err += list_title[i][:6] + '   '
-                else:
-                    str_err += list_title[i][:6] + '\t   '
 
-                list_temp = []                
-                for j in range(1, 7):
-                    if self.excel_str(excel_item.split('\t')[j], current_index, i, j) == self.table_str(current_index, i, j):
+
+                list_original = excel_item.split('\t')
+                list_reverse = list_original[::-1]
+
+                # for j in range(5):
+                #    self.s1.table.item(i, j+1).setText(list_reverse[j])
+
+                # print(list_reverse)
+                str_err += list_title_01[i][:6] + '\t   '
+
+
+                list_temp = []
+                for j in range(0, 6):
+                    # print(list_reverse[j])
+                    # print(self.table_str(current_index, i, j+1).replace(',', ''))
+
+                    if self.excel_str(list_reverse[j], current_index, i, j).replace(',', '') == self.table_str(current_index, i, j+1).replace(',', ''):
                         str_err += 'O '
                         list_temp.append(' ' * 38)
                         
                     else:
                         str_err += 'X '
                         cnt_wrong += 1
-                        list_temp.append((self.excel_str(excel_item.split('\t')[j], current_index, i, j) + f"__{self.table_str(current_index, i, j)}").rjust(38))
+                        list_temp.append((self.excel_str(list_reverse[j], current_index, i, j) + f"__{self.table_str(current_index, i, j+1)}").rjust(38))
+
+
+
+
+
+
+
+
+
+
+
+                
+
+                '''
+                cells = excel_item.split('\t')
+                # print(cells)
+                while cells and not cells[-1].replace(',', '').isdigit():
+                    cells.pop()
+                val = [c if c.replace(',', '').isdigit() else '0'
+                        for c in (['']*6 + cells)[-6:]]
+
+
+                
+                str_err += list_title_01[i][:6] + '\t   '
+
+                print(val)
+
+                list_temp = []
+                for j in range(0, 6):
+                    if val[j] in ["", "-"]: val = "0"
+                    val[j] = str(val[j]).replace('△', '-')
+
+                    if self.excel_str(val[j], current_index, i, j).replace(',', '') == self.table_str(current_index, i, j+1).replace(',', ''):
+                        str_err += 'O '
+                        list_temp.append(' ' * 38)
+                        
+                    else:
+                        str_err += 'X '
+                        cnt_wrong += 1
+                        list_temp.append((self.excel_str(val[j], current_index, i, j) + f"__{self.table_str(current_index, i, j+1)}").rjust(38))
+                '''
 
                 str_err = str_err[:-1] + ''.join(list_temp) + '\n'
             str_err = str_err.replace('(2) 인건비 집계', '(2) 인건비 집계\t불일치: [' + str(cnt_wrong) + '/318]')
@@ -1660,22 +1737,30 @@ class MainWindow(QMainWindow):
 
 
 
+
+
         if 1==1 or current_index == 2:
             current_index = 2
+            excel_original_02 = excel_original_02.replace(' ', '')
 
-            list_title = ['1.인센티브상여금을제외한인건비총액', 'a.판관비로처리한인건비', 'b.영업외비용으로처리한인건비', 'c.제조원가로처리한인건비', 'd.타계정대체로처리한인건비', 'e.이익잉여금의증감으로처리한인건비',
-                          '소계:(A)=a+b+c+d+e', '2.총인건비인상률계산에서제외(조정)되는인건비', 'f.퇴직급여(명예퇴직금포함)', 'g.임원인건비', 'h.비상임이사인건비',
-                          '기타제외인건비', 'j.사내근로복지기금출연금', 'k.잡급및무기계약직에대한인건비(복리후생비포함,인센티브상여금제외)', 'l.공적보험사용자부담분', 'm.연월차수당등조정(㉠-㉡+㉢)', '연월차수당등발생액(㉠)',
-                          '연월차수당등지급액(㉡)', '종업원저리대여금이자관련인건비(㉢)', '무상대여이익', 'o.지방이전관련직접인건비', 'p.법령에따른특수건강진단비', 'q.코로나19대응을위한시간외근로수당등',
-                          'r.해외근무수당', 's.직무발명보상금', 't.공무원수준내의자녀수당및출산격려금', 'v.비상진료체계운영에따른특별수당등',
-                          'u.국민건강보험공단2023년도총인건비초과액에따른상환금액', '소계:(B)=f+g+h+i+j+k+l+m-n+o+p+q+r+s+t+u+v+w', '3.실집행액기준총인건비발생액(C)=(A)-(B)', '4.연도별증원소요인건비의영향을제거하기위한인건비의조정(D)',
-                          '5.별도직군승진시기차이에따른인건비효과조정(E)', '6.초임직급정원변동에따른인건비효과조정(F)', '7.정년이후재고용을전제로전환된정원외인력의인건비효과조정(G)',
-                          '추가로지급된인건비의영향제거(H)', '최저임금지급직원에대한인건비효과조정(I)', '10.파업등에따른인건비효과조정(J)',
-                          '11.코로나19로인한휴업의인건비효과조정(K)', '(C)+(D)+(E)-(F)-(G)-(H)+(I)+(J)+(K)+(L)', '13.총인건비인상률가이드라인에따른총인건비상한액',
-                          '23년도총인건비인상률가이드라인을준수한경우', '23년도총인건비인상률가이드라인을준수경우하지않은경우', '24년도총인건비인상률가이드라인=2.5%)', '23년도총인건비인상률가이드라인을준수한경우',
-                          '23년도총인건비인상률가이드라인을준수경우하지않은경우' ]
+            list_title_02 = ['1.인센티브상여금을제외한인건비총액', 'a.판관비로처리한인건비', 'b.영업외비용으로처리한인건비', 'c.제조원가로처리한인건비', 'd.타계정대체로처리한인건비', 'e.이익잉여금의증감으로처리한인건비', '소계:(A)=a+b+c+d+e',
+                             '2.총인건비인상률계산에서제외(조정)되는인건비', 'f.퇴직급여(명예퇴직금포함)', 'g.임원인건비', 'h.비상임이사인건비',
+                             '기타제외인건비', 'j.사내근로복지기금출연금', 'k.잡급및무기계약직에대한인건비(복리후생비포함,인센티브상여금제외)', 
+                             'l.공적보험사용자부담분', 'm.연월차수당등조정(㉠-㉡+㉢)', '-연월차수당등발생액(㉠)',
+                             '-연월차수당등지급액(㉡)', '-종업원저리대여금이자관련인건비(㉢)', '무상대여이익', 'o.지방이전관련직접인건비', 
+                             'p.법령에따른특수건강진단비', 'q.해외근무수당', 'r.직무발명보상금', 
+                             's.공무원수준내의자녀수당및출산격려금', 't.야간간호특별수당', 'u.비상진료체계운영에따른특별수당등',
+                             'v. 통상임금 판단기준 변경 판례의 영향으로 인한 법정수당 증가분(2024년 귀속분)', '소계:(B)=f+g+h+i+j+k+l+m-n+o+p+q+r+s+t+u+v+w', 
+                             '3.실집행액기준총인건비발생액(C)=(A)-(B)', '4.연도별증원소요인건비의영향을제거하기위한인건비의조정(D)',
+                             '5.별도직군승진시기차이에따른인건비효과조정(E)', '6.초임직급정원변동에따른인건비효과조정(F)', 
+                             '7.정년이후재고용을전제로전환된정원외인력의인건비효과조정(G)', '8.추가로지급된인건비의영향제거(H)', 
+                             '9.최저임금지급직원에대한인건비효과조정(I)', '10.파업등에따른인건비효과조정(J)', '11.통상임금판단기준변경판례의영향으로인한법정수당증가분(2025년귀속분)(K)<주30>', 
+                              '12.(C)+(D)+(E)-(F)-(G)-(H)+(I)+(J)+(K)+(L)', '13.총인건비인상률가이드라인에따른총인건비상한액',
+                             '23년도총인건비인상률가이드라인을준수한경우', '23년도총인건비인상률가이드라인을준수경우하지않은경우', '24년도총인건비인상률가이드라인=2.5%)', '23년도총인건비인상률가이드라인을준수한경우',
+                             '23년도총인건비인상률가이드라인을준수경우하지않은경우' ]
 
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        
+
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     
             str_err += '(3) 총인건비 인상률 지표의 점수계산\n\n'
             str_err += '실집행액 기준 총인건비 발생액 산출\n\n'
 
@@ -1685,144 +1770,308 @@ class MainWindow(QMainWindow):
             w_d = 35
             str_err += f"{'5 4 3':>28}{'2025':>39}{'2024':>41}{'2023':>39}\n"
 
-            excel = excel_original02
             cnt_wrong = 0
 
-            for i in range (0, 45):
+            global final_matrix
 
-                try:
-                    excel.split(list_title[i])[1]
-                except:
-                    with open("log.txt", "a", encoding="utf-8") as f:                    
-                        f.write("excel_original02 (3)총인건비인상률 오류: " + list_title[i]  + '\n')
-                    print("excel_original02 (3)총인건비인상률 오류: " + list_title[i]  + '\n')
-                    QMessageBox.information(self, "(3)총인건비인상률", "(3)총인건비인상률: " + list_title[i])
-
+            # for i in range (0, 45):
+            for i in range (0, len(final_matrix)):
 
                 
                 if i in [7, 29, 30]: str_err += '\n'
+
+                
                 if i == 30: str_err += '\n전년대비 조정된 총인건비 발생액 산출\n\n' + f"{'5 4 3':>28}{'2025':>39}{'2024':>41}{'2023':>39}\n"
                 if i == 39: str_err += '\n\n당해연도 총인건비 인상률 계산\n\n' + f"{'5 4 3':>28}{'2025':>39}{'2024':>41}{'2023':>39}\n"
-
-                if i == 42:
-                    excel = excel_original02.split('14.총인건비인상률')[1] # 기본급
-                    excel_item = excel.split('\r\n')[0]
+                if i in [9, 19]:
+                    str_err += list_title_02[i][:8] + '\t\t'
+                elif i in [6, 28]:
+                    str_err += list_title_02[i][:12] + '\t'
+                elif i in [38]:
+                    str_err += list_title_02[i][:12] + '\t'
                 else:
-                    excel = excel.split(list_title[i])[1] # 기본급
-                    excel_item = excel.split('\r\n')[0]
-                if i == 11: excel_item = '\t' + excel_item   
+                    str_err += list_title_02[i][:8] + '\t'
 
-                # str_err += self.text_table(i, 1)[:12] + '\t'
 
-                if i in [6, 9, 19, 28, 37, 38]:
-                    str_err += list_title[i][:8] + '\t\t'
-                else:
-                    str_err += list_title[i][:8] + '\t'
+                if i in [0, 7]:
+                    str_err += '\n'
+                    continue
+
 
                 list_temp = []                
-                for j in range(2, 5): ####### (2, 5)
-                    if self.excel_str(excel_item.split('\t')[j], current_index, i, j) == self.table_str(current_index, i, j):
+                for j in range(1, len(final_matrix[0])): ####### (1, 4)
+                    if (i in [30, 32] and j == 1) or (i in [34] and j == 2):
+                        str_err += '  '
+                        list_temp.append(' ' * 41)
+                        continue
+
+                    if self.excel_str(final_matrix[i][j], current_index, i, j+1).replace(',', '') == self.table_str(current_index, i, j+1).replace(',', ''):
                         str_err += 'O '
                         list_temp.append(' ' * 41)
                         
                     else:
                         str_err += 'X '
                         cnt_wrong += 1
-                        list_temp.append((self.excel_str(excel_item.split('\t')[j], current_index, i, j) + f"__{self.table_str(current_index, i, j)}").rjust(41))
+                        list_temp.append((self.excel_str(final_matrix[i][j], current_index, i, j+1) + f"__{self.table_str(current_index, i, j+1)}").rjust(41))
 
                 str_err = str_err[:-1] + ''.join(list_temp) + '\n'
-            str_err = str_err.replace('(3) 총인건비 인상률 지표의 점수계산', '(3) 총인건비 인상률 지표의 점수계산\t\t불일치: [' + str(cnt_wrong) + '/135]')
+
+
+
+            if len(final_matrix[0]) == 3:
+                str_err = str_err.replace('5 4 3', '5 4  ')
+                str_err = str_err.replace('2023', '')
+
+
+
+
+
+
+            # print(next((w for w in excel_original_02.split('준수')[1].split('\r\n')[0].split('\t') if any(c.isdigit() for c in w)), ""))
+            # print(next((w for w in excel_original_02.split('준수')[2].split('\r\n')[0].split('\t') if any(c.isdigit() for c in w)), ""))
+            # print(next((w for w in excel_original_02.split('준수')[3].split('\r\n')[0].split('\t') if any(c.isdigit() for c in w)), ""))
+            # print(next((w for w in excel_original_02.split('준수')[4].split('\r\n')[0].split('\t') if any(c.isdigit() for c in w)), ""))
+
+
+
+
+            r_39 = excel_original_02.split('파업')[1].split('준수')[1].split('\r\n')[0].split('\t')
+            r_40 = excel_original_02.split('파업')[1].split('준수')[2].split('\r\n')[0].split('\t')
+
+            r_41 = excel_original_02.split('파업')[1].split('준수')[3].split('\r\n')[0].split('\t')
+            r_42 = excel_original_02.split('파업')[1].split('준수')[4].split('\r\n')[0].split('\t')
+
+            cnt_except = 0
+
+
+            global valid_indices
+
+            for i in range(len(r_39)-1, 0, -1):
+                if i in valid_indices:
+                    continue
+                r_39.pop(i)
+                r_40.pop(i)
+                r_41.pop(i)
+                r_42.pop(i)
+
+
+            list_temp = []
+            str_err += '13.상한액(1)준수' + '\t'
+            if str(r_39[len(r_39)-(len(final_matrix[0])-2)]).replace(',', '') == self.table_str(current_index, 40, 3).replace(',', ''):
+                str_err += '  O '
+                list_temp.append(' ' * 41)
+                list_temp.append(' ' * 41)
+            else:
+                str_err += '  X '
+                cnt_wrong += 1
+                list_temp.append(' ' * 41)
+                list_temp.append((self.excel_str(str(r_39[len(r_39)-(len(final_matrix[0])-2)]), current_index, 40, 3) + f"__{self.table_str(current_index, 40, 3)}").rjust(41))
+            str_err = str_err[:-1] + ''.join(list_temp) + '\n'
+
+
+
+            list_temp = []
+
+            if (str(r_40[len(r_40)-(len(final_matrix[0])-2)]).replace(',', '') in ['', '-', '0']) or ('Ⅲ' in str(r_40)):
+                cnt_except += 1
+            elif str(r_40[len(r_40)-(len(final_matrix[0])-2)]).replace(',', '') == self.table_str(current_index, 41, 3).replace(',', ''):
+                str_err += '13.상한액(2)미준수' + '\t'
+                str_err += '  O '
+                list_temp.append(' ' * 41)
+                list_temp.append(' ' * 41)
+            else:
+                str_err += '13.상한액(2)미준수' + '\t'
+                str_err += '  X '
+                cnt_wrong += 1
+                list_temp.append(' ' * 41)
+
+
+                if 'Ⅲ' in str(r_40):
+                    list_temp.append((self.excel_str('0', current_index, 41, 3) + f"__{self.table_str(current_index, 41, 3)}").rjust(41))                    
+                else:
+                    list_temp.append((self.excel_str(str(r_40[len(r_40)-(len(final_matrix[0])-2)]), current_index, 41, 3) + f"__{self.table_str(current_index, 41, 3)}").rjust(41))
+                
+
+                '''
+                str_err += 'O   '
+                list_temp.append(' ' * 41)
+                '''
+
+
+
+
+                
+            str_err = str_err[:-1] + ''.join(list_temp) + '\n'
+
+
+            '''
+            list_temp = []
+            str_err += '14.가이드(1)준수' + '\t'
+            if str(r_41[len(r_41)-(len(final_matrix[0])-1)]).replace('%', '') == self.table_str(current_index, 43, 2).replace(',', ''):   # 14.가이드(1)준수
+                str_err += 'O   '
+                list_temp.append(' ' * 41)
+            else:
+                str_err += 'X   '
+                cnt_wrong += 1
+                list_temp.append((self.excel_str(str(r_41[len(r_41)-(len(final_matrix[0])-1)]).replace('%', ''), current_index, 43, 2) + "%" + f"__{self.table_str(current_index, 43, 2)}%").rjust(41))
+            str_err = str_err[:-1] + ''.join(list_temp) + '\n'
+
+
+            list_temp = []
+            if (str(r_42[len(r_42)-(len(final_matrix[0])-1)]).replace('%', '') in ['', '-', '0']) or ('Ⅲ' in str(r_42)):
+                cnt_except+= 1
+            elif str(r_42[len(r_42)-(len(final_matrix[0])-1)]).replace('%', '') == self.table_str(current_index, 44, 2).replace(',', ''):   # 14.가이드(2)미준수
+                str_err += '14.가이드(2)미준수' + '\t'
+                str_err += 'O   '
+                list_temp.append(' ' * 41)
+            else:
+                str_err += '14.가이드(2)미준수' + '\t'
+                str_err += 'X   '
+                cnt_wrong += 1
+                list_temp.append((self.excel_str(str(r_42[len(r_42)-(len(final_matrix[0])-1)]).replace('%', ''), current_index, 44, 2) + "%" + f"__{self.table_str(current_index, 44, 2)}%").rjust(41))        
+            str_err = str_err[:-1] + ''.join(list_temp) + '\n'
+            '''
+
+
+
+            list_temp = []
+            str_err += '14.가이드(1)준수' + '\t'
+            if str(r_41[len(r_41)-(len(final_matrix[0])-1)]).replace('%', '') == self.table_str(current_index, 43, 2).replace(',', ''):   # 14.가이드(1)준수
+                str_err += 'O   '
+                list_temp.append(' ' * 41)
+            else:
+                str_err += 'X   '
+                cnt_wrong += 1
+                list_temp.append((self.excel_str(str(r_41[len(r_41)-(len(final_matrix[0])-1)]).replace('%', ''), current_index, 43, 2) + f"__{self.table_str(current_index, 43, 2)}").rjust(41))
+            str_err = str_err[:-1] + ''.join(list_temp) + '\n' 
+
+            list_temp = []
+            if (str(r_42[len(r_42)-(len(final_matrix[0])-1)]).replace('%', '') in ['', '-', '0']) or ('Ⅲ' in str(r_42)):
+                cnt_except+= 1
+            elif str(r_42[len(r_42)-(len(final_matrix[0])-1)]).replace('%', '') == self.table_str(current_index, 44, 2).replace(',', ''):   # 14.가이드(2)미준수
+                str_err += '14.가이드(2)미준수' + '\t'
+                str_err += 'O   '
+                list_temp.append(' ' * 41)
+            else:
+                str_err += '14.가이드(2)미준수' + '\t'
+                str_err += 'X   '
+                cnt_wrong += 1
+                list_temp.append((self.excel_str(str(r_42[len(r_42)-(len(final_matrix[0])-1)]).replace('%', ''), current_index, 44, 2) + f"__{self.table_str(current_index, 44, 2)}").rjust(41))        
+            str_err = str_err[:-1] + ''.join(list_temp) + '\n'
+
+
+
+
+
+
+
+
+            str_err = str_err.replace('(3) 총인건비 인상률 지표의 점수계산', '(3) 총인건비 인상률 지표의 점수계산\t\t불일치: [' + str(cnt_wrong) + '/' + str((len(final_matrix[0])-1)*(39+9)+4-2 - cnt_except - ((len(final_matrix[0])-2))*1) + ']')
+            str_err_total += '(3) 총인건비 인상률 지표\t\t불일치: [' + str(cnt_wrong) + '/' + str((len(final_matrix[0])-1)*(39+9)+4-2 - cnt_except - ((len(final_matrix[0])-2))*1) + ']\n'
             str_err += '\n\n\n'
+
+
+
+
+
+
 
 
 
 
         if 1 == 1 or current_index == 3:
             current_index = 3
-            list_title = ['1급', '2급', '3급', '4급', '5급', '6급', '연구직', '계' ]
-            str_err += '(3-1) 증원 요소 인건비 계산\n\n'
-            str_err += '           전당인전 증' + f"{'전년도인원(A)':>16}{'당년도인원(B)':>17}{'인원증감(C)':>18}{'전년도단가(D)':>20}{'증원인건비':>27}\n"
-            excel_original03.replace('△', '-')
-            excel = excel_original03
+            str_err += '(3-1) 증원 소요 인건비 계산\n\n'
+            str_err += '           전당인전 증' + f"{'전년도인원(A)':>16}{'당년도인원(B)':>17}{'인원증감(C)':>18}{'전년도단가(D)':>25}{'증원인건비':>29}\n"
+
+
+
+
+
+
+            excel_original_03 = excel_original_03.replace('△', '-')
+
+
+
+            list_title_03 = list(self.list_title_03)
+            rank_count_03 = len(list_title_03)
+
+
             
             cnt_wrong = 0
-            for i in range (0, 8):
+            for i in range (0, rank_count_03):
 
-                try:
-                    excel.split(list_title[i])[1]
-                except:
-                    with open("log.txt", "a", encoding="utf-8") as f:
-                        f.write("excel_original03 (3-1)증원인건비 오류: " + list_title[i]  + '\n')
-                    print("excel_original03 (3-1)증원인건비 오류: " + list_title[i]  + '\n')
-                    QMessageBox.information(self, "(3-1)증원인건비 오류", "(3-1)증원인건비 오류: " + list_title[i])
-                
-                excel = excel.split(list_title[i])[1] # 기본급
+
+                excel = excel_original_03.split(list_title_03[i])[1] # (3-1)
                 excel_item = excel.split('\r\n')[0]   
-                # str_err += self.text_table(i, 0) + '\t'
-                str_err += list_title[i] + '\t'
+                str_err += list_title_03[i][:6] + '\t'
                 
                 list_temp = []                
                 for j in range(1, 6):
-                    if self.excel_str(excel_item.split('\t')[j], current_index, i, j) == self.table_str(current_index, i, j):
+
+                    if i in [rank_count_03-1] and j == 4:
+                        str_err += '  '
+                        list_temp.append(' ' * 25)
+                        # list_temp.append(' ' * 41)
+                        continue
+
+                    if float(self.excel_str(excel_item.split('\t')[j], current_index, i, j).replace(',', '')) == float(self.table_str(current_index, i, j).replace(',', '')):
                         str_err += 'O '
-                        
                         if j == 4: list_temp.append(' ' * 25)
-                        elif j == 5: list_temp.append(' ' * 32)
+                        elif j == 5: list_temp.append(' ' * 39)
                         else: list_temp.append(' ' * 21)
                     else:
                         str_err += 'X '
                         cnt_wrong += 1
                         if j == 4: list_temp.append((self.excel_str(excel_item.split('\t')[j], current_index, i, j) + f"__{self.table_str(current_index, i, j)}").rjust(25))
-                        elif j == 5: list_temp.append((self.excel_str(excel_item.split('\t')[j], current_index, i, j) + f"__{self.table_str(current_index, i, j)}").rjust(32))
+                        elif j == 5: list_temp.append((self.excel_str(excel_item.split('\t')[j], current_index, i, j) + f"__{self.table_str(current_index, i, j)}").rjust(39))
                         else: list_temp.append((self.excel_str(excel_item.split('\t')[j], current_index, i, j) + f"__{self.table_str(current_index, i, j)}").rjust(21))
 
                 str_err = str_err[:-1] + ''.join(list_temp) + '\n'
-            str_err = str_err.replace('(3-1) 증원 요소 인건비 계산', '(3-1) 증원 요소 인건비 계산\t불일치: [' + str(cnt_wrong) + '/40]')
-            str_err_total += '(3-1) 증원 요소 인건비 계산\t불일치: [' + str(cnt_wrong) + '/40]\n'
+            str_err = str_err.replace('(3-1) 증원 소요 인건비 계산', '(3-1) 증원 소요 인건비 계산\t불일치: [' + str(cnt_wrong) + '/' + str(rank_count_03*5-1) + ']')
+            str_err_total += '(3-1) 증원 소요 인건비 계산\t불일치: [' + str(cnt_wrong) + '/' + str(rank_count_03*5-1) + ']\n'
             str_err += '\n\n\n'
+
 
 
 
 
         if 1 == 1 or current_index == 4:
             current_index = 4
-            list_title = ['1급', '2급', '3급', '4급', '5급', '6급', '연구직', '계', '1급', '2급', '3급', '4급', '5급', '6급', '연구직', '계']
+
+            list_title_04 = list(self.list_title_04)
+            rank_count_04 = len(list_title_04)
+
             str_err += '(3-2) 직급별 평균 인원 계산\n\n전년도\n'
             str_err += '           1 2 3 4 5 6 7 8 9 101112평' + f"{'1월':>20}{'2월':>20}{'3월':>20}{'4월':>20}{'5월':>20}{'6월':>20}{'7월':>20}{'8월':>21}{'9월':>20}{'10월':>20}{'11월':>20}{'12월':>20}{'평균인원':>18}\n"
 
-            excel = excel_original04
+
             
             cnt_wrong = 0
-            for i in range (0, 16):
+            for i in range (0, rank_count_04*2):
 
-
-                    
-                
-                if i == 8:
-                    excel = excel_original04.split('당년도')[1]
+                if i == rank_count_04:
                     str_err += '\n\n당년도\n'
                     str_err += '           1 2 3 4 5 6 7 8 9 101112평' + f"{'1월':>20}{'2월':>20}{'3월':>20}{'4월':>20}{'5월':>20}{'6월':>20}{'7월':>20}{'8월':>21}{'9월':>20}{'10월':>20}{'11월':>20}{'12월':>20}{'평균인원':>18}\n"
 
-                if i < 8:   # 전년도 표
+                if i < rank_count_04:   # 전년도 표
 
-                    try:
-                        a = excel.split(list_title[i])[1]
-                    except:
-                        with open("log.txt", "a", encoding="utf-8") as f:                    
-                            f.write("excel_original04 (3-2)직급별평균인원 오류: " + list_title[i]  + '\n')
-                        print("excel_original04 (3-2)직급별평균인원 오류: " + list_title[i]  + '\n')
-                        QMessageBox.information(self, "(3-2)직급별평균인원 오류", "(3-2)직급별평균인원 오류: " + list_title[i])
-                        
-
-                    excel = excel.split(list_title[i])[1] # 기본급
+                    excel = excel_original_04.split(list_title_04[i%rank_count_04])[1]
                     excel_item = excel.split('\r\n')[0]
 
-                    # str_err += self.text_table(i, 1) + '\t'
-                    str_err += list_title[i] + '\t'
+                    str_err += list_title_04[i%rank_count_04][:6] + '\t'
                     
                     list_temp = []                
                     for j in range(1, 14):
-                        if self.excel_str(excel_item.split('\t')[j], current_index, i, j) == self.table_str(current_index, i, j+1):
+                        if j == 13:
+                            if self.excel_str(excel_item.split('\t')[j], current_index, i, j).replace(',', '') == self.table_str(current_index, i, j+1).replace(',', ''):
+                                str_err += 'O '
+                                list_temp.append(' ' * 21)
+                            else:
+                                str_err += 'X '
+                                cnt_wrong += 1
+                                list_temp.append((self.excel_str(excel_item.split('\t')[j], current_index, i, j) + f"__{self.table_str(current_index, i, j+1)}").rjust(21))
+                        elif float(self.excel_str(excel_item.split('\t')[j], current_index, i, j).replace(',', '')) == float(self.table_str(current_index, i, j+1).replace(',', '')):
                             str_err += 'O '
                             list_temp.append(' ' * 21)
                         else:
@@ -1832,26 +2081,24 @@ class MainWindow(QMainWindow):
 
                 else:   # 당년도 표
 
-                    try:
-                        a = excel.split(list_title[i])[1]
-                    except:
-                        with open("log.txt", "a", encoding="utf-8") as f:                    
-                            f.write("excel_original04 (3-2)직급별평균인원 오류: " + list_title[i]  + '\n')
-                        print("excel_original04 (3-2)직급별평균인원 오류: " + list_title[i]  + '\n')
-                        QMessageBox.information(self, "(3-2)직급별평균인원 오류", "(3-2)직급별평균인원 오류: " + list_title[i])
-                        
 
-                    
 
-                    excel = excel.split(list_title[i])[1] # 기본급
+                    excel = excel_original_04.split(list_title_04[i%rank_count_04])[2]
                     excel_item = excel.split('\r\n')[0]
                     
-                    # str_err += self.text_table(i+2, 1) + '\t'
-                    str_err += list_title[i] + '\t'
+                    str_err += list_title_04[i%rank_count_04][:6] + '\t'
                     
-                    list_temp = []                
+                    list_temp = []
                     for j in range(1, 14):
-                        if self.excel_str(excel_item.split('\t')[j], current_index, i, j) == self.table_str(current_index, i+2, j+1):
+                        if j == 13:
+                            if self.excel_str(excel_item.split('\t')[j], current_index, i, j).replace(',', '') == self.table_str(current_index, i+2, j+1).replace(',', ''):
+                                str_err += 'O '
+                                list_temp.append(' ' * 21)
+                            else:
+                                str_err += 'X '
+                                cnt_wrong += 1
+                                list_temp.append((self.excel_str(excel_item.split('\t')[j], current_index, i, j) + f"__{self.table_str(current_index, i+2, j+1)}").rjust(21))
+                        elif float(self.excel_str(excel_item.split('\t')[j], current_index, i, j).replace(',', '')) == float(self.table_str(current_index, i+2, j+1).replace(',', '')):
                             str_err += 'O '
                             list_temp.append(' ' * 21)
                         else:
@@ -1859,55 +2106,58 @@ class MainWindow(QMainWindow):
                             cnt_wrong += 1
                             list_temp.append((self.excel_str(excel_item.split('\t')[j], current_index, i, j) + f"__{self.table_str(current_index, i+2, j+1)}").rjust(21))
                 str_err = str_err[:-1] + ''.join(list_temp) + '\n'
-            str_err = str_err.replace('(3-2) 직급별 평균 인원 계산', '(3-2) 직급별 평균 인원 계산\t불일치: [' + str(cnt_wrong) + '/208]')
-            str_err_total += '(3-2) 직급별 평균 인원 계산\t불일치: [' + str(cnt_wrong) + '/208]\n'
+            str_err = str_err.replace('(3-2) 직급별 평균 인원 계산', '(3-2) 직급별 평균 인원 계산\t불일치: [' + str(cnt_wrong) + '/' + str(rank_count_03*26) + ']')
+            str_err_total += '(3-2) 직급별 평균 인원 계산\t불일치: [' + str(cnt_wrong) + '/' + str(rank_count_04*26) + ']\n'
             str_err += '\n\n\n'
+
+
+
+
+
+
+
+
+
 
 
 
 
         if 1 == 1 or current_index == 5:
             current_index = 5
-            list_title = ['1급', '2급', '3급', '4급', '5급', '6급', '연구직', '계', '1급', '2급', '3급', '4급', '5급', '6급', '연구직', '계']
+
+            list_title_05 = list(self.list_title_05)
+            rank_count_05 = len(list_title_05)
+
             str_err += '(3-3) 가. 정원 및 현원 차이\n\n당년도\n'
             str_err += '          1정현복 누      2월       3월        4월       5월       6월' + f"{'1월 정원':>25}{'1월 현원':>22}{'1월 복직자':>22}{'1월 누적차':>22}{'2월 정원':>22}{'2월 현원':>22}{'2월 복직자':>22}{'2월 누적차':>22}{'3월 정원':>22}{'3월 현원':>22}{'3월 복직자':>22}{'3월 누적차':>22}{'4월 정원':>22}{'4월 현원':>22}{'4월 복직자':>22}{'4월 누적차':>22}{'5월 정원':>22}{'5월 현원':>22}{'5월 복직자':>21}{'5월 누적차':>22}{'6월 정원':>22}{'6월 현원':>22}{'6월 복직자':>22}{'6월 누적차':>22}\n"
-            
-            excel_original05_05 = excel_original05.split('나.근속승진')[0]  
-            excel = excel_original05_05
 
-
-            
+                        
             cnt_wrong = 0
-            for i in range (0, 16):
+            for i in range (0, (rank_count_05*2)+2):
 
-                if i == 8:
+                if i == rank_count_05:
                     continue
                 
-                if i == 9:
-                    excel = excel_original05_05.split('당년도')[2]
+                if i == rank_count_05+1:
                     str_err += '\n\n당년도\n'
                     str_err += '          7정현복 누      8월       9월       10월      11월      12월' + f"{'7월 정원':>25}{'7월 현원':>22}{'7월 복직자':>22}{'7월 누적차':>22}{'8월 정원':>22}{'8월 현원':>22}{'8월 복직자':>22}{'8월 누적차':>22}{'9월 정원':>22}{'9월 현원':>22}{'9월 복직자':>22}{'9월 누적차':>22}{'10월 정원':>22}{'10월 현원':>22}{'10월 복직자':>22}{'10월 누적차':>22}{'11월 정원':>22}{'11월 현원':>22}{'11월 복직자':>21}{'11월 누적차':>22}{'12월 정원':>22}{'12월 현원':>22}{'12월 복직자':>22}{'12월 누적차':>22}\n"
                     continue
                 
-                if i < 9:   # 1~6월
-                    try:
-                        excel.split(list_title[i])[1]
-                    except:
-                        with open("log.txt", "a", encoding="utf-8") as f:                    
-                            f.write("excel_original05 (3-3)가.정원현원차이 오류: " + list_title[i]  + '\n')
-                        print("excel_original05 (3-3)나.근속승진 오류: " + list_title[i]  + '\n')
-                        QMessageBox.information(self, "(3-3)가.정원현원차이 오류", "(3-3)가.정원현원차이 오류: " + list_title[i])
-                    
-                    
-                    excel = excel.split(list_title[i])[1] # 기본급
-                    excel_item = excel.split('\r\n')[0]
-                    # str_err += self.text_table(i, 1) + '\t'
-                    str_err += list_title[i] + '\t'
+                if i < rank_count_05+1:   # 1~6월
 
+                    excel = excel_original_05.split(list_title_05[i])[1] # (3-3) 가. 증원 근속 인원
+                    excel_item = excel.split('\r\n')[0]
+                    str_err += list_title_05[i][:6] + '\t'
                     
                     list_temp = []
                     for j in range(1, 25):
-                        if self.excel_str(excel_item.split('\t')[j], current_index, i, j) == self.table_str(current_index, i%24, j+1):
+                        if i == rank_count_05-1 and j%4 == 0:
+                            str_err += '  '
+                            str_err += '  '
+                            list_temp.append(' ' * 25)
+                            continue
+                        
+                        if float(self.excel_str(excel_item.split('\t')[j], current_index, i, j).replace(',', '')) == float(self.table_str(current_index, i, j+1).replace(',', '')):
                             str_err += 'O '
                             list_temp.append(' ' * 25)
                         else:
@@ -1919,23 +2169,19 @@ class MainWindow(QMainWindow):
 
                 else:   # 7~12월
                     
-                    try:
-                        excel.split(list_title[i])[1]
-                    except:
-                        with open("log.txt", "a", encoding="utf-8") as f:                    
-                            f.write("excel_original05 (3-3)가.정원현원차이 오류: " + list_title[i]  + '\n')
-                        print("excel_original05 (3-3)나.근속승진 오류: " + list_title[i]  + '\n')
-                        QMessageBox.information(self, "(3-3)가.정원현원차이 오류", "(3-3)가.정원현원차이 오류: " + list_title[i])
-                    
-                    excel = excel.split(list_title[i-2])[1] # 기본급
+                    excel = excel_original_05.split(list_title_05[(i%rank_count_05)-2])[2] # (3-3) 가. 증원 근속 인원
                     excel_item = excel.split('\r\n')[0]
-                    # str_err += self.text_table(i, 1) + '\t'
-                    str_err += list_title[i] + '\t'
+                    str_err += list_title_05[i%rank_count_05-2][:6] + '\t'
 
                     list_temp = []                
                     for j in range(1, 25):
+                        if i == (rank_count_05*2) + 1 and j%4 == 0:
+                            str_err += '  '
+                            str_err += '  '
+                            list_temp.append(' ' * 25)
+                            continue                  
                         
-                        if self.excel_str(excel_item.split('\t')[j], current_index, i, j) == self.table_str(current_index, i, j+1):
+                        if float(self.excel_str(excel_item.split('\t')[j], current_index, i, j).replace(',', '')) == float(self.table_str(current_index, i, j+1).replace(',', '')):
                             str_err += 'O '
                             list_temp.append(' ' * 25)
                         else:
@@ -1945,9 +2191,10 @@ class MainWindow(QMainWindow):
                         if j%4 == 0: str_err = str_err[:-1] + '   '
 
                 str_err = str_err[:-1] + ''.join(list_temp) + '\n'
-            str_err = str_err.replace('(3-3) 가. 정원 및 현원 차이', '(3-3) 가. 정원 및 현원 차이\t불일치: [' + str(cnt_wrong) + '/384]')
-            str_err_total += '(3-3) 가. 정원 및 현원 차이\t불일치: [' + str(cnt_wrong) + '/384]\n'
+            str_err = str_err.replace('(3-3) 가. 정원 및 현원 차이', '(3-3) 가. 정원 및 현원 차이\t불일치: [' + str(cnt_wrong) + '/' + str(rank_count_05*48-12) + ']')
+            str_err_total += '(3-3) 가. 정원 및 현원 차이\t불일치: [' + str(cnt_wrong) + '/' + str(rank_count_05*48-12) + ']\n'
             str_err += '\n\n\n'
+
 
 
 
@@ -1957,34 +2204,27 @@ class MainWindow(QMainWindow):
 
         if 1 == 1 or current_index == 6:
             current_index = 6
-            list_title = ['1급', '2급', '3급', '4급', '5급', '6급', '연구직', '계' ]
+
+            list_title_06 = list(self.list_title_06)
+            rank_count_06 = len(list_title_06)
+
+
+            
             str_err += '(3-3) 나. 근속승진\n\n'
             str_err += '           1 2 3 4 5 6 7 8 9101112평' + f"{'1월':>17}{'2월':>18}{'3월':>18}{'4월':>18}{'5월':>18}{'6월':>18}{'7월':>18}{'8월':>19}{'9월':>18}{'10월':>18}{'11월':>18}{'12월':>18}\n"
 
-            excel_original05_06 = excel_original05.split('나.근속승진')[1].split('다.증원소요인건비대상인원')[0]
-            
-            excel = excel_original05_06
 
             cnt_wrong = 0
-            for i in range (0, 8):
-
-                try:
-                    excel.split(list_title[i])[1]
-                except:
-                    with open("log.txt", "a", encoding="utf-8") as f:                    
-                        f.write("excel_original05 (3-3)나.근속승진 오류: " + list_title[i]  + '\n')
-                    print("excel_original05 (3-3)나.근속승진 오류: " + list_title[i]  + '\n')
-                    QMessageBox.information(self, "(3-3)나.근속승진 오류", "(3-3)나.근속승진 오류: " + list_title[i])
+            for i in range (0, rank_count_06):
                 
-                excel = excel.split(list_title[i])[1] # 기본급
+                excel = excel_original_06.split(list_title_06[i])[1] # (3-3) 나. 근속 승진
                 excel_item = excel.split('\r\n')[0]
 
-                # str_err += self.text_table(i, 1) + '\t'
-                str_err += list_title[i] + '\t'
+                str_err += list_title_06[i][:6] + '\t'
                 
                 list_temp = []                
                 for j in range(1, 13):
-                    if self.excel_str(excel_item.split('\t')[j], current_index, i, j) == self.table_str(current_index, i, j+1):
+                    if float(self.excel_str(excel_item.split('\t')[j], current_index, i, j).replace(',', '')) == float(self.table_str(current_index, i, j+1).replace(',', '')):
                         str_err += 'O '
                         list_temp.append(' ' * 19)
                     else:
@@ -1993,53 +2233,51 @@ class MainWindow(QMainWindow):
                         list_temp.append((self.excel_str(excel_item.split('\t')[j], current_index, i, j) + f"__{self.table_str(current_index, i, j+1)}").rjust(19))
 
                 str_err = str_err[:-1] + ''.join(list_temp) + '\n'
-            str_err = str_err.replace('(3-3) 나. 근속승진', '(3-3) 나. 근속승진\t\t불일치: [' + str(cnt_wrong) + '/96]')
-            str_err_total += '(3-3) 나. 근속승진\t\t불일치: [' + str(cnt_wrong) + '/96]\n'
+            str_err = str_err.replace('(3-3) 나. 근속승진', '(3-3) 나. 근속승진\t\t불일치: [' + str(cnt_wrong) + '/' + str(rank_count_06*12) + ']')
+            str_err_total += '(3-3) 나. 근속승진\t\t불일치: [' + str(cnt_wrong) + '/' + str(rank_count_06*12) + ']\n'
             str_err += '\n\n\n'
-
 
 
 
 
         if 1 == 1 or current_index == 7:
             current_index = 7
-            list_title = ['1급', '2급', '3급', '4급', '5급', '6급', '연구직', '계', '1급', '2급', '3급', '4급', '5급', '6급', '연구직', '계']
+            
+            list_title_07 = list(self.list_title_07)
+            rank_count_07 = len(list_title_07)
+
+            
             str_err += '(3-3) 다. 증원 인건비 인원\n\n당년도\n'
             str_err += '           1 2 3 4 5 6 7 8 9 101112평' + f"{'1월':>20}{'2월':>20}{'3월':>20}{'4월':>20}{'5월':>20}{'6월':>20}{'7월':>20}{'8월':>21}{'9월':>20}{'10월':>20}{'11월':>20}{'12월':>20}{'평균인원':>18}\n"
 
-            excel_original05_07 = excel_original05.split('다.증원소요인건비대상인원')[1]
-            
-            excel = excel_original05_07
 
             cnt_wrong = 0
-            for i in range (0, 16):
+            for i in range (0, (rank_count_07*2)):
 
-                if i == 8:
-                    excel = excel_original05_07.split('전년도')[1]
+                if i == rank_count_07:
                     str_err += '\n\n전년도\n'
                     str_err += '           1 2 3 4 5 6 7 8 9 101112평' + f"{'1월':>20}{'2월':>20}{'3월':>20}{'4월':>20}{'5월':>20}{'6월':>20}{'7월':>20}{'8월':>21}{'9월':>20}{'10월':>20}{'11월':>20}{'12월':>20}{'평균인원':>18}\n"
 
-                if i < 8:   # 전년도 표
+                if i < rank_count_07:   # 전년도 표
 
 
-                    try:
-                        excel.split(list_title[i])[1]
-                    except:
-                        with open("log.txt", "a", encoding="utf-8") as f:                    
-                            f.write("excel_original05 (3-3)다.증원인원 오류: " + list_title[i]  + '\n')
-                        print("excel_original05 (3-3)다.증원인원 오류: " + list_title[i]  + '\n')
-                        QMessageBox.information(self, "(3-3)다.증원인원 오류", "(3-3)다.증원인원 오류: " + list_title[i])
-                        
 
-                    excel = excel.split(list_title[i])[1] # 기본급
+                    excel = excel_original_07.split(list_title_07[i])[1] # (3-3) 다
                     excel_item = excel.split('\r\n')[0]
 
-                    # str_err += self.text_table(i, 1) + '\t'
-                    str_err += list_title[i] + '\t'
+                    str_err += list_title_07[i][:6] + '\t'
                     
                     list_temp = []                
                     for j in range(1, 14):
-                        if self.excel_str(excel_item.split('\t')[j], current_index, i, j) == self.table_str(current_index, i, j+1):
+                        if j == 13:
+                            if self.excel_str(excel_item.split('\t')[j], current_index, i, j).replace(',', '') == self.table_str(current_index, i, j+1).replace(',', ''):
+                                str_err += 'O '
+                                list_temp.append(' ' * 21)
+                            else:
+                                str_err += 'X '
+                                cnt_wrong += 1
+                                list_temp.append((self.excel_str(excel_item.split('\t')[j], current_index, i, j) + f"__{self.table_str(current_index, i, j+1)}").rjust(21))
+                        elif float(self.excel_str(excel_item.split('\t')[j], current_index, i, j).replace(',', '')) == float(self.table_str(current_index, i, j+1).replace(',', '')):
                             str_err += 'O '
                             list_temp.append(' ' * 21)
                         else:
@@ -2050,25 +2288,26 @@ class MainWindow(QMainWindow):
                 else:   # 당년도 표
 
 
-                    try:
-                        excel.split(list_title[i])[1]
-                    except:
-                        with open("log.txt", "a", encoding="utf-8") as f:                    
-                            f.write("excel_original05 (3-3)다.증원인원 오류: " + list_title[i]  + '\n')
-                        print("excel_original05 (3-3)다.증원인원 오류: " + list_title[i]  + '\n')
-                        QMessageBox.information(self, "(3-3)다.증원인원 오류", "(3-3)다.증원인원 오류: " + list_title[i])
-                        
-                    
-
-                    excel = excel.split(list_title[i])[1] # 기본급
+                    if list_title_07[i%rank_count_07] == '심사위원':
+                        excel = excel_original_07.split(list_title_07[i%rank_count_07])[3] # (3-3) 다
+                    else:
+                        excel = excel_original_07.split(list_title_07[i%rank_count_07])[2] # (3-3) 다
                     excel_item = excel.split('\r\n')[0]
-                    
-                    # str_err += self.text_table(i+2, 1) + '\t'
-                    str_err += list_title[i] + '\t'
+
+
+                    str_err += list_title_07[i%rank_count_07][:6] + '\t'
                     
                     list_temp = []                
                     for j in range(1, 14):
-                        if self.excel_str(excel_item.split('\t')[j], current_index, i, j) == self.table_str(current_index, i+2, j+1):
+                        if j == 13:
+                            if self.excel_str(excel_item.split('\t')[j], current_index, i, j).replace(',', '') == self.table_str(current_index, i+2, j+1).replace(',', ''):
+                                str_err += 'O '
+                                list_temp.append(' ' * 21)
+                            else:
+                                str_err += 'X '
+                                cnt_wrong += 1
+                                list_temp.append((self.excel_str(excel_item.split('\t')[j], current_index, i, j) + f"__{self.table_str(current_index, i+2, j+1)}").rjust(21))
+                        elif float(self.excel_str(excel_item.split('\t')[j], current_index, i, j).replace(',', '')) == float(self.table_str(current_index, i+2, j+1).replace(',', '')):
                             str_err += 'O '
                             list_temp.append(' ' * 21)
                         else:
@@ -2077,88 +2316,123 @@ class MainWindow(QMainWindow):
                             list_temp.append((self.excel_str(excel_item.split('\t')[j], current_index, i, j) + f"__{self.table_str(current_index, i+2, j+1)}").rjust(21))
 
                 str_err = str_err[:-1] + ''.join(list_temp) + '\n'
-            str_err = str_err.replace('(3-3) 다. 증원 인건비 인원', '(3-3) 다. 증원 인건비 인원\t불일치: [' + str(cnt_wrong) + '/208]')
-            str_err_total += '(3-3) 다. 증원 인건비 인원\t불일치: [' + str(cnt_wrong) + '/208]\n'
+            str_err = str_err.replace('(3-3) 다. 증원 인건비 인원', '(3-3) 다. 증원 인건비 인원\t불일치: [' + str(cnt_wrong) + '/' + str(rank_count_07*26) + ']')
+            str_err_total += '(3-3) 다. 증원 인건비 인원\t불일치: [' + str(cnt_wrong) + '/' + str(rank_count_07*26) + ']\n'
             str_err += '\n\n\n'
 
 
         if 1 == 1 or current_index == 8:
-            list_title = ['1급', '2급', '3급', '4급', '5급', '6급', '연구직', '계', '1급', '2급', '3급', '4급', '5급', '6급', '연구직', '계']
+
+            current_index = 8
+            
+            list_title_08 = list(self.list_title_08)
+            rank_count_08 = len(list_title_08)
+            excel_original_08 = excel_original_08.replace('\r\n계\t', '\t계\t')
+
+            
             str_err += '(3-4) 직급별 평균단가 계산\n전년도\n'
             str_err += '           1 2 3 4 5 6 7 8 9 101112인직' + f"{'1월':>36}{'2월':>36}{'3월':>36}{'4월':>36}{'5월':>36}{'6월':>36}{'7월':>37}{'8월':>36}{'9월':>36}{'10월':>36}{'11월':>36}{'12월':>36}{'인건비총계':>33}{'직급별평균단가':>31}\n"
 
 
-            excel = excel_original06
-            
             cnt_wrong = 0
-            for i in range (0, 16):
 
-                if i == 8:
-                    excel = excel_original06.split('당년도')[1]
+
+            for i in range (0, rank_count_08*2):
+
+                if i == rank_count_08:
                     str_err += '\n\n당년도\n'
                     str_err += '           1 2 3 4 5 6 7 8 9 101112인직' + f"{'1월':>36}{'2월':>36}{'3월':>36}{'4월':>36}{'5월':>36}{'6월':>36}{'7월':>37}{'8월':>36}{'9월':>36}{'10월':>36}{'11월':>36}{'12월':>36}{'인건비총계':>33}{'직급별평균단가':>31}\n"
 
 
-                if i < 8:   # 전년도 표
+                if i < rank_count_08:   # 전년도 표
 
-                    try:
-                        excel.split(list_title[i])[1]
-                    except:
-                        with open("log.txt", "a", encoding="utf-8") as f:                    
-                            f.write("excel_original06 (3-4)직급별평균단가 오류: " + list_title[i]  + '\n')
-                        print("excel_original06 (3-4)직급별평균단가 오류: " + list_title[i]  + '\n')
-                        QMessageBox.information(self, "(3-4)직급별평균단가 오류", "(3-4)직급별평균단가 오류: " + list_title[i])
 
-                    
-
-                    excel = excel.split(list_title[i])[1] # 기본급
+                    excel = excel_original_08.split('\t' + list_title_08[i%rank_count_08] + '\t')[1] # (3-4) 직급별 평균단가
                     excel_item = excel.split('\r\n')[0]
 
+                    str_err += list_title_08[i][:6] + '\t'
                     
-                    # str_err += self.text_table(i, 1) + '\t'
-                    str_err += list_title[i] + '\t'
+                    list_temp = []
+
+
+
+
+
                     
-                    list_temp = []                
-                    for j in range(1, 15):
-                        if self.excel_str(excel_item.split('\t')[j], 8, i, j) == self.table_str(8, i, j+1):
+                    for j in range(1, 14):
+                        if self.excel_str(excel_item.split('\t')[j-1], current_index, i, j-1).replace(',', '') == self.table_str(current_index, i, j+1).replace(',', ''):
                             str_err += 'O '
                             list_temp.append(' ' * 37)
                         else:
                             str_err += 'X '
                             cnt_wrong += 1
-                            list_temp.append((self.excel_str(excel_item.split('\t')[j], 8, i, j) + f"__{self.table_str(8, i, j+1)}").rjust(37))
+                            list_temp.append((self.excel_str(excel_item.split('\t')[j-1], current_index, i, j-1) + f"__{self.table_str(current_index, i, j+1)}").rjust(37))
+
+                    list_avg = excel_original_08.split('총계')[1].split('\r\n')[0].split('\t')
+
+                    if '단가' in list_avg[1]:
+                        if self.excel_str(excel_item.split('\t')[14-1], current_index, i, 14-1).replace(',', '') == self.table_str(current_index, i, 14+1).replace(',', ''):
+                            str_err += 'O '
+                            list_temp.append(' ' * 37)
+                        else:
+                            str_err += 'X '
+                            cnt_wrong += 1
+                            list_temp.append((self.excel_str(excel_item.split('\t')[14-1], current_index, i, 14-1) + f"__{self.table_str(current_index, i, 14+1)}").rjust(37))
+                    else:
+                        if self.excel_str(excel_item.split('\t')[14-1+1], current_index, i, 14-1+1).replace(',', '') == self.table_str(current_index, i, 14+1).replace(',', ''):
+                            str_err += 'O '
+                            list_temp.append(' ' * 37)
+                        else:
+                            str_err += 'X '
+                            cnt_wrong += 1
+                            list_temp.append((self.excel_str(excel_item.split('\t')[14-1+1], current_index, i, 14-1) + f"__{self.table_str(current_index, i, 14+1)}").rjust(37))
+                    
+              
+
 
                 else:   # 당년도 표
 
-                    try:
-                        excel.split(list_title[i])[1]
-                    except:
-                        with open("log.txt", "a", encoding="utf-8") as f:                    
-                            f.write("excel_original06 (3-4)직급별평균단가 오류: " + list_title[i]  + '\n')
-                        print("excel_original06 (3-4)직급별평균단가 오류: " + list_title[i]  + '\n')
-                        QMessageBox.information(self, "(3-4)직급별평균단가 오류", "(3-4)직급별평균단가 오류: " + list_title[i])
 
-                    
-
-                    excel = excel.split(list_title[i])[1] # 기본급
+                    excel = excel_original_08.split('\t' + list_title_08[i%rank_count_08] + '\t')[2]
                     excel_item = excel.split('\r\n')[0]
-                    
-                    # str_err += self.text_table(i+2, 1) + '\t'
-                    str_err += list_title[i] + '\t'
+
+                    str_err += list_title_08[i%rank_count_08][:6] + '\t'
                     
                     list_temp = []                
-                    for j in range(1, 15):
-                        if self.excel_str(excel_item.split('\t')[j], 8, i, j) == self.table_str(8, i+2, j+1):
+                    for j in range(1, 14):
+                        
+                        if self.excel_str(excel_item.split('\t')[j-1], current_index, i, j-1).replace(',', '') == self.table_str(current_index, i+2, j+1).replace(',', ''):
                             str_err += 'O '
                             list_temp.append(' ' * 37)
                         else:
                             str_err += 'X '
                             cnt_wrong += 1
-                            list_temp.append((self.excel_str(excel_item.split('\t')[j], 8, i, j) + f"__{self.table_str(8, i+2, j+1)}").rjust(37))
+                            list_temp.append((self.excel_str(excel_item.split('\t')[j-1], current_index, i, j-1) + f"__{self.table_str(current_index, i+2, j+1)}").rjust(37))
+
+
+                    if '단가' in list_avg[1]:
+                        if self.excel_str(excel_item.split('\t')[14-1], current_index, i, 14-1).replace(',', '') == self.table_str(current_index, i+2, 14+1).replace(',', ''):
+                            str_err += 'O '
+                            list_temp.append(' ' * 37)
+                        else:
+                            str_err += 'X '
+                            cnt_wrong += 1
+                            list_temp.append((self.excel_str(excel_item.split('\t')[14-1], current_index, i, 14-1) + f"__{self.table_str(current_index, i+2, 14+1)}").rjust(37))
+                    else:
+                        if self.excel_str(excel_item.split('\t')[14-1+1], current_index, i, 14-1+1).replace(',', '') == self.table_str(current_index, i+2, 14+1).replace(',', ''):
+                            str_err += 'O '
+                            list_temp.append(' ' * 37)
+                        else:
+                            str_err += 'X '
+                            cnt_wrong += 1
+                            list_temp.append((self.excel_str(excel_item.split('\t')[14-1+1], current_index, i, 14-1) + f"__{self.table_str(current_index, i+2, 14+1)}").rjust(37))
+                    
+
+                            
 
                 str_err = str_err[:-1] + ''.join(list_temp) + '\n'
-            str_err = str_err.replace('(3-4) 직급별 평균단가 계산', '(3-4) 직급별 평균단가 계산\t불일치: [' + str(cnt_wrong) + '/224]')
-            str_err_total += '(3-4) 직급별 평균단가 계산\t불일치: [' + str(cnt_wrong) + '/224]\n'
+            str_err = str_err.replace('(3-4) 직급별 평균단가 계산', '(3-4) 직급별 평균단가 계산\t불일치: [' + str(cnt_wrong) + '/' + str(rank_count_08*28) + ']')
+            str_err_total += '(3-4) 직급별 평균단가 계산\t불일치: [' + str(cnt_wrong) + '/' + str(rank_count_08*28) + ']\n'
             str_err += '\n\n\n'
 
 
@@ -2167,77 +2441,81 @@ class MainWindow(QMainWindow):
 
 
         if 1 == 1 or current_index == 9:
-            list_title = ['1급', '2급', '3급', '4급', '5급', '6급', '연구직', '기능직', '계', '1급', '2급', '3급', '4급', '5급', '6급', '연구직', '기능직', '계']
+
+            current_index = 9
+            
+            list_title_09 = list(self.list_title_09)
+            rank_count_09 = len(list_title_09)
+
             str_err += '(3-6) 가. 초임직급 정원\n\n당년도\n'
             str_err += '           1 2 3 4 5 6 7 8 9 101112평' + f"{'1월':>19}{'2월':>19}{'3월':>19}{'4월':>19}{'5월':>19}{'6월':>19}{'7월':>19}{'8월':>20}{'9월':>19}{'10월':>19}{'11월':>19}{'12월':>19}{'평균인원':>18}\n"
 
-            excel_original07_09 = excel_original07.split('나.초임직급정원변동에따른인건비효과')[0]            
-            excel = excel_original07_09
 
             cnt_wrong = 0
-            for i in range (0, 18):
+            
+            for i in range (0, rank_count_09*2):
 
-                if i == 9:
-                    excel = excel_original07.split('전년도')[1]
+
+                if i == rank_count_09:
                     str_err += '\n\n전년도\n'
                     str_err += '           1 2 3 4 5 6 7 8 9 101112평' + f"{'1월':>19}{'2월':>19}{'3월':>19}{'4월':>19}{'5월':>19}{'6월':>19}{'7월':>19}{'8월':>20}{'9월':>19}{'10월':>19}{'11월':>19}{'12월':>19}{'평균인원':>18}\n"
 
-                if i < 9:   # 전년도 표
-                    try:
-                        excel.split(list_title[i])[1]
-                    except:
-                        with open("log.txt", "a", encoding="utf-8") as f:                    
-                            f.write("excel_original07 (3-6)가.초임정원 오류: " + list_title[i]  + '\n')
-                        print("excel_original07 (3-6)가.초임정원 오류: " + list_title[i]  + '\n')
-                        QMessageBox.information(self, "(3-6)가.초임정원 오류", "(3-6)가.초임정원 오류: " + list_title[i])
-                    
-
-                    excel = excel.split(list_title[i])[1] # 기본급
+                if i < rank_count_09:   # 전년도 표
+                    excel = excel_original_09.split(list_title_09[i])[1] # (3-3) 가. 초임직급 인원
                     excel_item = excel.split('\r\n')[0]
 
-                    
-                    # str_err += self.text_table(i, 1) + '\t'
-                    str_err += list_title[i] + '\t'
+                    str_err += list_title_09[i][:6] + '\t'
                     
                     list_temp = []                
                     for j in range(1, 14):
-                        if self.excel_str(excel_item.split('\t')[j], 9, i, j) == self.table_str(9, i, j+1):
+                        if j == 13:
+                            if self.excel_str(excel_item.split('\t')[j], current_index, i, j).replace(',', '') == self.table_str(current_index, i, j+1).replace(',', ''):
+                                str_err += 'O '
+                                list_temp.append(' ' * 20)
+                            else:
+                                str_err += 'X '
+                                cnt_wrong += 1
+                                list_temp.append((self.excel_str(excel_item.split('\t')[j], current_index, i, j) + f"__{self.table_str(current_index, i, j+1)}").rjust(20))
+
+                        
+                        elif float(self.excel_str(excel_item.split('\t')[j], current_index, i, j).replace(',', '')) == float(self.table_str(current_index, i, j+1).replace(',', '')):
                             str_err += 'O '
                             list_temp.append(' ' * 20)
                         else:
                             str_err += 'X '
                             cnt_wrong += 1
-                            list_temp.append((self.excel_str(excel_item.split('\t')[j], 9, i, j) + f"__{self.table_str(9, i, j+1)}").rjust(20))
+                            list_temp.append((self.excel_str(excel_item.split('\t')[j], current_index, i, j) + f"__{self.table_str(current_index, i, j+1)}").rjust(20))
 
                 else:   # 당년도 표
-                    
-                    try:
-                        excel.split(list_title[i])[1]
-                    except:
-                        with open("log.txt", "a", encoding="utf-8") as f:                    
-                            f.write("excel_original07 (3-6)가.초임정원 오류: " + list_title[i]  + '\n')
-                        print("excel_original07 (3-6)가.초임정원 오류: " + list_title[i]  + '\n')
-                        QMessageBox.information(self, "(3-6)가.초임정원 오류", "(3-6)가.초임정원 오류: " + list_title[i])
-                    
-                    excel = excel.split(list_title[i])[1] # 기본급
+
+                    excel = excel_original_09.split(list_title_09[(i%rank_count_09)])[2] # (3-3) 가. 초임직급 인원
                     excel_item = excel.split('\r\n')[0]
                     
                     # str_err += self.text_table(i+2, 1) + '\t'
-                    str_err += list_title[i] + '\t'
+                    str_err += list_title_09[(i%rank_count_09)][:6] + '\t'
 
                     list_temp = []                
                     for j in range(1, 14):
-                        if self.excel_str(excel_item.split('\t')[j], 9, i, j) == self.table_str(9, i+2, j+1):
+                        if j == 13:
+                            if self.excel_str(excel_item.split('\t')[j], current_index, i, j).replace(',', '') == self.table_str(current_index, i+2, j+1).replace(',', ''):
+                                str_err += 'O '
+                                list_temp.append(' ' * 20)
+                            else:
+                                str_err += 'X '
+                                cnt_wrong += 1
+                                list_temp.append((self.excel_str(excel_item.split('\t')[j], current_index, i, j) + f"__{self.table_str(current_index, i+2, j+1)}").rjust(20))
+                            
+                        elif float(self.excel_str(excel_item.split('\t')[j], current_index, i, j).replace(',', '')) == float(self.table_str(current_index, i+2, j+1).replace(',', '')):
                             str_err += 'O '
                             list_temp.append(' ' * 20)
                         else:
                             str_err += 'X '
                             cnt_wrong += 1
-                            list_temp.append((self.excel_str(excel_item.split('\t')[j], 9, i, j) + f"__{self.table_str(9, i+2, j+1)}").rjust(20))
+                            list_temp.append((self.excel_str(excel_item.split('\t')[j], current_index, i, j) + f"__{self.table_str(current_index, i+2, j+1)}").rjust(20))
 
                 str_err = str_err[:-1] + ''.join(list_temp) + '\n'
-            str_err = str_err.replace('(3-6) 가. 초임직급 정원', '(3-6) 가. 초임직급 정원\t\t불일치: [' + str(cnt_wrong) + '/234]')
-            str_err_total += '(3-6) 가. 초임직급 정원\t\t불일치: [' + str(cnt_wrong) + '/234]\n'
+            str_err = str_err.replace('(3-6) 가. 초임직급 정원', '(3-6) 가. 초임직급 정원\t\t불일치: [' + str(cnt_wrong) + '/' + str(rank_count_09*26) + ']')
+            str_err_total += '(3-6) 가. 초임직급 정원\t\t불일치: [' + str(cnt_wrong) + '/' + str(rank_count_09*26) + ']\n'
             str_err += '\n\n\n'
 
 
@@ -2246,33 +2524,32 @@ class MainWindow(QMainWindow):
 
 
         if 1 == 1 or current_index == 10:
-            list_title = ['1급', '2급', '3급', '4급', '5급', '6급', '연구직', '기능직', '계' ]
+            current_index = 10
+
+            list_title_10 = list(self.list_title_10)
+            rank_count_10 = len(list_title_10)
+
+            
             str_err += '(3-6) 나. 초임직급 인건비\n\n'
             str_err += '           전당인전 증' + f"{'전년도인원(A)':>18}{'당년도인원(B)':>18}{'인원증감(C)':>18}{'전년도단가(D)':>22}{'증원인건비':>28}\n"
-            excel_original07_10 = excel_original07.split('나.초임직급정원변동에따른인건비효과')[1]
-            excel = excel_original07_10
+
 
             cnt_wrong = 0
-            for i in range (0, 9):
-
-
-                try:
-                    excel.split(list_title[i])[1]
-                except:
-                    with open("log.txt", "a", encoding="utf-8") as f:                    
-                        f.write("excel_original07 (3-6)초임인건비 오류: " + list_title[i]  + '\n')
-                    print("excel_original07 (3-6)초임인건비 오류: " + list_title[i]  + '\n')
-
+            for i in range (0, rank_count_10):
 
                 
-                excel = excel.split(list_title[i])[1] # 기본급
+                excel = excel_original_10.split(list_title_10[i])[1] # (3-3) 나. 초임직급 인건비
                 excel_item = excel.split('\r\n')[0]   
-                # str_err += self.text_table(i, 0) + '\t'
-                str_err += list_title[i] + '\t'
+                str_err += list_title_10[i][:6] + '\t'
                 
                 list_temp = []
                 for j in range(1, 6):
-                    if self.excel_str(excel_item.split('\t')[j], 10, i, j) == self.table_str(10, i, j):
+                    if i in [rank_count_10-1] and j == 4:
+                        str_err += '  '
+                        list_temp.append(' ' * 41)
+                        continue
+                
+                    if float(self.excel_str(excel_item.split('\t')[j], 10, i, j).replace(',', '')) == float(self.table_str(10, i, j).replace(',', '')):
                         str_err += 'O '
                         if j == 4: list_temp.append(' ' * 26)
                         elif j == 5: list_temp.append(' ' * 33)
@@ -2287,18 +2564,9 @@ class MainWindow(QMainWindow):
 
 
                 str_err = str_err[:-1] + ''.join(list_temp) + '\n'
-            str_err = str_err.replace('(3-6) 나. 초임직급 인건비', '(3-6) 나. 초임직급 인건비\t불일치: [' + str(cnt_wrong) + '/45]')
+            str_err = str_err.replace('(3-6) 나. 초임직급 인건비', '(3-6) 나. 초임직급 인건비\t불일치: [' + str(cnt_wrong) + '/' + str(rank_count_10*5-1) + ']')
             str_err += '\n'
-            str_err_total += '(3-6) 나. 초임직급 인건비\t불일치: [' + str(cnt_wrong) + '/45]\n\n'
-
-
-
-
-
-
-
-
-
+            str_err_total += '(3-6) 나. 초임직급 인건비\t불일치: [' + str(cnt_wrong) + '/' + str(rank_count_10*5-1) + ']\n\n'
 
 
         str_err = str_err_total + '\n\n' + str_err
@@ -2318,118 +2586,625 @@ class MainWindow(QMainWindow):
 
 
 
-    if 1!=1:
-        global excel_original01, excel_original02, excel_original03, excel_original04, excel_original05, excel_original06, excel_original07
-        
-        excel_original01 = '(2) 인건비 집계를 위한 Template\t\t\t\t\t\t\t\t\r\n\t\t\t\t\t\t\t\t(단위: 원)\r\n인건비 항목\t\t\t판관비\t영업외비용\t 제조원가\t타계정대체\t이익잉여금\t합계\r\n"급료\n임금\n제수당"\t기본급\t\t 744,433,839,400 \t1\t\t\t7\t 744,433,839,400 \r\n\t상여금\t인센티브 상여금\t 50,727,850,151 \t\t\t\t\t 50,727,850,151 \r\n\t\t그 외 상여금\t 48,367,494,910 \t\t\t\t\t 48,367,494,910 \r\n\t제수당\t법정수당\t 66,931,057,610 \t\t\t\t\t 66,931,057,610 \r\n\t\t해외근무수당\t 50,000,000 \t\t\t\t\t 50,000,000 \r\n\t\t그 외 제수당\t 202,750,281,360 \t\t\t\t\t 202,750,281,360 \r\n\t퇴직급여(명예퇴직금 포함)\t\t 168,793,866,818 \t\t\t\t\t 168,793,866,818 \r\n\t임원 인건비\t\t 983,482,250 \t\t\t\t\t 983,482,250 \r\n\t비상임이사 인건비\t\t 600,000,000 \t\t\t\t\t 600,000,000 \r\n\t"인상률 제외\n인건비"\t통상임금소송결과에 따른 실적급여 증가액\t 70,000,000 \t\t\t\t\t 70,000,000 \r\n\t\t기타 제외 인건비\t 8,000,000 \t\t\t\t\t 8,000,000 \r\n\t기타항목\t\t 74,870,000 \t\t\t\t\t 74,870,000 \r\n\t급료, 임금, 제수당 소계 ⓐ\t\t 1,283,790,742,499 \t - \t - \t - \t - \t 1,283,790,742,499 \r\n"복 리\n후생비"\t사내근로복지기금출연금\t\t 700,000,000 \t\t\t\t\t 700,000,000 \r\n\t국민연금사용자부담분\t\t 38,566,372,740 \t\t\t\t\t 38,566,372,740 \r\n\t건강보험사용자부담분\t\t 41,634,941,020 \t\t\t\t\t 41,634,941,020 \r\n\t고용보험사용자부담분\t\t 18,164,674,530 \t\t\t\t\t 18,164,674,530 \r\n\t산재보험료사용자부담분\t\t 5,325,440,550 \t\t\t\t\t 5,325,440,550 \r\n\t급식비\t\t 700,000,000 \t\t\t\t\t 700,000,000 \r\n\t교통보조비\t\t 800,000,000,000 \t\t\t\t\t 800,000,000,000 \r\n\t자가운전보조금\t\t 60,000,000 \t\t\t\t\t 60,000,000 \r\n\t학자보조금\t\t 49,525,720 \t\t\t\t\t 49,525,720 \r\n\t건강진단비 등(독감예방주사비용)\t\t 173,882,997 \t\t\t\t\t 173,882,997 \r\n\t선택적복지\t\t 9,194,447,060 \t\t\t\t\t 9,194,447,060 \r\n\t행사비\t\t 700,000,000 \t\t\t\t\t 700,000,000 \r\n\t포상품(비)\t\t 52,602,620 \t\t\t\t\t 52,602,620 \r\n\t기념품(비)\t\t 80,000,000 \t\t\t\t\t 80,000,000 \r\n\t격려품(비)\t\t 7,000,000 \t\t\t\t\t 7,000,000 \r\n\t장기근속관련 비용\t\t 8,000,000 \t\t\t\t\t 8,000,000 \r\n\t육아보조비 및 출산장려금\t\t 743,000,000 \t\t\t\t\t 743,000,000 \r\n\t자기계발비\t\t 80,000,000 \t\t\t\t\t 80,000,000 \r\n\t특별근로의 대가\t\t 8,000,000 \t\t\t\t\t 8,000,000 \r\n\t피복비\t\t 700,000,000 \t\t\t\t\t 700,000,000 \r\n\t경로효친비\t\t 800,000,000 \t\t\t\t\t 800,000,000 \r\n\t통신비\t\t 5,000,000 \t\t\t\t\t 5,000,000 \r\n\t축하금/조의금\t\t 70,000,000 \t\t\t\t\t 70,000,000 \r\n\t기타금품 등\t\t 100,927,240 \t\t\t\t\t 100,927,240 \r\n\t복리후생비 소계 ⓑ\t\t 917,923,814,477 \t - \t - \t - \t - \t 917,923,814,477 \r\n"\'잡급 및 무기계약직에\n대한 인건비\'\n(복리후생비, 인센티브포함) ⓒ"\t\t일반 급여(1)\t 15,823,215,150 \t - \t - \t - \t - \t 15,823,215,150 \r\n\t\t 인센티브 상여금\t 7,000,000 \t\t\t\t\t 7,000,000 \r\n\t\t 순액\t 15,816,215,150 \t\t\t\t\t 15,816,215,150 \r\n\t\t청년인턴 급여(2)\t 9,414,136,240 \t - \t - \t - \t - \t 9,414,136,240 \r\n\t\t 인센티브 상여금\t 8,000,000 \t\t\t\t\t 8,000,000 \r\n\t\t 순액\t 9,406,136,240 \t\t\t\t\t 9,406,136,240 \r\n\t\t무기계약직 급여(3)\t 26,694,838,746 \t - \t - \t - \t - \t 26,694,838,746 \r\n\t\t 인센티브 상여금\t 1,256,862,230 \t\t\t\t\t 1,256,862,230 \r\n\t\t 순액\t 25,437,976,516 \t\t\t\t\t 25,437,976,516 \r\n\t\t소계 ⓒ=(1)+(2)+(3)\t 51,932,190,136 \t - \t - \t - \t - \t 51,932,190,136 \r\n\t\t\t\t\t\t\t\t\r\n인건비 총계 : ⓓ=ⓐ+ⓑ+ⓒ\t\t\t 2,253,646,747,112 \t - \t - \t - \t - \t 2,253,646,747,112 \r\n인센티브 상여금 ⓔ=ⓔ-1+ⓔ-2\t\t\t 51,984,712,381 \t - \t - \t - \t - \t 51,984,712,381 \r\n- 인센티브 전환금 (ⓔ-1)\t\t\t 43,589,629,529 \t\t\t\t\t 43,589,629,529 \r\n- 인센티브 추가금 (ⓔ-2)\t\t\t 8,395,082,852 \t\t\t\t\t 8,395,082,852 \r\n인건비 해당금액 : ⓓ-ⓔ\t\t\t 2,201,662,034,731 \t - \t - \t - \t - \t 2,201,662,034,731 \r\n\t\t\t\t\t\t\t\t\r\n\t\t\t\t\t\t\t\t\r\n'
-        excel_original01 = excel_original01.replace(' ', '').replace('\t-\t', '\t\t')
-
-        excel_original02 = '(3)총인건비인상률지표의점수계산을위한Template\t\t\t\t\r\n\t\t\t\t(단위:원)\r\n구분\t\t\t2024\t2023\r\n\t1.인센티브상여금을제외한인건비총액\t\t\t\r\n\ta.판관비로처리한인건비\t\t1,397,001,034,731\t1,298,932,744,191\r\n\tb.영업외비용으로처리한인건비\t\t-\t-\r\n\tc.제조원가로처리한인건비\t\t-\t-\r\n\td.타계정대체로처리한인건비\t\t-\t-\r\n\te.이익잉여금의증감으로처리한인건비\t\t-\t-\r\n\t소계:(A)=a+b+c+d+e\t\t1,397,001,034,731\t1,298,932,744,191\r\n\t\t\t\t\r\n\t2.총인건비 인상률계산에서제외(조정)되는인건비\t\t\t\r\n\tf.퇴직급여(명예퇴직금포함)\t\t168,793,866,818\t141,500,433,647\r\n\tg.임원인건비\t\t983,482,250\t771,999,300\r\n\th.비상임이사인건비\t\t-\t-\r\n\ti.인상률제외인건비\t통상임금소송결과에따른실 적급여증가액\t-\t-\r\n\t\t기타제외인건비\t-\t-\r\n\tj.사내근로복지기금출연금\t\t-\t-\r\n\tk.잡급및무기계약직에대한인건비(복리후생비포함,인센티브상여금제외)\t\t50,660,327,906\t50,195,933,210\r\n\tl.공적보험사용자부담분\t\t103,691,428,840\t104,545,198,290\r\n\tm.연월차수당등조정(㉠-㉡+㉢)\t\t71,795,906,667\t-2,930,735,981\r\n\t-연월차수당등발생액(㉠)\t\t123,325,995,917\t63,001,832,519\r\n\t-연월차수당등지급액(㉡)\t\t51,530,089,250\t65,932,568,500\r\n\t-종업원저리대여금이 자관련인건비(㉢)\t\t-\t-\r\n\tn.저리·무상대여이익\t\t4,725,943,920\t5,598,293,980\r\n\to.지방이전관련직접인건비\t\t-\t-\r\n\tp.법령에따른특수건강진단비\t\t-\t-\r\n\tq.코로나19대응을위한시간외근로수당등\t\t-\t-\r\n\tr.해외근무수당\t\t-\t-\r\n\ts.직무발명보상금\t\t-\t-\r\n\tt.공무원수준내의자녀수당및출산격려금\t\t3,051,903,476\t1,832,315,628\r\n\tu.야간간호특별수당\t\t-\t-\r\n\tv.비상진료체계운영에따른특별수당등\t\t-\t-\r\n\tu.국민건강보험공단2023년도총인건비초과액에따른상환금액\t\t-\t22,500,000,000\r\n\t소계:(B)=f+g+h+i+j+k+l+m-n+o+p+q+r+s+t+u+v+w\t\t394,250,972,037\t312,816,850,114\r\n\t\t\t\t\r\n\t3.실집행액기준총인건비발생액(C)=(A)-(B)\t\t1,002,750,062,694\t986,115,894,077\r\n\t\t\t\t\r\n"전년대비\n조정된\n총인건비\n발생액\n산출"\t4.연도별증원소요인건비의영향을제거하기위한인건비의조정(D)\t\t\t-8,039,360,305\r\n\t5.별도직군승진시기차이에따른인건비효과조정(E)\t\t\t\r\n\t6.초임직급정원변동에따른인건비효과조정(F)\t\t\t-511,459,730\r\n\t7.정년이후재고용을전제로전환된정원외인력의인건비효과조정(G)\t\t\t\r\n\t8.생산량증가로인하여\'23년도\'에추가로지급된인건비의영향제거(H)\t\t\tn/a\r\n\t9.최저임금지급직원에대한인건비효과조정(I)\t\t\t\r\n\t10.파업등에따른인건비효과조정(J)\t\t\t\r\n\t11.코로나19로인한휴업의인건비효과조정(K)\t\t\t\r\n\t"12.총인건비인상률계산대상총인건비발생액\n=(C)+(D)+(E)-(F)-(G)-(H)+(I)+(J)+(K)+(L)"\t\t1,002,750,062,694\t978,587,993,501\r\n\t\t\t\t\r\n"당해연도\n총인건비\n인상률\n계산"\t13.총인건비인상률가이드라인에따른총인건비상한액\t\tn/a\tn/a\r\n\t(1)\'23년도총인건비인상률가이드라인을준수한경우\t\t\t978,587,993,501\r\n\t(2)\'23년도총인건비인상률가이드라인을준수경우하지않은경우\t\t\t-\r\n\t\t\t\t\r\n\t14.총인건비인상률 산출(\'24년도총인건비인상률가이드라인=2.5%)\t\tn/a\t\r\n\t(1)\'23년도총인건비인상률가이드라인을준수한경우\t\t2.469%\t\r\n\t(2)\'23년도총인건비인상률가이드라인을준수경우하지않은경우\t\t-\t\r\n\t\t\t\t\r\n\t\t\t\t\r\n\t\t\t\t\r\n\t\t\t\t\r\n\t\t\t\t\r\n\t\t\t\t\r\n\t\t\t\t\r\n\t\t\t\t\r\n'
-        excel_original02 = excel_original02.replace(' ', '').replace('\t-\t', '\t\t')
-        
-        excel_original03 = '(3-1) 증원소요 인건비 계산을 위한 Template\t\t\t\t\t\t\r\n\t\t\t\t\t(단위: 명, 원)\t\r\n직급\t인원\t\t\t"전년도의\n평균단가\n(D)"\t"증원소요 인건비\n(C) x (D)"\t\r\n\t"전년도\n(A)"\t"당년도\n(B)"\t"증감\n(C)=(B)-(A)"\t\t\t\r\n1급\t133.0 \t133.0 \t -  \t99,310,634 \t -  \t\r\n2급\t589.0 \t589.0 \t -  \t92,457,982 \t -  \t\r\n3급\t2,437.1 \t2,444.9 \t7.8 \t86,403,138 \t673,944,476 \t\r\n4급\t4,314.5 \t4,060.4 \t△254.1 \t77,428,700 \t△19,674,632,670 \t\r\n5급\t3,887.0 \t4,251.8 \t364.8 \t53,434,940 \t19,493,066,112 \t\r\n6급\t3,466.0 \t3,269.3 \t△196.7 \t44,091,356 \t△8,672,769,725 \t\r\n연 구직\t136.9 \t138.8 \t1.9 \t74,227,106 \t141,031,501 \t\r\n계\t14,963.5 \t14,887.2 \t△76.3 \t\t△8,039,360,305 \t\r\n\t\t\t\t\t\t\r\n\t\t\t\t\t\t\r\n\t\t\t\t\t\t\r\n\t\t\t\t\t\t\r\n\t\t\t\t\t\t\r\n\t\t\t\t\t\t\r\n\t\t\t\t\t\t\r\n\t\t\t\t\t\t\r\n\t\t\t\t\t\t\r\n\t\t\t\t\t\t\r\n'
-        excel_original03 = excel_original03.replace(' ', '').replace('\t-\t', '\t\t')
-
-        excel_original04 = '(3-2) 직급별 평균인원 계산을 위한 Template\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\r\n\t\t\t\t\t\t\t\t\t\t\t\t\t\t(단위: 명)\t\r\n전년도\t직급\t1월\t2월\t3월\t4월\t5월\t6월\t7월\t8월\t9월\t10월\t11월\t12월\t평균인원\t\r\n\t1급\t 166.0 \t 166.0 \t 167.0 \t 167.0 \t 167.0 \t 167.0 \t 159.0 \t 158.0 \t 158.0 \t 158.0 \t 158.0 \t 158.0 \t 162.4 \t\r\n\t2급\t 678.0 \t 678.0 \t 680.0 \t 680.0 \t 680.0 \t 678.0 \t 669.0 \t 669.0 \t 671.0 \t 670.0 \t 668.0 \t 670.0 \t 674.3 \t\r\n\t3급\t 2,598.0 \t 2,594.0 \t 2,591.0 \t 2,587.0 \t 2,584.0 \t 2,586.0 \t 2,555.0 \t 2,547.0 \t 2,548.0 \t 2,550.0 \t 2,549.0 \t 2,551.8 \t 2,570.1 \t\r\n\t4급\t 4,039.0 \t 4,189.8 \t 4,180.0 \t 4,174.5 \t 4,173.3 \t 4,168.3 \t 3,985.0 \t 3,967.5 \t 3,992.8 \t 3,981.3 \t 3,974.3 \t 3,977.5 \t 4,066.9 \t\r\n\t5급\t 4,011.3 \t 3,815.5 \t 3,797.0 \t 3,785.3 \t 3,773.5 \t 3,761.8 \t 3,966.8 \t 3,959.8 \t 3,988.0 \t 3,942.0 \t 3,916.0 \t 3,927.5 \t 3,887.0 \t\r\n\t6급\t 3,440.0 \t 3,432.0 \t 3,437.3 \t 3,440.5 \t 3,436.5 \t 3,439.8 \t 3,451.0 \t 3,439.0 \t 3,445.0 \t 3,423.5 \t 3,425.5 \t 3,782.0 \t 3,466.0 \t\r\n\t연구직\t 145.0 \t 140.0 \t 136.0 \t 133.0 \t 133.0 \t 133.0 \t 139.0 \t 138.0 \t 135.0 \t 135.0 \t 136.0 \t 139.8 \t 136.9 \t\r\n\t계\t 15,077.3 \t 15,015.3 \t 14,988.3 \t 14,967.3 \t 14,947.3 \t 14,933.8 \t 14,924.8 \t 14,878.3 \t 14,937.8 \t 14,859.8 \t 14,826.8 \t 15,206.5 \t 14,963.6 \t\r\n\t\t\t\t\t\t\t\t\t\t\t\t\t\t(단위: 명)\t\r\n당년도\t직급\t1월\t2월\t3월\t4월\t5월\t6월\t7월\t8월\t9월\t10월\t11월\t12월\t평균인원\t\r\n\t1급\t 162.00 \t 162.00 \t 161.00 \t 160.00 \t 159.00 \t 158.00 \t 165.00 \t 165.00 \t 165.00 \t 165.00 \t 165.00 \t 165.00 \t 162.70 \t\r\n\t2급\t 678.00 \t 678.00 \t 678.00 \t 678.00 \t 678.00 \t 678.00 \t 670.00 \t 669.00 \t 669.00 \t 669.00 \t 669.00 \t 667.00 \t 673.40 \t\r\n\t3급\t 2,583.00 \t 2,579.00 \t 2,573.75 \t 2,566.50 \t 2,556.75 \t 2,561.00 \t 2,575.00 \t 2,571.75 \t 2,572.75 \t 2,569.75 \t 2,568.50 \t 2,569.50 \t 2,570.60 \t\r\n\t4급\t 3,877.75 \t 3,854.75 \t 3,847.75 \t 3,840.75 \t 3,835.00 \t 3,842.50 \t 3,526.50 \t 3,855.75 \t 3,853.00 \t 3,842.25 \t 3,834.50 \t 3,837.50 \t 3,820.70 \t\r\n\t5급\t 4,149.25 \t 4,126.25 \t 4,119.00 \t 4,117.75 \t 4,105.75 \t 4,119.50 \t 4,673.25 \t 4,325.50 \t 4,348.25 \t 4,318.50 \t 4,312.25 \t 4,306.75 \t 4,251.80 \t\r\n\t6급\t 3,319.75 \t 3,318.00 \t 3,307.50 \t 3,302.75 \t 3,292.50 \t 3,292.00 \t 3,155.25 \t 3,156.00 \t 3,160.00 \t 3,160.00 \t 3,160.75 \t 3,607.50 \t 3,269.30 \t\r\n\t연구직\t 138.00 \t 139.00 \t 136.00 \t 135.00 \t 134.00 \t 136.00 \t 137.00 \t 141.00 \t 139.00 \t 139.00 \t 146.00 \t 145.00 \t 138.80 \t\r\n\t계\t 14,907.75 \t 14,857.00 \t 14,823.00 \t 14,800.75 \t 14,761.00 \t 14,787.00 \t 14,902.00 \t 14,884.00 \t 14,907.00 \t 14,863.50 \t 14,856.00 \t 15,298.25 \t 14,887.30 \t\r\n\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\r\n\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\r\n\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\r\n\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\r\n\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\r\n\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\r\n\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\r\n\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\r\n\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\r\n'
-        excel_original04 = excel_original04.replace(' ', '').replace('\t-\t', '\t\t')
-
-        excel_original05 = '(3-3) 근속승진 및 증원소요인건비 대상 인원의 파악\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\r\n가. 정원 및 현원 차이\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t(단위: 명)\t\t\t\t\t\t\t\t\r\n당년도\t직급\t1 월\t\t\t\t2월\t\t\t\t3월\t\t\t\t4월\t\t\t\t5월\t\t\t\t6월\t\t\t\t\t\t\t\t\t\t\t\r\n\t\t정원\t현원\t복직자\t누적차\t정원\t현원\t복직자\t누적차\t정원\t현원\t복직자\t누적차\t정원\t현원\t복직자\t누적차\t정원\t현원\t복직자\t누적차\t정원\t현원\t복직자\t누적차\t\t\t\t\t\t\t\t\r\n\t1급\t133 \t162.0 \t0.0 \t-29.0 \t133 \t162.0 \t0.0 \t-29.0 \t133 \t161.0 \t0.0 \t-28.0 \t133 \t160.0 \t0.0 \t-27.0 \t133 \t159.0 \t0.0 \t-26.0 \t133 \t158.0 \t0.0 \t-25.0 \t\t\t\t\t\t\t\t\r\n\t2급\t589 \t678.0 \t0.0 \t-118.0 \t589 \t678.0 \t0.0 \t-118.0 \t589 \t678.0 \t0.0 \t-117.0 \t589 \t678.0 \t0.0 \t-116.0 \t589 \t678.0 \t0.0 \t-115.0 \t589 \t678.0 \t0.0 \t-114.0 \t\t\t\t\t\t\t\t\r\n\t3급\t2,382 \t2,583.0 \t51.0 \t-268.0 \t2,382 \t2,579.0 \t47.0 \t-268.0 \t2,382 \t2,573.8 \t46.0 \t-262.8 \t2,382 \t2,566.5 \t47.0 \t-253.5 \t2,382 \t2,556.8 \t46.0 \t-243.8 \t2,382 \t2,561.0 \t46.0 \t-247.0 \t\t\t\t\t\t\t\t\r\n\t4급\t8,518 \t3,877.8 \t0.0 \t4,372.3 \t8,518 \t3,854.8 \t0.0 \t4,395.3 \t8,518 \t3,847.8 \t0.0 \t4,407.5 \t8,518 \t3,840.8 \t0.0 \t4,423.8 \t8,518 \t3,835.0 \t0.0 \t4,439.3 \t8,518 \t3,842.5 \t0.0 \t4,428.5 \t\t\t\t\t\t\t\t\r\n\t5급\t1,280 \t4,149.3 \t0.0 \t1,503.0 \t1,280 \t4,126.3 \t0.0 \t1,549.0 \t1,280 \t4,119.0 \t0.0 \t1,568.5 \t1,280 \t4,117.8 \t0.0 \t1,586.0 \t1,280 \t4,105.8 \t0.0 \t1,613.5 \t1,280 \t4,119.5 \t0.0 \t1,589.0 \t\t\t\t\t\t\t\t\r\n\t6급\t2,479 \t3,319.8 \t0.0 \t662.3 \t2,479 \t3,318.0 \t0.0 \t710.0 \t2,479 \t3,307.5 \t0.0 \t740.0 \t2,479 \t3,302.8 \t0.0 \t762.3 \t2,479 \t3,292.5 \t0.0 \t800.0 \t2,479 \t3,292.0 \t0.0 \t776.0 \t\t\t\t\t\t\t\t\r\n\t연구직\t157 \t138.0 \t0.0 \t0.0 \t157 \t139.0 \t0.0 \t0.0 \t157 \t136.0 \t0.0 \t0.0 \t157 \t135.0 \t0.0 \t0.0 \t157 \t134.0 \t0.0 \t0.0 \t157 \t136.0 \t0.0 \t0.0 \t\t\t\t\t\t\t\t\r\n\t계\t15,538 \t14,907.8 \t51.0 \t\t15,538 \t14,857.0 \t47.0 \t\t15,538 \t14,823.0 \t46.0 \t\t15,538 \t14,800.8 \t47.0 \t\t15,538 \t14,761.0 \t46.0 \t\t15,538 \t14,787.0 \t46.0 \t\t\t\t\t\t\t\t\t\r\n\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\r\n당년도\t직급\t7월\t\t\t\t8월\t\t\t\t9월\t\t\t\t10월\t\t\t\t11월\t\t\t\t12월\t\t\t\t\t\t\t\t\t\t\t\r\n\t\t정원\t 현원\t복직자\t누적차\t정원\t현원\t복직자\t누적차\t정원\t현원\t복직자\t누적차\t정원\t현원\t복직자\t누적차\t정원\t현원\t복직자\t누적차\t정원\t현원\t복직자\t누적차\t\t\t\t\t\t\t\t\r\n\t1급\t133 \t165.0 \t0.0 \t-32.0 \t133 \t165.0 \t0.0 \t-32.0 \t133 \t165.0 \t0.0 \t-32.0 \t133 \t165.0 \t0.0 \t-32.0 \t133 \t165.0 \t0.0 \t-32.0 \t133 \t165.0 \t0.0 \t-32.0 \t\t\t\t\t\t\t\t\r\n\t2급\t589 \t670.0 \t0.0 \t-113.0 \t589 \t669.0 \t0.0 \t-112.0 \t589 \t669.0 \t0.0 \t-112.0 \t589 \t669.0 \t0.0 \t-112.0 \t589 \t669.0 \t0.0 \t-112.0 \t589 \t667.0 \t0.0 \t-110.0 \t\t\t\t\t\t\t\t\r\n\t3급\t2,399 \t2,575.0 \t66.0 \t-223.0 \t2,399 \t2,571.8 \t63.0 \t-221.8 \t2,399 \t2,572.8 \t60.0 \t-225.8 \t2,399 \t2,569.8 \t60.0 \t-222.8 \t2,399 \t2,568.5 \t60.0 \t-221.5 \t2,399 \t2,569.5 \t61.0 \t-219.5 \t\t\t\t\t\t\t\t\r\n\t4급\t8,547 \t3,526.5 \t0.0 \t4,797.5 \t8,547 \t3,855.8 \t0.0 \t4,469.5 \t8,547 \t3,853.0 \t0.0 \t4,468.3 \t8,547 \t3,842.3 \t0.0 \t4,482.0 \t8,547 \t3,834.5 \t0.0 \t4,491.0 \t8,547 \t3,837.5 \t0.0 \t4,490.0 \t\t\t\t\t\t\t\t\r\n\t5급\t1,284 \t4,673.3 \t0.0 \t1,408.3 \t1,284 \t4,325.5 \t0.0 \t1,428.0 \t1,284 \t4,348.3 \t0.0 \t1,404.0 \t1,284 \t4,318.5 \t0.0 \t1,447.5 \t1,284 \t4,312.3 \t0.0 \t1,462.8 \t1,284 \t4,306.8 \t0.0 \t1,467.3 \t\t\t\t\t\t\t\t\r\n\t6급\t2,551 \t3,155.3 \t0.0 \t804.0 \t2,551 \t3,156.0 \t0.0 \t823.0 \t2,551 \t3,160.0 \t0.0 \t795.0 \t2,551 \t3,160.0 \t0.0 \t838.5 \t2,551 \t3,160.8 \t0.0 \t853.0 \t2,551 \t3,607.5 \t0.0 \t410.8 \t\t\t\t\t\t\t\t\r\n\t연구직\t157 \t137.0 \t0.0 \t0.0 \t157 \t141.0 \t0.0 \t0.0 \t157 \t139.0 \t0.0 \t0.0 \t157 \t139.0 \t0.0 \t0.0 \t157 \t146.0 \t0.0 \t0.0 \t157 \t145.0 \t0.0 \t0.0 \t\t\t\t\t\t\t\t\r\n\t계\t15,660 \t14,902.0 \t66.0 \t\t15,660 \t14,884.0 \t63.0 \t\t15,660 \t14,907.0 \t60.0 \t\t15,660 \t14,863.5 \t60.0 \t\t15,660 \t14,856.0 \t60.0 \t\t15,660 \t15,298.3 \t61.0 \t\t\t\t\t\t\t\t\t\r\n\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\r\n'
-        excel_original05 += '나. 근속승진\t\t\t\t\t\t\t\t\t\t\t\t\t(단위: 명)\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\r\n당년도\t직급\t1월\t2월\t3월\t4월\t5월\t6월\t7월\t8월\t9월\t10월\t11월\t12월\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\r\n\t1급\t29.0\t29.0\t28.0\t27.0\t26.0\t25.0\t32.0\t32.0\t32.0\t32.0\t32.0\t32.0\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\r\n\t2급\t89.0\t89.0\t89.0\t89.0\t89.0\t89.0\t81.0\t80.0\t80.0\t80.0\t80.0\t78.0\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\r\n\t3급\t150.0\t150.0\t145.8\t137.5\t128.8\t133.0\t110.0\t109.8\t113.8\t110.8\t109.5\t109.5\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\r\n\t4급\t-268.0\t-268.0\t-262.8\t-253.5\t-243.8\t-247.0\t-223.0\t-221.8\t-225.8\t-222.8\t-221.5\t-219.5\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\r\n\t5급\t0.0\t0.0\t0.0\t0.0\t0.0\t0.0\t0.0\t0.0\t0.0\t0.0\t0.0\t0.0\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\r\n\t6급\t0.0\t0.0\t0.0\t0.0\t0.0\t0.0\t0.0\t0.0\t0.0\t0.0\t0.0\t0.0\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\r\n\t연구직\t0.0\t0.0\t0.0\t0.0\t0.0\t0.0\t0.0\t0.0\t0.0\t0.0\t0.0\t0.0\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\r\n\t계\t0.0 \t0.0 \t0.0 \t0.0 \t0.0 \t0.0 \t0.0 \t0.0 \t0.0 \t0.0 \t0.0 \t0.0 \t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\r\n\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\r\n다. 증원소요인건비 대상 인원\t\t\t\t\t\t\t\t\t\t\t\t\t\t(단위: 명)\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\r\n당년도\t직급\t1월\t2월\t3월\t4 월\t5월\t6월\t7월\t8월\t9월\t10월\t11월\t12월\t평균인원\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\r\n\t1급\t133.0 \t133.0 \t133.0 \t133.0 \t133.0 \t133.0 \t133.0 \t133.0 \t133.0 \t133.0 \t133.0 \t133.0 \t133.0 \t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\r\n\t2급\t589.0 \t589.0 \t589.0 \t589.0 \t589.0 \t589.0 \t589.0 \t589.0 \t589.0 \t589.0 \t589.0 \t589.0 \t589.0 \t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\r\n\t3급\t2,433.0 \t2,429.0 \t2,428.0 \t2,429.0 \t2,428.0 \t2,428.0 \t2,465.0 \t2,462.0 \t2,459.0 \t2,459.0 \t2,459.0 \t2,460.0 \t2,444.9 \t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\r\n\t4급\t4,145.8 \t4,122.8 \t4,110.5 \t4,094.3 \t4,078.8 \t4,089.5 \t3,749.5 \t4,077.5 \t4,078.8 \t4,065.0 \t4,056.0 \t4,057.0 \t4,060.4 \t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\r\n\t5급\t4,149.3 \t4,126.3 \t4,119.0 \t4,117.8 \t4,105.8 \t4,119.5 \t4,673.3 \t4,325.5 \t4,348.3 \t4,318.5 \t4,312.3 \t4,306.8 \t4,251.8 \t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\r\n\t6급\t3,319.8 \t3,318.0 \t3,307.5 \t3,302.8 \t3,292.5 \t3,292.0 \t3,155.3 \t3,156.0 \t3,160.0 \t3,160.0 \t3,160.8 \t3,607.5 \t3,269.3 \t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\r\n\t연구직\t138.0 \t139.0 \t136.0 \t135.0 \t134.0 \t136.0 \t137.0 \t141.0 \t139.0 \t139.0 \t146.0 \t145.0 \t138.8 \t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\r\n\t계\t14,907.8 \t14,857.0 \t14,823.0 \t14,800.8 \t14,761.0 \t14,787.0 \t14,902.0 \t14,884.0 \t14,907.0 \t14,863.5 \t14,856.0 \t15,298.3 \t14,887.2 \t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\r\n\t\t\t\t\t\t\t\t\t\t\t\t\t\t(단위: 명)\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\r\n전년도\t직급\t1월\t2월\t3월\t4월\t5월\t6월\t7월\t8월\t9월\t10월\t11월\t12월\t평균인원\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\r\n\t1급\t133.0 \t133.0 \t133.0 \t133.0 \t133.0 \t133.0 \t133.0 \t133.0 \t133.0 \t133.0 \t133.0 \t133.0 \t133.0 \t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\r\n\t2급\t589.0 \t589.0 \t589.0 \t589.0 \t589.0 \t589.0 \t589.0 \t589.0 \t589.0 \t589.0 \t589.0 \t589.0 \t589.0 \t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\r\n\t3급\t2,435.8 \t2,434.8 \t2,435.0 \t2,435.8 \t2,434.8 \t2,436.5 \t2,443.3 \t2,441.3 \t2,438.0 \t2,437.0 \t2,437.0 \t2,436.0 \t2,437.1 \t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\r\n\t4급\t4,323.2 \t4,471.0 \t4,461.0 \t4,450.7 \t4,447.5 \t4,440.8 \t4,202.7 \t4,178.2 \t4,209.8 \t4,200.3 \t4,190.3 \t4,199.3 \t4,314.5 \t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\r\n\t5급\t4,011.3 \t3,815.5 \t3,797.0 \t3,785.3 \t3,773.5 \t3,761.8 \t3,966.8 \t3,959.8 \t3,988.0 \t3,942.0 \t3,916.0 \t3,927.5 \t3,887.0 \t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\r\n\t6급\t3,440.0 \t3,432.0 \t3,437.3 \t3,440.5 \t3,436.5 \t3,439.8 \t3,451.0 \t3,439.0 \t3,445.0 \t3,423.5 \t3,425.5 \t3,782.0 \t3,466.0 \t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\r\n\t연구직\t145.0 \t140.0 \t136.0 \t133.0 \t133.0 \t133.0 \t139.0 \t138.0 \t135.0 \t135.0 \t136.0 \t139.8 \t136.9 \t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\r\n\t계\t15,077.3 \t15,015.3 \t14,988.3 \t14,967.3 \t14,947.3 \t14,933.8 \t14,924.8 \t14,878.3 \t14,937.8 \t14,859.8 \t14,826.8 \t15,206.5 \t14,963.5 \t\tt\r\n'
-        excel_original05 = excel_original05.replace(' ', '').replace('\t-\t', '\t\t')
-        
-        excel_original06 = '(3-4) 직급별 평균단가 계산을 위한 Template\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\r\n\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t(단위: 원)\r\n전년도\t직급\t1월\t2월\t3월\t4월\t5월\t6월\t7월\t8월\t9월\t10월\t11월\t 12월 \t"인건비\n총계"\t평균인원\t"직급별\n평균단가\n(수정 전)"\t"공무원 수준 내\n가족(자녀)수당"\t"공무원 수준 내\n출산축하금"\t"총인건비 차감 액\n(225억원)"\t"인건비 총계\n(수정 후)"\t"직급별\n평균단가"\r\n\t1급\t 1,321,802,810 \t 1,291,429,920 \t 1,326,000,290 \t 1,326,201,640 \t 1,268,376,330 \t 1,330,114,040 \t 1,733,986,960 \t 1,320,458,570 \t 1,312,172,040 \t 1,312,139,870 \t 1,315,490,040 \t 1,637,182,180 \t 16,495,354,690 \t 162.4 \t 101,572,381 \t - \t - \t 367,307,772 \t 16,128,046,918 \t 99,310,634 \r\n\t2급\t 4,948,980,180 \t 4,863,629,030 \t 4,953,343,590 \t 4,954,987,280 \t 4,769,837,630 \t 4,975,979,063 \t 6,451,898,160 \t 5,095,134,530 \t 5,091,679,310 \t 5,094,012,550 \t 5,088,037,870 \t 7,476,759,374 \t 63,764,278,567 \t 674.3 \t 94,563,664 \t\t - \t 1,419,861,260 \t 62,344,417,307 \t 92,457,982 \r\n\t3급\t 19,111,270,460 \t 17,320,263,020 \t 19,035,988,790 \t 17,316,149,340 \t 17,301,048,560 \t 20,258,047,323 \t 17,060,089,490 \t 17,042,175,518 \t 20,405,748,920 \t 17,024,524,280 \t 17,062,985,470 \t 28,690,840,311 \t 227,629,131,482 \t 2,570.1 \t 88,568,200 \t 493,728,590 \t 2,000,000 \t 5,068,696,653 \t 222,064,706,239 \t 86,403,138 \r\n\t4급\t 27,973,217,490 \t 25,314,121,630 \t 27,873,909,550 \t 25,211,744,390 \t 25,201,347,530 \t 26,581,898,988 \t 23,809,210,590 \t 23,736,133,130 \t 28,723,590,960 \t 23,824,586,280 \t 23,750,159,250 \t 40,926,953,862 \t 322,926,873,650 \t 4,066.9 \t 79,403,692 \t 796,369,178 \t 45,000,000 \t 7,190,724,460 \t 314,894,780,012 \t 77,428,700 \r\n\t5급\t 17,284,675,850 \t 15,464,665,320 \t 17,260,224,060 \t 15,372,935,600 \t 15,371,757,040 \t 17,199,384,134 \t 16,081,394,090 \t 16,153,774,921 \t 20,025,879,960 \t 16,191,904,800 \t 16,111,683,600 \t 30,354,439,609 \t 212,872,718,984 \t 3,887.0 \t 54,765,299 \t 329,995,920 \t 101,000,000 \t 4,740,110,509 \t 207,701,612,555 \t 53,434,940 \r\n\t6급\t 12,923,915,810 \t 11,492,535,180 \t 12,878,647,990 \t 11,552,605,610 \t 11,568,258,340 \t 13,256,094,043 \t 11,055,966,180 \t 11,589,625,850 \t 14,279,261,000 \t 11,550,381,140 \t 11,561,789,550 \t 22,657,653,654 \t 156,366,734,347 \t 3,466.0 \t 45,114,465 \t 47,221,940 \t 17,000,000 \t 3,481,872,192 \t 152,820,640,215 \t 44,091,356 \r\n\t연구직\t 858,793,160 \t 842,878,770 \t 819,288,680 \t 794,829,380 \t 788,109,900 \t 787,871,080 \t 804,115,530 \t 825,729,100 \t 807,479,280 \t 790,436,900 \t 810,932,730 \t 1,462,653,475 \t 10,393,117,985 \t 136.9 \t 75,917,589 \t - \t - \t 231,427,155 \t 10,161,690,830 \t 74,227,106 \r\n\t계\t 84,422,655,760 \t 76,589,522,870 \t 84,147,402,950 \t 76,529,453,240 \t 76,268,735,330 \t 84,389,388,671 \t 76,996,661,000 \t 75,763,031,619 \t 90,645,811,470 \t 75,787,985,820 \t 75,701,078,510 \t 133,206,482,465 \t 1,010,448,209,705 \t 14,963.6 \t 67,527,080 \t 1,667,315,628 \t 165,000,000 \t 22,500,000,000 \t 986,115,894,077 \t 65,900,979 \r\n\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\r\n\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t(단위: 원)\t\t\t\t\t\r\n당년도\t직급\t1월\t2월\t3월\t4월\t5월\t6월\t7월\t8월\t9월\t10월\t11월\t 12월 \t"인건비\n총계"\t평균인원\t"직급별\n평균단가"\t\t\t\t\t\r\n\t1급\t 1,289,093,280 \t 1,301,470,470 \t 1,282,011,870 \t 1,294,314,070 \t 1,273,310,800 \t 1,266,833,110 \t 1,823,613,250 \t 1,377,821,680 \t 1,376,883,040 \t 1,377,071,790 \t 1,377,552,390 \t 1,543,436,610 \t 16,583,412,360 \t 162.7 \t 101,926,321 \t\t\t\t\t\r\n\t2급\t 5,041,228,250 \t 5,037,789,130 \t 5,038,918,830 \t 5,036,626,310 \t 5,028,001,270 \t 5,039,934,860 \t 6,644,537,710 \t 5,224,911,050 \t 5,219,179,220 \t 5,219,764,100 \t 5,220,681,520 \t 5,981,594,485 \t 63,733,166,735 \t 673.4 \t 94,643,847 \t\t\t\t\t\r\n\t3급\t 17,625,397,980 \t 19,344,193,980 \t 19,650,934,360 \t 17,536,858,650 \t 17,347,801,340 \t 19,553,311,730 \t 17,587,988,237 \t 17,519,558,340 \t 21,352,936,869 \t 17,542,838,840 \t 17,530,272,050 \t 24,306,822,638 \t 226,898,915,014 \t 2,570.6 \t 88,266,909 \t\t\t\t\t\r\n\t4급\t 23,541,146,470 \t 25,996,996,330 \t 26,409,785,160 \t 23,431,021,930 \t 23,228,242,220 \t 26,394,368,690 \t 21,477,194,120 \t 22,996,134,860 \t 28,449,719,510 \t 23,030,309,980 \t 23,019,346,970 \t 31,547,253,484 \t 299,521,519,724 \t 3,820.7 \t 78,394,409 \t\t\t\t\t\r\n\t5급\t 17,441,936,300 \t 19,518,492,260 \t 19,897,277,120 \t 17,437,728,740 \t 17,343,345,220 \t 19,981,102,910 \t 19,756,931,320 \t 18,280,688,130 \t 23,216,590,420 \t 18,386,888,560 \t 18,335,357,990 \t 27,101,369,172 \t 236,697,708,142 \t 4,251.8 \t 55,670,001 \t\t\t\t\t\r\n\t6급\t 11,643,907,510 \t 12,952,398,370 \t 13,176,416,364 \t 11,512,510,520 \t 11,503,845,320 \t 13,171,697,790 \t 10,234,872,400 \t 11,611,045,360 \t 13,778,287,160 \t 10,972,489,010 \t 10,996,629,300 \t 17,273,398,355 \t 148,827,497,459 \t 3,269.3 \t 45,522,741 \t\t\t\t\t\r\n\t연구직\t 879,506,520 \t 869,343,780 \t 865,985,430 \t 843,876,470 \t 826,613,590 \t 835,660,310 \t 841,369,650 \t 846,139,520 \t 869,109,910 \t 856,415,910 \t 853,742,870 \t 1,100,079,300 \t 10,487,843,260 \t 138.8 \t 75,560,830 \t\t\t\t\t\r\n\t계\t 77,462,216,310 \t 85,020,684,320 \t 86,321,329,134 \t 77,092,936,690 \t 76,551,159,760 \t 86,242,909,400 \t 78,366,506,687 \t 77,856,298,940 \t 94,262,706,129 \t 77,385,778,190 \t 77,333,583,090 \t 108,853,954,044 \t 1,002,750,062,694 \t 14,887.3 \t 67,356,073 \t\t\t\t\t\r\n\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\r\n\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\r\n\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\r\n\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\r\n\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\r\n\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\r\n\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\r\n\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\r\n\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\r\n\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\r\n\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\r\n\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\r\n\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\r\n\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\r\n\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\r\n\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\r\n\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\r\n\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\r\n\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\r\n\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\r\n\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\r\n\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\r\n\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\r\n\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\r\n\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\r\n\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\r\n\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\r\n'
-        excel_original06 = excel_original06.replace(' ', '').replace('\t-\t', '\t\t')
-
-        excel_original07 = '(3-6) 초임직급 정원변동에 따른 인건비 효과 조정을 위한 Template\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\r\n\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\r\n가. 초임직급 정원\t\t\t\t\t\t\t\t\t\t\t\t\t\t(단위: 명)\t\t\t\t\t\t\t\r\n당년도\t직급\t1월\t2월\t3월\t4월\t5월\t6월\t7월\t8월\t9월\t10월\t11월\t12월\t평균정원\t\t\t\t\t\t\t\r\n\t1급\t0 \t0 \t0 \t0 \t0 \t0 \t0 \t0 \t0 \t0 \t0 \t0 \t0.0 \t\t\t\t\t\t\t\r\n\t2급\t0 \t0 \t0 \t0 \t0 \t0 \t0 \t0 \t0 \t0 \t0 \t0 \t0.0 \t\t\t\t\t\t\t\r\n\t3급\t0 \t0 \t0 \t0 \t0 \t0 \t0 \t0 \t0 \t0 \t0 \t0 \t0.0 \t\t\t\t\t\t\t\r\n\t4급\t0 \t0 \t0 \t0 \t0 \t0 \t0 \t0 \t0 \t0 \t0 \t0 \t0.0 \t\t\t\t\t\t\t\r\n\t5급\t0 \t0 \t0 \t0 \t0 \t0 \t0 \t0 \t0 \t0 \t0 \t0 \t0.0 \t\t\t\t\t\t\t\r\n\t6급\t575 \t575 \t575 \t575 \t575 \t642 \t642 \t642 \t642 \t642 \t642 \t642 \t614.1 \t\t\t\t\t\t\t\r\n\t연구직\t0 \t0 \t0 \t0 \t0 \t0 \t0 \t0 \t0 \t0 \t0 \t0 \t0.0 \t\t\t\t\t\t\t\r\n\t기능직\t0 \t0 \t0 \t0 \t0 \t0 \t0 \t0 \t0 \t0 \t0 \t0 \t0.0 \t\t\t\t\t\t\t\r\n\t계\t575 \t575 \t575 \t575 \t575 \t642 \t642 \t642 \t642 \t642 \t642 \t642 \t614.1 \t\t\t\t\t\t\t\r\n\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\r\n전년도\t직급\t1월\t2월\t3월\t4월\t5월\t6월\t7월\t8월\t9월\t10월\t11월\t12월\t평균정원\t\t\t\t\t\t\t\r\n\t1급\t0 \t0 \t0 \t0 \t0 \t0 \t0 \t0 \t0 \t0 \t0 \t0 \t0.0 \t\t\t\t\t\t\t\r\n\t2급\t0 \t0 \t0 \t0 \t0 \t0 \t0 \t0 \t0 \t0 \t0 \t0 \t0.0 \t\t\t\t\t\t\t\r\n\t3급\t0 \t0 \t0 \t0 \t0 \t0 \t0 \t0 \t0 \t0 \t0 \t0 \t0.0 \t\t\t\t\t\t\t\r\n\t4급\t0 \t0 \t0 \t0 \t0 \t0 \t0 \t0 \t0 \t0 \t0 \t0 \t0.0 \t\t\t\t\t\t\t\r\n\t5급\t0 \t0 \t0 \t0 \t0 \t0 \t0 \t0 \t0 \t0 \t0 \t0 \t0.0 \t\t\t\t\t\t\t\r\n\t6급\t657 \t657 \t657 \t657 \t657 \t608 \t608 \t608 \t608 \t608 \t608 \t575 \t625.7 \t\t\t\t\t\t\t\r\n\t연구직\t0 \t0 \t0 \t0 \t0 \t0 \t0 \t0 \t0 \t0 \t0 \t0 \t0.0 \t\t\t\t\t\t\t\r\n\t기능직\t0 \t0 \t0 \t0 \t0 \t0 \t0 \t0 \t0 \t0 \t0 \t0 \t0.0 \t\t\t\t\t\t\t\r\n\t계\t657 \t657 \t657 \t657 \t657 \t608 \t608 \t608 \t608 \t608 \t608 \t575 \t625.7 \t\t\t\t\t\t\t\r\n\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\r\n나. 초임직급 정원 변동에 따른 인건비 효과\t\t\t\t\t\t(단위: 명, 원)\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\r\n구분\t정원\t\t\t"전년도의\n평균단가\n(D)"\t"인건비 효과\n(E) = (C) x (D)"\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\r\n\t"전년도\n(A)"\t"당년도\n(B)"\t"증감\n(C)=(B)-(A)"\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\r\n1급\t - \t - \t - \t - \t - \t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\r\n2급\t - \t - \t - \t - \t - \t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\r\n3급\t - \t - \t - \t - \t - \t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\r\n4급\t - \t - \t - \t - \t - \t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\r\n5급\t - \t - \t - \t - \t - \t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\r\n6급\t 625.7 \t 614.1 \t-11.6 \t44,091,356 \t-511,459,730 \t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\r\n연구직\t - \t - \t - \t - \t - \t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\r\n기능직\t - \t - \t - \t - \t - \t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\r\n계\t 625.7 \t 614.1 \t-11.6 \t\t-511,459,730 \t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\r\n\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\r\n\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\r\n\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\r\n\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\r\n\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\r\n'
-        excel_original07 = excel_original07.replace(' ', '').replace('\t-\t', '\t\t')
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
     def excel_input(self):
 
 
-        global excel_original01, excel_original02, excel_original03, excel_original04, excel_original05, excel_original06, excel_original07
-
-
-
 
         
-        rank_count = 8  # 직급 수 설정
-        
-        
+
+
+        global excel_original_01, excel_original_02, excel_original_04, excel_original_05, excel_original_07, excel_original_08, excel_original_09
+
+
         # s1 ############################################################################
 
-        list_title = ['기본급\t', '인센티브상여금', '그외상여금', '법정수당', '해외근무수당', '그외제수당', '퇴직급여(명예퇴직금포함)\t', '임원인건비\t', '비상임이사인건비\t',
-                      '통상임금소송결과에따른실적급여증가액', '기타제외인건비', '기타항목\t', '급료,임금,제수당소계ⓐ\t',  '사내근로복지기금출연금\t', '국민연금사용자부담분\t',
-                      '건강보험사용자부담분\t', '고용보험사용자부담분\t', '산재보험료사용자부담분\t', '급식비\t', '교통보조비\t', '자가운전보조금\t', '학자보조금\t','건강진단비등(독감예방주사비용)\t',
-                      '선택적복지\t', '행사비\t', '포상품(비)\t', '기념품(비)\t', '격려품(비)\t', '장기근속관련비용\t', '육아보조비및출산장려금\t', '자기계발비\t', '특별근로의대가\t',
-                      '피복비\t', '경로효친비\t', '통신비\t', '축하금/조의금\t', '기타금품등\t', '복리후생비소계ⓑ\t', '일반급여(1)', '인센티브상여금', '순액', '청년인턴급여(2)', '인센티브상여금', '순액', '무기계약직급여(3)',
-                      '인센티브상여금', '순액', '소계ⓒ=(1)+(2)+(3)', '인건비총계:ⓓ=ⓐ+ⓑ+ⓒ\t\t', '인센티브상여금ⓔ=ⓔ-1+ⓔ-2\t\t', '인센티브전환금(ⓔ-1)\t\t', '인센티브추가금(ⓔ-2)\t\t', '인건비해당금액:ⓓ-ⓔ\t\t']
 
-        excel = excel_original01
+        excel_original_01 = excel_original_01.replace('△', '-').replace(' ', '')
+
+        if year == '2025':
+
+            list_title_01 = ['기본급', '인센티브 상여금', '그 외 상여금', '법정수당', '해외근무수당', '그 외 제수당', '퇴직급여(명예퇴직금 포함)', '임원 인건비', '비상임이사 인건비',
+                             '인상률 제외 인건비', '기타항목', '급료,임금,제수당 소계ⓐ',  '사내근로복지기금출연금', '국민연금사용자부담분',
+                             '건강보험사용자부담분', '고용보험사용자부담분', '산재보험료사용자부담분', '급식비', '교통보조비', '자가운전보조금', '학자보조금','건강진단비',
+                             '선택적복지', '행사비', '포상품(비)', '기념품(비)', '격려품(비)', '장기근속관련 비용', '육아보조비 및 출산장려금', '자기계발비', '특별근로의 대가',
+                             '피복비', '경로효친비', '통신비', '축하금/조의금', '기타 항목', '복리후생비 소계ⓑ', '일반 급여 (1)', '인센티브 상여금', '순액', '청년인턴 급여 (2)', '인센티브 상여금', '순액', '무기계약직 급여 (3)',
+                             '인센티브 상여금', '순액', '소계 ⓒ=(1)+(2)+(3)', '인건비 총계: ⓓ=ⓐ+ⓑ+ⓒ', '인센티브 상여금 ⓔ=ⓔ-1+ⓔ-2', '인센티브 전환금 (ⓔ-1)', '인센티브 추가금 (ⓔ-2)', '인건비 해당금액 : ⓓ-ⓔ']
+                   
+            list_keyword = ['기본', '인센', '그외상여', '법정', '해외', '그외제수', '퇴직급여', '임원', '비상임', '제외', '기타', '급료', '사내근로', '국민', '건강보험', '고용', '산재', '급식', '교통', '운전', '학자', '건강', '선택', '행사', '포상', '기념',
+                            '격려', '장기', '육아', '자기', '특별', '피복', '경로', '통신', '축하', '기타', '복리', '일반', '상여', '순액', '청년', '상여', '순액', '무기', '상여', '순액', '소계', '인건비', '상여', '전환', '추가', '해당']
+
+            readonly_rows = [11, 36, 37, 40, 43, 46, 47, 48, 51]
+
+
+        elif year in ['2024', '2023']:
+
+            list_title_01 = ['기본급', '인센티브 상여금', '그 외 상여금', '법정수당', '해외근무수당', '그 외 제수당', '퇴직급여(명예퇴직금 포함)', '임원 인건비', '비상임이사 인건비',
+                             '인상률 제외 인건비(통상)', '인상률 제외 인건비(기타)', '기타항목', '급료,임금,제수당 소계ⓐ',  '사내근로복지기금출연금', '국민연금사용자부담분',
+                             '건강보험사용자부담분', '고용보험사용자부담분', '산재보험료사용자부담분', '급식비', '교통보조비', '자가운전보조금', '학자보조금','건강진단비',
+                             '선택적복지', '행사비', '포상품(비)', '기념품(비)', '격려품(비)', '장기근속관련 비용', '육아보조비 및 출산장려금', '자기계발비', '특별근로의 대가',
+                             '피복비', '경로효친비', '통신비', '축하금/조의금', '기타 항목', '복리후생비 소계ⓑ', '일반 급여 (1)', '인센티브 상여금', '순액', '청년인턴 급여 (2)', '인센티브 상여금', '순액', '무기계약직 급여 (3)',
+                             '인센티브 상여금', '순액', '소계 ⓒ=(1)+(2)+(3)', '인건비 총계: ⓓ=ⓐ+ⓑ+ⓒ', '인센티브 상여금 ⓔ=ⓔ-1+ⓔ-2', '인센티브 전환금 (ⓔ-1)', '인센티브 추가금 (ⓔ-2)', '인건비 해당금액 : ⓓ-ⓔ']
+                   
+            list_keyword = ['기본', '인센', '그외상여', '법정', '해외', '그외제수', '퇴직급여', '임원', '비상임', '통상', '기타제외', '기타', '급료', '사내근로', '국민', '건강보험', '고용', '산재', '급식', '교통', '운전', '학자', '건강', '선택', '행사', '포상', '기념',
+                            '격려', '장기', '육아', '자기', '특별', '피복', '경로', '통신', '축하', '기타', '복리', '일반', '상여', '순액', '청년', '상여', '순액', '무기', '상여', '순액', '소계', '인건비', '상여', '전환', '추가', '해당']
+
+            readonly_rows = [12, 37, 38, 41, 44, 47, 48, 49, 52]
+
+
+
+
+
+
+
+
+
+        flag_gibon = False
+
+        if not list_years2:
+            for item in excel_original_01.split('\r\n'):
+                col_gibon = 0
+                for item_col in item.split('\t'):
+                    if '판관비' in item_col:
+                        flag_gibon = True
+                        break
+                    col_gibon += 1
+                if flag_gibon:
+                    break
+
+
+        else:        
+            for item in excel_original_01.split('\r\n'):
+                col_gibon = 0
+                for item_col in item.split('\t'):
+                    if max(list_years2) in item_col:
+                        flag_gibon = True
+                        break
+                    col_gibon += 1
+                if flag_gibon:
+                    break
+
+        matches = re.findall(r'20\d+.*?\t+.*?20\d+', excel_original_01[:188])
+        if matches:
+            col_gibon_width = len(matches[0].split('\t'))-2
+        else:
+            col_gibon_width = 5
+
+
+
+
+        if '판관비' in excel_original_01[:300]:
+            list_temp = excel_original_01.split('판관비')[1:]
+            list_temp = '판관비'.join(list_temp).split('소계')[0]
+        elif '인건비항목' in excel_original_01[:300]:
+            list_temp = excel_original_01.split('인건비항목')[1:]
+            list_temp = '인건비항목'.join(list_temp).split('소계')[0]
+        else:
+            list_temp = excel_original_01.split('20')[1:]
+            list_temp = '20'.join(list_temp).split('소계')[0]
+
+        list_temp = list_temp.replace('급료\r\n', '').replace('임금\r\n', '')
+        if '인센' not in list_temp:
+            if '상여금' in list_temp:
+                list_temp = list_temp.replace('상여금', '상여금 인센티브')
+        if '법정' not in list_temp and '해외근무' not in list_temp:
+            if '제수당' in list_temp:
+                list_temp = list_temp.replace('제수당', '제수당 법정수당')
+
+
+        list_temp = list_temp.split('\r\n')
+        list_temp_clean = []
+        for item in list_temp:
+            if item.strip():
+                list_temp_clean.append(item)
+        list_temp = list_temp_clean
+        list_temp = list_temp[1:len(list_temp)-1]
+
+
+        col_5 = 5
+        if list_years2 and col_gibon_width != 5: # s3
+            col_5 = 1
+            list_clean = []
+            for item in list_temp:
+                list_clean.append(item.split('\t')[:col_gibon+1])
+
+            for i in range(len(list_clean[0])):
+                if '제수당' in list_clean[0][i]:
+                    list_clean[0][i] = ""
+
+            list_temp = list_clean
+        else:
+            list_clean = []
+            for item in list_temp:
+                list_clean.append(item.split('\t')[:col_gibon+5])
+            list_temp = list_clean
+
+
+        if year in ['2024', '2023']:
+            list_keyword_01 = list_keyword[:12]
+            list_keyword_01_answer = [[] for _ in range(12)]
+
+            for i in range(12):
+                for j in range(len(list_temp)):
+                    if list_keyword_01[i] in str(list_temp[j]):
+                        list_keyword_01_answer[i] = list_temp[j][col_gibon:col_gibon+col_5]
+
+        if year in ['2025']:
+            list_keyword_01 = list_keyword[:11]
+            list_keyword_01_answer = [[] for _ in range(11)]
+
+            for i in range(11):
+                for j in range(len(list_temp)):
+                    if list_keyword_01[i] in str(list_temp[j]):
+                        list_keyword_01_answer[i] = list_temp[j][col_gibon:col_gibon+col_5]
+
+        print(list_keyword_01)
+        print(list_keyword_01_answer)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        list_temp = excel_original_01.replace('\t-\t', '\t\t').replace(',', '').split('소계')[1]   # (2) 사내근로 ~ 기타항목
+        list_temp = list_temp.split('\r\n')
+        list_temp_clean = []
+        for item in list_temp:
+            if item.strip():
+                list_temp_clean.append(item.split('\t'))
+        list_temp = list_temp_clean
+        list_temp = list_temp[1:len(list_temp)-1]
+
+        print(list_temp)
+        print(col_gibon)
+        print(col_5)
+
+
+
+        if year in ['2025']:
+            list_keyword_02 = list_keyword[12:36]
+            list_keyword_02_answer = [[] for _ in range(24)]
+
+            for i in range(24):
+                for j in range(len(list_temp)):
+                    print(list_temp[j])
+                    print()
+                    if list_keyword_02[i] in str(list_temp[j]):
+                        list_keyword_02_answer[i] = list_temp[j][col_gibon:col_gibon+col_5]
+
+
+
+        if year in ['2023', '2024']:
+            list_keyword_02 = list_keyword[13:37]
+            list_keyword_02_answer = [[] for _ in range(24)]
+
+            for i in range(24):
+                for j in range(len(list_temp)):
+                    print(list_temp[j])
+                    print()
+                    if list_keyword_02[i] in str(list_temp[j]):
+                        list_keyword_02_answer[i] = list_temp[j][col_gibon:col_gibon+col_5]
+
+        print(list_keyword_02)
+        print(list_keyword_02_answer)
+
+
         
-        # S1.py에서 정의된 보호 행(파란색) 목록
-        readonly_rows = [12, 37, 38, 41, 44, 47, 48, 49, 52]
+
+        return
+
+
+
+
+
         
-        self.s1.table.blockSignals(True)
-
-        for i in range(0, 53):
-
-            if i == 39: excel = excel_original01.split('일반급여(1)')[1]    
-            if i == 42: excel = excel_original01.split('청년인턴급여(2)')[1]
-            if i == 45: excel = excel_original01.split('무기계약직급여(3)')[1]
-            if i == 49: excel = excel_original01.split('인건비총계:ⓓ=ⓐ+ⓑ+ⓒ')[1]
 
 
+        if year in ['2025']:
+            list_keyword_02 = list_keyword[12:35]
+            list_keyword_02_answer = [[] for _ in range(23)]
+
+            for i in range(23):
+                for j in range(len(list_temp)):
+                    if list_keyword_02[i] in list_temp[j]:
+                        list_keyword_02_answer[i] = list_temp[j].split('\t')[col_temp:col_temp+cnt_col]
+                    if not list_keyword_02_answer[i]:
+                        list_keyword_02_answer[i] = ['' for _ in range(cnt_col)]
+                        
 
 
-            try:
-                # 1. 항목 존재 여부 체크
-                try:
-                    excel.split(list_title[i])[1]
-                except:
-                    return
-                    # 항목을 못 찾으면 로그 기록 후 다음 항목으로
+        print(list_keyword_02)
+        print(list_keyword_02_answer)
+
+
+
+
+
+
+
+
+        return
+
+
+
+
+        if year in ['2024', '2023']:
+            list_keyword_01 = list_keyword[:12]
+            list_keyword_01_answer = [[] for _ in range(12)]
+
+            for i in range(12):
+                for j in range(len(list_temp)):
+                    if list_keyword_01[i] in list_temp[j]:
+                        list_keyword_01_answer[i] = list_temp[j].split('\t')[col_gibon:col_gibon+col_5]
+
+
+        print(list_keyword_01)
+        print(list_keyword_01_answer)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        
+        return
+
+
+        
+        list_temp = excel_original_01.split('20')[1:]        # 기본급~기타항목
+        list_temp = '이익'.join(list_temp).split('소계')[0]
+
+
+
+
+
+        
+        
+
+
+
+
+
+
+
+
+
+
+
+        list_temp = excel_original_01.split('이익')[1:]        # 기본급~기타항목
+        list_temp = '이익'.join(list_temp).split('소계')[0]
+        list_temp = list_temp.split('\r\n')
+        list_temp_clean = []
+        for item in list_temp:
+            if item.strip():
+                list_temp_clean.append(item)
+        list_temp = list_temp_clean
+        list_temp = list_temp[1:len(list_temp)-1]
+
+
+
+
+
+
+        if year in ['2024', '2023']:
+            list_keyword_01 = list_keyword[:12]
+            list_keyword_01_answer = [[] for _ in range(12)]
+
+            for i in range(12):
+                for j in range(len(list_temp)):
+                    if list_keyword_01[i] in list_temp[j]:
+                        list_keyword_01_answer[i] = list_temp[j].split('\t')[col_gibon:col_gibon+5]
+
+
+        print(list_keyword_01)
+        print(list_keyword_01_answer)
+
+
+
+
+
+
+
+
+
+
+
+        return
+
+
+
+
+
+
+
+
+
+
+
+
+        
+
+
+
+
+
+
+
+
+
+
+
+
+        
+
+
+
+        flag_gibon = False
+        row_gibon = 0
+
+
+        if not list_years2:
+            for item in excel_original_01.split('\r\n'):
+                col_gibon = 0
+                for item_col in item.split('\t'):
+                    if '판관비' in item_col:
+                        flag_gibon = True
+                        break
+                    col_gibon += 1
+                if flag_gibon:
+                    break
+                row_gibon += 1
+            row_gibon += 1   # 기본급의 row
+
+        else:        
+            for item in excel_original_01.split('\r\n'):
+                col_gibon = 0
+                for item_col in item.split('\t'):
+                    if max(list_years2) in item_col:
+                        flag_gibon = True
+                        break
+                    col_gibon += 1
+                if flag_gibon:
+                    break
+                row_gibon += 1
+            row_gibon += 2   # 기본급의 row
+
+
+        
+        row_sogye = 0
+
+        for item in excel_original_01.split('\r\n'):
+            if '소계' in str(item):
+                break
+            row_sogye += 1
+
+
+        
+
+
+        
+
+        if year == '2025':
+            list_keyword_01 = list_keyword[:11]
+            list_keyword_01_answer = [[], [], [], [], [], [], [], [], [], [], []]
+
+            list_temp = excel_original_01.replace('\t-\t', '\t\t').replace(',', '').split('\r\n')[row_gibon:row_sogye]
+
+            for i in range(11):
+                for j in range(len(list_temp)):
+                    if list_keyword_01[i] in list_temp[j]:
+                        list_keyword_01_answer[i] = list_temp[j].split('\t')[col_gibon:col_gibon+5]
+
+
+        
+
+
+        elif year in ['2024', '2023']:
+            list_keyword_01 = list_keyword[:12]
+            list_temp = excel_original_01.replace('\t-\t', '\t\t').replace(',', '').split('\r\n')[row_gibon:row_sogye]
+
+            list_keyword_01_answer = [[], [], [], [], [], [], [], [], [], [], [], []]
+
+            for i in range(12):
+                for j in range(len(list_temp)):
+                    if list_keyword_01[i] in list_temp[j]:
+                        list_keyword_01_answer[i] = list_temp[j].split('\t')[col_gibon:col_gibon+5]
+
+
+        '''
+        print()
+        print(list_keyword_01_answer)
+        print(777)
+        print(list_keyword_01)
+        '''
+
+
+
+
+
+        row_gibon = row_sogye + 1
+
+
+        row_sogye = 0
+        flag_sogye = False
+        for item in excel_original_01.split('\r\n'):
+
+       
+            if '소계' in str(item) and flag_sogye:
+                break
+            
+
+            if '소계' in str(item):                
+                flag_sogye = True
+                row_sogye += 1
+                continue   
+
+            row_sogye += 1
+
+
+        # print(row_gibon*1000 + row_sogye)
+
+        list_temp = excel_original_01.replace('\t-\t', '\t\t').replace(',', '').split('\r\n')[row_gibon:row_sogye]
+
+
+        if year == '2025':
+            list_keyword_02 = list_keyword[12:36]
+            list_keyword_02_answer = [[] for _ in range(24)]
+            
+            for i in range(24):
+                for j in range(len(list_temp)):
+                    if list_keyword_02[i] in list_temp[j]:
+                        list_keyword_02_answer[i] = list_temp[j].split('\t')[col_gibon:col_gibon+5]
+
+
+
+        elif year in ['2024', '2023']:
+            list_keyword_02 = list_keyword[13:37]
+            list_keyword_02_answer = [[] for _ in range(24)]
+
+            for i in range(24):
+                for j in range(len(list_temp)):
+                    if list_keyword_02[i] in list_temp[j]:
+                        list_keyword_02_answer[i] = list_temp[j].split('\t')[col_gibon:col_gibon+5]
+
+        '''
+        print(col_gibon)
+        print(list_keyword_02_answer)
+        print(777)
+        print(list_keyword_02)
+        print(len(list_keyword_02_answer))
+        print(len(list_keyword_02))
+        '''
+
+
+
+
+
+
+        row_gibon = row_sogye + 1
+
+        
+
+        row_sogye = 0
+        for item in excel_original_01.split('\r\n'):
+            if '해당' in str(item):
+                break
+            row_sogye += 1
+
+        list_temp = excel_original_01.replace('\t-\t', '\t\t').replace(',', '').split('\r\n')[row_gibon:row_sogye]
+        list_temp = [item for item in list_temp if not item.startswith('\t\t\t')]
+
+
+
+
+        if year == '2025':
+            cnt_temp = 0
+            list_keyword_03 = list_keyword[37:]
+            list_keyword_03_answer = [[] for _ in range(14)]
+            
+            for i in range(14):
+                if list_temp[i][:3] == '\t\t\t':
                     continue
+                list_keyword_03_answer[cnt_temp] = list_temp[i].split('\t')[col_gibon:col_gibon+5]
+                cnt_temp += 1
 
-                # 2. 데이터 추출
+
+        
+        elif year in ['2024', '2023']:
+            cnt_temp = 0
+            list_keyword_03 = list_keyword[38:]
+            list_keyword_03_answer = [[] for _ in range(14)]
+            
+            for i in range(14):
+                if list_temp[i][:3] == '\t\t\t':
+                    continue
+                list_keyword_03_answer[cnt_temp] = list_temp[i].split('\t')[col_gibon:col_gibon+5]
+                cnt_temp += 1
 
 
-                excel = excel.split(list_title[i])[1]
-                excel_item = excel.split('\r\n')[0]
+        '''
+        print(list_keyword_03_answer)
+        print(777)
+        print(list_keyword_03)
+        print(len(list_keyword_02_answer))
+        '''
+
+
+
+        # list_keyword_01_answer
+        # list_keyword_02_answer
+        # list_keyword_03_answer
+
+
+
+
+
+
+
+
+
+        try:
+
+            for i in range(len(list_keyword_01_answer)):   # (2) 기본급 ~ 기타항목
+                for j in range(5):
+                    self.s1.table.item(i, j+1).setText(list_keyword_01_answer[i][j])
+
+            for i in range(len(list_keyword_01_answer)+1, len(list_keyword_01_answer)+1 + len(list_keyword_02_answer)):   # (2) 사내근로 ~ 기타항목
+                for j in range(5):
+                    self.s1.table.item(i, j+1).setText(list_keyword_02_answer[i-(len(list_keyword_01_answer)+1)][j])
                 
-                # 3. UI 테이블 입력 (파란색 영역 제외)
-                # S1.py 로직: r in readonly_rows(파란색) 또는 c == 6(합계열, 파란색)은 입력 금지
-                if i in readonly_rows:
-                    continue # 소계/총계 행 전체 스킵
+            for i in range(len(list_keyword_01_answer)+1 + len(list_keyword_02_answer)+1 + 1, len(list_keyword_01_answer)+1 + len(list_keyword_02_answer)+1 + len(list_keyword_03_answer)):   # (2) 인센티브 전환금 ~ 인센티브 추가금
+                if i in [0, 3, 6, 9, 10, 11]:
+                    continue
+                for j in range(5):
+                    self.s1.table.item(i, j+1).setText(list_keyword_03_answer[i-(len(list_keyword_01_answer)+1 + len(list_keyword_02_answer)+1)][j])
 
-                for j in range(1, 6): # 1(판관비) ~ 5(이익잉여금)까지만 입력 (6번 합계열은 파란색이라 제외)
+            
+        except Exception as e:
+            print(f"(2) 인건비 집계 입력 오류 [항목: {list_title_01[i].strip()}]: {e}")
+            return "excel_original_no"
 
-                    val = excel_item.split('\t')[j].strip().replace(',', '')
-                    
-                    # 엑셀의 빈 값 처리 및 입력
-                    if val == "": val = "0"
-                    self.s1.table.item(i, j).setText(val)
 
-            except Exception as e:
-                print(f"S1 입력 오류 [항목: {list_title[i].strip()}]: {e}")
-                continue
+
 
         # 모든 입력 후 자동 계산 한 번 수행 (변경된 열 기준)
         for col_idx in range(1, 6):
@@ -2441,62 +3216,391 @@ class MainWindow(QMainWindow):
 
 
 
+
+
+
+
         # s2 ############################################################################
 
-        list_title = [
-            '1.인센티브상여금을제외한인건비총액', 'a.판관비로처리한인건비', 'b.영업외비용으로처리한인건비', 'c.제조원가로처리한인건비', 
-            'd.타계정대체로처리한인건비', 'e.이익잉여금의증감으로처리한인건비', '소계:(A)=a+b+c+d+e', 
-            '2.총인건비인상률계산에서제외(조정)되는인건비', 'f.퇴직급여(명예퇴직금포함)', 'g.임원인건비', 'h.비상임이사인건비',
-            '기타제외인건비', 'j.사내근로복지기금출연금', 'k.잡급및무기계약직에대한인건비(복리후생비포함,인센티브상여금제외)', 
-            'l.공적보험사용자부담분', 'm.연월차수당등조정(㉠-㉡+㉢)', '연월차수당등발생액(㉠)',
-            '연월차수당등지급액(㉡)', '종업원저리대여금이자관련인건비(㉢)', '무상대여이익', 'o.지방이전관련직접인건비', 
-            'p.법령에따른특수건강진단비', 'q.코로나19대응을위한시간외근로수당등', 'r.해외근무수당', 's.직무발명보상금', 
-            't.공무원수준내의자녀수당및출산격려금', 'v.비상진료체계운영에따른특별수당등',
-            'u.국민건강보험공단2023년도총인건비초과액에따른상환금액', '소계:(B)=f+g+h+i+j+k+l+m-n+o+p+q+r+s+t+u+v+w', 
-            '3.실집행액기준총인건비발생액(C)=(A)-(B)', '4.연도별증원소요인건비의영향을제거하기위한인건비의조정(D)',
-            '5.별도직군승진시기차이에따른인건비효과조정(E)', '6.초임직급정원변동에따른인건비효과조정(F)', 
-            '7.정년이후재고용을전제로전환된정원외인력의인건비효과조정(G)', '추가로지급된인건비의영향제거(H)', 
-            '최저임금지급직원에대한인건비효과조정(I)', '10.파업등에따른인건비효과조정(J)', '11.코로나19로인한휴업의인건비효과조정(K)', 
-            '(C)+(D)+(E)-(F)-(G)-(H)+(I)+(J)+(K)+(L)'
-        ]
 
-        excel = excel_original02
-        self.s2.table.blockSignals(True) # self.table을 self.s2.table로 수정
 
-        # 보호 구역 (39행 미만 중 데이터 입력을 건너뛸 행들)
-        readonly_rows = [0, 6, 7, 15, 28, 29, 38] 
-        yellow_rows = [1, 2, 3, 4, 5, 8, 9, 10, 11, 12, 13, 14, 30, 32]
+        if year == '2025':
 
-        for i in range(0, 39):
-            try:
-                excel = excel.split(list_title[i])[1]
-                excel_item = excel.split('\r\n')[0]
-                
-                if i == 11: excel_item = '\t' + excel_item   
+            list_title_02 = [
+                '1.인센티브상여금을제외한인건비총액', 'a.판관비로처리한인건비', 'b.영업외비용으로처리한인건비', 'c.제조원가로처리한인건비', 
+                'd.타계정대체로처리한인건비', 'e.이익잉여금의증감으로처리한인건비', '소계:(A)=a+b+c+d+e', 
+                '2.총인건비인상률계산에서제외(조정)되는인건비', 'f.퇴직급여(명예퇴직금포함)', 'g.임원인건비', 'h.비상임이사인건비',
+                '기타제외인건비', 'j.사내근로복지기금출연금', 'k.잡급및무기계약직에대한인건비(복리후생비포함,인센티브상여금제외)', 
+                'l.공적보험사용자부담분', 'm.연월차수당등조정(㉠-㉡+㉢)', '연월차수당등발생액(㉠)',
+                '연월차수당등지급액(㉡)', '종업원저리대여금이자관련인건비(㉢)', '무상대여이익', 'o.지방이전관련직접인건비', 
+                'p.법령에따른특수건강진단비', 'q.해외근무수당', 'r.직무발명보상금', 
+                's.공무원수준내의자녀수당및출산격려금', 't.야간간호특별수당', 'u.비상진료체계운영에따른특별수당등',
+                'v. 통상임금 판단기준 변경 판례의 영향으로 인한 법정수당 증가분(2024년 귀속분)', '소계:(B)=f+g+h+i+j+k+l+m-n+o+p+q+r+s+t+u+v+w', 
+                '3.실집행액기준총인건비발생액(C)=(A)-(B)', '4.연도별증원소요인건비의영향을제거하기위한인건비의조정(D)',
+                '5.별도직군승진시기차이에따른인건비효과조정(E)', '6.초임직급정원변동에따른인건비효과조정(F)', 
+                '7.정년이후재고용을전제로전환된정원외인력의인건비효과조정(G)', '추가로지급된인건비의영향제거(H)', 
+                '최저임금지급직원에대한인건비효과조정(I)', '10.파업등에따른인건비효과조정(J)', '11.통상임금판단기준변경판례의영향으로인한법정수당증가분(2025년귀속분)(K)<주30>', 
+                ' (C)+(D)+(E)-(F)-(G)-(H)+(I)+(J)-(K)'
+            ]
 
-                for j in range(2, 5): 
-                    target_item = self.s2.table.item(i, j) # self.s2.table로 수정
-                    
-                    if not target_item or target_item.text() == "n/a": 
-                        continue
+            list_keyword = [
+                '티브', '판관비', '영업외', '제조원가', 
+                '타계정', '이익', '소계', 
+                '총인건비', '퇴직급여', '임원', '비상임',
+                '인상률제외', '사내근로', '잡급', 
+                '공적', '조정', '발생액',
+                '지급액', '종업원', '무상', '지방', 
+                '법령', '해외', '직무', 
+                '공무원', '야간', '비상',
+                '통상', '소계', 
+                '실집행', '연도별',
+                '별도', '초임', 
+                '정년', '추가', 
+                '최저', '파업', '통상', 
+                '+'
+            ]
 
-                    if i in readonly_rows: 
-                        continue
+            readonly_rows = [0, 6, 7, 15, 28, 29, 38] 
+            yellow_rows = [1, 2, 3, 4, 5, 8, 9, 10, 11, 12, 13, 14, 30, 32]
 
-                    if i in yellow_rows and j == 2: 
-                        continue
 
-                    val = self.excel_str(excel_item.split('\t')[j], 2, i, j)
-                    
-                    try:
-                        f_val = float(val.replace(',', ''))
-                        target_item.setData(Qt.EditRole, f_val)
-                    except:
-                        target_item.setText(val)
-            except:
-                continue
+        elif year == '2024':
 
-        self.s2.table.blockSignals(False) # self.s2.table로 수정
+            list_title_02 = [
+                '1.인센티브상여금을제외한인건비총액', 'a.판관비로처리한인건비', 'b.영업외비용으로처리한인건비', 'c.제조원가로처리한인건비', 
+                'd.타계정대체로처리한인건비', 'e.이익잉여금의증감으로처리한인건비', '소계:(A)=a+b+c+d+e', 
+                '2.총인건비인상률계산에서제외(조정)되는인건비', 'f.퇴직급여(명예퇴직금포함)', 'g.임원인건비', 'h.비상임이사인건비',
+                '인상률제외인건비(통상)', '인상률제외인건비(기타제외)', 'j.사내근로복지기금출연금', 'k.잡급및무기계약직에대한인건비(복리후생비포함,인센티브상여금제외)', 
+                'l.공적보험사용자부담분', 'm.연월차수당등조정(㉠-㉡+㉢)', '연월차수당등발생액(㉠)',
+                '연월차수당등지급액(㉡)', '종업원저리대여금이자관련인건비(㉢)', '무상대여이익', 'o.지방이전관련직접인건비', 
+                'p.법령에따른특수건강진단비', 'q. 코로나19 대응을 위한 시간외근로수당 등', 'r.해외근무수당', 's.직무발명보상금', 
+                't.공무원수준내의자녀수당및출산격려금', 'u.야간간호특별수당', 'v.비상진료체계운영에따른특별수당등',
+                'w. 통상임금 판단기준 변경 판례의 영향으로 인한 법정수당 증가분(2024년 귀속분)', '소계:(B)=f+g+h+i+j+k+l+m-n+o+p+q+r+s+t+u+v+w', 
+                '3.실집행액기준총인건비발생액(C)=(A)-(B)', '4.연도별증원소요인건비의영향을제거하기위한인건비의조정(D)',
+                '5.별도직군승진시기차이에따른인건비효과조정(E)', '6.초임직급정원변동에따른인건비효과조정(F)', 
+                '7.정년이후재고용을전제로전환된정원외인력의인건비효과조정(G)', '추가로지급된인건비의영향제거(H)', 
+                '최저임금지급직원에대한인건비효과조정(I)', '10.파업등에따른인건비효과조정(J)', '11. 코로나19로 인한 휴업의 인건비 효과 조정 (K)', 
+                '(C)+(D)+(E)-(F)-(G)-(H)+(I)+(J)+(K)+(L)'
+            ]
+
+            list_keyword = [
+                '티브', '판관비', '영업외', '제조원가', 
+                '타계정', '이익', '소계', 
+                '총인건비', '퇴직급여', '임원', '비상임',
+                '통상', '기타제외', '사내', '잡급', 
+                '공적', '조정', '발생액',
+                '지급액', '종업원', '무상', '지방', 
+                '법령', '코로나', '해외', '직무', 
+                '공무원', '야간', '비상',
+                '소계', 
+                '실집행', '연도별',
+                '별도', '초임', 
+                '정년', '추가', 
+                '최저', '파업', '코로나', 
+                '+'
+            ]
+
+            readonly_rows = [0, 6, 7, 16, 29, 30, 39] 
+            yellow_rows = [1, 2, 3, 4, 5, 8, 9, 10, 12, 13, 14, 15, 31, 33]
+
+
+
+        elif year == '2023':
+            list_title_02 = [
+                '1.인센티브상여금을제외한인건비총액', 'a.판관비로처리한인건비', 'b.영업외비용으로처리한인건비', 'c.제조원가로처리한인건비', 
+                'd.타계정대체로처리한인건비', 'e.이익잉여금의증감으로처리한인건비', '소계:(A)=a+b+c+d+e', 
+                '2.총인건비인상률계산에서제외(조정)되는인건비', 'f.퇴직급여(명예퇴직금포함)', 'g.임원인건비', 'h.비상임이사인건비',
+                '인상률제외인건비(통상)', '인상률제외인건비(기타제외)', 'j.사내근로복지기금출연금', 'k.잡급및무기계약직에대한인건비(복리후생비포함,인센티브상여금제외)', 
+                'l.공적보험사용자부담분', 'm.연월차수당등조정(㉠-㉡+㉢)', '연월차수당등발생액(㉠)',
+                '연월차수당등지급액(㉡)', '종업원저리대여금이자관련인건비(㉢)', '무상대여이익', 'o.지방이전관련직접인건비', 
+                'p.법령에따른특수건강진단비', 'q. 코로나19 대응을 위한 시간외근로수당 등', 'r.해외근무수당', 's.직무발명보상금', 
+                '소계:(B)=f+g+h+i+j+k+l+m-n+o+p+q+r+s', 
+                '3.실집행액기준총인건비발생액(C)=(A)-(B)', '4.연도별증원소요인건비의영향을제거하기위한인건비의조정(D)',
+                '5.별도직군승진시기차이에따른인건비효과조정(E)', '6.초임직급정원변동에따른인건비효과조정(F)', 
+                '7.정년이후재고용을전제로전환된정원외인력의인건비효과조정(G)', '추가로지급된인건비의영향제거(H)', 
+                '최저임금지급직원에대한인건비효과조정(I)', '10.파업등에따른인건비효과조정(J)', 
+                '11. 코로나19로 인한 휴업의 인건비 효과 조정 (K)',
+                '(C)+(D)+(E)-(F)-(G)-(H)+(I)+(J)+(K)'
+            ]
+
+            list_keyword = [
+                '티브', '판관비', '영업외', '제조원가', 
+                '타계정', '이익', '소계', 
+                '총인건비', '퇴직급여', '임원', '비상임',
+                '통상', '기타제외', '사내', '잡급', 
+                '공적', '조정', '발생액',
+                '지급액', '종업원', '무상', '지방', 
+                '법령', '코로나', '해외', '직무', 
+                '소계',
+                '실집행', '연도별',
+                '별도', '초임', 
+                '정년', '추가', 
+                '최저', '파업', '코로나', 
+                '+'
+            ]
+
+
+            readonly_rows = [0, 6, 7, 16, 26, 27, 36]
+            yellow_rows = [1, 2, 3, 4, 5, 8, 9, 10, 12, 13, 14, 15, 28, 30]
+
+
+        for item in excel_original_02.split('\r\n'):
+            col_temp = 0
+            flag_col = False
+            for item_col in item.split('\t'):
+                if max(list_years3) in item_col:
+                    flag_col = True
+                    break
+                col_temp += 1   # 엑셀에서 몇 번째 열부터 금액 시작인지
+            if flag_col:
+                break
+
+        if len(list_years3) > 3: cnt_col = 3   # (3) ['2025', '2024', '2023'] 몇개 연도인지
+        else: cnt_col = len(list_years3)
+        
+        
+
+
+
+        list_temp = excel_original_02.replace('\t-\t', '\t\t').replace(',', '').split('인센')[1].split('소계')[0]   # (3) 판관비 ~ 이익잉여금
+        list_temp = list_temp.split('\r\n')
+        list_temp_clean = []
+        for item in list_temp:
+            if item.strip():
+                list_temp_clean.append(item)
+        list_temp = list_temp_clean
+        list_temp = list_temp[1:len(list_temp)-1]
+
+        if year in ['2025', '2024', '2023']:   # (3) 판관비 ~ 이익잉여금
+            list_keyword_01 = list_keyword[1:6]
+            list_keyword_01_answer = [[] for _ in range(5)]
+
+            for i in range(5):
+                for j in range(len(list_temp)):
+                    if list_keyword_01[i] in list_temp[j]:
+                        list_keyword_01_answer[i] = list_temp[j].split('\t')[col_temp:col_temp+cnt_col]
+                    if not list_keyword_01_answer[i]:
+                        list_keyword_01_answer[i] = ['' for _ in range(cnt_col)]
+
+
+
+
+
+        list_temp = excel_original_02.replace('\t-\t', '\t\t').replace(',', '').split('소계')[1]   # (3) 퇴직급여 ~ 공적보험
+        list_temp = list_temp.split('\r\n')
+        list_temp_clean = []
+        for item in list_temp:
+            if item.strip():
+                list_temp_clean.append(item)
+        list_temp = list_temp_clean
+        list_temp = list_temp[1:len(list_temp)-1]
+
+        if year in ['2024', '2023']:
+            list_keyword_02 = list_keyword[8:16]
+            list_keyword_02_answer = [[] for _ in range(8)]
+
+            for i in range(8):
+                for j in range(len(list_temp)):
+                    if list_keyword_02[i] in list_temp[j]:
+                        list_keyword_02_answer[i] = list_temp[j].split('\t')[col_temp:col_temp+cnt_col]
+                    if not list_keyword_02_answer[i]:
+                        list_keyword_02_answer[i] = ['' for _ in range(cnt_col)]
+
+        if year in ['2025']:
+            list_keyword_02 = list_keyword[8:15]
+            list_keyword_02_answer = [[] for _ in range(7)]
+
+            for i in range(7):
+                for j in range(len(list_temp)):
+                    if list_keyword_02[i] in list_temp[j]:
+                        list_keyword_02_answer[i] = list_temp[j].split('\t')[col_temp:col_temp+cnt_col]
+                    if not list_keyword_02_answer[i]:
+                        list_keyword_02_answer[i] = ['' for _ in range(cnt_col)]
+
+
+
+
+
+
+        list_temp = excel_original_02.replace('\t-\t', '\t\t').replace(',', '').split('공적')[1].split('소계')[0]   # (3) 연월차 ~ 통상
+        list_temp = list_temp.split('\r\n')
+        
+        list_temp_clean = []
+        for item in list_temp:
+            if item.strip():
+                list_temp_clean.append(item)
+
+        list_temp = list_temp_clean
+        list_temp = list_temp[1:len(list_temp)-1]
+
+        if year in ['2025']:
+            list_keyword_03 = list_keyword[16:28]
+            list_keyword_03_answer = [[] for _ in range(12)]
+
+            for i in range(12):
+                for j in range(len(list_temp)):
+                    if list_keyword_03[i] in list_temp[j]:
+                        list_keyword_03_answer[i] = list_temp[j].split('\t')[col_temp:col_temp+cnt_col]
+                    if not list_keyword_03_answer[i]:
+                        list_keyword_03_answer[i] = ['' for _ in range(cnt_col)]
+
+        if year in ['2024']:
+            
+            list_keyword_03 = list_keyword[17:29]
+            list_keyword_03_answer = [[] for _ in range(12)]
+
+            for i in range(12):
+                for j in range(len(list_temp)):
+                    if list_keyword_03[i] in list_temp[j]:
+                        list_keyword_03_answer[i] = list_temp[j].split('\t')[col_temp:col_temp+cnt_col]
+                    if not list_keyword_03_answer[i]:
+                        list_keyword_03_answer[i] = ['' for _ in range(cnt_col)]
+
+
+
+
+
+
+
+
+
+
+
+
+
+        if year in ['2023']:
+            list_keyword_03 = list_keyword[17:26]
+            list_keyword_03_answer = [[] for _ in range(9)]
+
+            for i in range(9):
+                for j in range(len(list_temp)):
+                    if list_keyword_03[i] in list_temp[j]:
+                        list_keyword_03_answer[i] = list_temp[j].split('\t')[col_temp:col_temp+cnt_col]
+                    if not list_keyword_03_answer[i]:
+                        list_keyword_03_answer[i] = ['' for _ in range(cnt_col)]
+
+
+
+
+
+
+        list_temp = excel_original_02.replace('\t-\t', '\t\t').replace(',', '').split('소계')[2].split('인상률')[0]   # (3) 연도별 ~ 통상
+        list_temp = list_temp.split('\r\n')
+        list_temp_clean = []
+        for item in list_temp:
+            if item.strip():
+                list_temp_clean.append(item)
+        list_temp = list_temp_clean
+        list_temp = list_temp[2:len(list_temp)-1]
+
+
+        if year in ['2025']:
+            list_keyword_04 = list_keyword[30:38]
+            list_keyword_04_answer = [[] for _ in range(8)]
+
+            for i in range(8):
+                for j in range(len(list_temp)):
+                    if list_keyword_04[i] in list_temp[j]:
+                        list_keyword_04_answer[i] = list_temp[j].split('\t')[col_temp:col_temp+cnt_col]
+                    if not list_keyword_04_answer[i]:
+                        list_keyword_04_answer[i] = ['' for _ in range(cnt_col)]
+
+        if year in ['2024']:
+            list_keyword_04 = list_keyword[31:39]
+            list_keyword_04_answer = [[] for _ in range(8)]
+
+            for i in range(8):
+                for j in range(len(list_temp)):
+                    if list_keyword_04[i] in list_temp[j]:
+                        list_keyword_04_answer[i] = list_temp[j].split('\t')[col_temp:col_temp+cnt_col]
+                    if not list_keyword_04_answer[i]:
+                        list_keyword_04_answer[i] = ['' for _ in range(cnt_col)]
+
+        if year in ['2023']:
+            list_keyword_04 = list_keyword[28:36]
+            list_keyword_04_answer = [[] for _ in range(8)]
+
+            for i in range(8):
+                for j in range(len(list_temp)):
+                    if list_keyword_04[i] in list_temp[j]:
+                        list_keyword_04_answer[i] = list_temp[j].split('\t')[col_temp:col_temp+cnt_col]
+                    if not list_keyword_04_answer[i]:
+                        list_keyword_04_answer[i] = ['' for _ in range(cnt_col)]
+
+
+
+
+        '''
+        print(list_keyword_01)
+        print(list_keyword_01_answer)
+
+        print(list_keyword_02)
+        print(list_keyword_02_answer)
+
+        print(list_keyword_03)
+        print(list_keyword_03_answer)
+
+        print(list_keyword_04)
+        print(list_keyword_04_answer)
+        '''
+
+
+
+        self.s2.table.blockSignals(True)
+
+
+
+
+
+        try:
+
+            for i in range(len(list_keyword_01_answer)):    # (3) 판관비 ~ 이익잉여금
+                for j in range(cnt_col):
+                    self.s2.table.item(i+1, j+2).setText(list_keyword_01_answer[i][j])
+
+
+            for i in range(len(list_keyword_02_answer)):    # (3) 퇴직급여 ~ 공적보험
+                for j in range(cnt_col):
+                    self.s2.table.item( len(list_keyword_01_answer)+1 +i+2, j+2).setText(list_keyword_02_answer[i][j])
+
+
+            for i in range(len(list_keyword_03_answer)):    # (3) 연월차 ~ 통상
+                for j in range(cnt_col):
+                    self.s2.table.item( len(list_keyword_01_answer)+1 +len(list_keyword_02_answer)+2 + i+1, j+2).setText(list_keyword_03_answer[i][j])
+
+
+            for i in range(len(list_keyword_04_answer)):    # (3) 연도별 ~ 통상
+                for j in range(cnt_col):
+                    self.s2.table.item( len(list_keyword_01_answer)+1 +len(list_keyword_02_answer)+2 + len(list_keyword_03_answer)+1 +i+2, j+2).setText(list_keyword_04_answer[i][j])
+
+
+        except Exception as e:
+            print(f"(3) 총인건비 인상률 입력 오류 [항목: {list_title_02[i].strip()}]: {e}")
+            return "excel_original_no"
+
+
+
+
+        # 모든 입력 후 자동 계산 한 번 수행 (변경된 열 기준)
+        for col_idx in range(2, 2+cnt_col):
+            self.s2.calculate_s2(self.s2.table.item(0, col_idx))
+
+
+
+
+        self.s2.table.blockSignals(False)
+        self.s2.table.viewport().update()
+
+
+        
+
+        
+        return
+
+
+
+
+
 
 
 
@@ -2505,55 +3609,37 @@ class MainWindow(QMainWindow):
 
         # s4 ############################################################################
 
-        list_title = ['1급', '2급', '3급', '4급', '5급', '6급', '연구직', '계', '1급', '2급', '3급', '4급', '5급', '6급', '연구직', '계']
-        
-        excel = excel_original04
+
+
+        list_title_04 = list(self.list_title_04)
+        rank_count_04 = len(list_title_04)
+
+
         self.s4.table.blockSignals(True)
 
-        for i in range(0, 16):
-            if i == 8:
-                # 당년도 섹션으로 전환
-                excel = excel_original04.split('당년도')[1]
+        for i in range(0, (rank_count_04*2)):
+
+            excel_original_04 = excel_original_04[excel_original_04.find(list_title_04[i%rank_count_04]):]
+            excel_item = excel_original_04.split('\r\n')[0].split('\t')
 
             try:
-                # 1. 직급명 체크 (3종 오류 알림 세트)
-                try:
-                    excel.split(list_title[i])[1]
-                except:
-                    err_loc = f"S4 엑셀 입력 오류: (3-2) [직급:{list_title[i]}] 데이터를 찾을 수 없음"
-                    with open("log.txt", "a", encoding="utf-8") as f:
-                        f.write(err_loc + '\n')
-                    print(err_loc)
-                    QMessageBox.information(self, "S4 엑셀 입력 오류", err_loc)
-                    continue
-
-                # 2. 데이터 추출 (순차적 잘라내기)
-                excel = excel.split(list_title[i])[1]
-                excel_item = excel.split('\r\n')[0]
-
-                # 3. UI 테이블 입력 (불필요 변수 없이 i와 j 인덱스로 직접 처리)
-                if i < 8:   # 전년도 표
-                    if i == 7: continue # '계' 제외
+                if i < rank_count_04:   # 전년도 표
+                    if i == rank_count_04-1: continue # '계' 제외
                     for j in range(1, 14): # 1월~12월 + 평균인원 (총 13개)
-                        val = excel_item.split('\t')[j].strip().replace(',', '')
-                        # i행, j+1열에 직접 입력
-                        self.s4.table.item(i, j + 1).setText(val)
+                        self.s4.table.item(i, j + 1).setText(excel_item[j])
 
                 else:       # 당년도 표
-                    if i == 15: continue # '계' 제외
-                    # rank_count=9 및 구분선 반영하여 i+2행에 직접 입력 [cite: 2025-12-24, 2025-12-20]
+                    if i == (rank_count_04*2)-1: continue # '계' 제외
                     for j in range(1, 14):
-                        val = excel_item.split('\t')[j].strip().replace(',', '')
-                        self.s4.table.item(i + 2, j + 1).setText(val)
+                        self.s4.table.item(i + 2, j + 1).setText(excel_item[j])
 
             except Exception as e:
-                # 4. 예외 발생 시 상세 알림
-                err_detail = f"S4 엑셀 입력 오류 [(3-2)직급별평균인원, 직급: {list_title[i]}]: {e}"
+                err_detail = f"S4 엑셀 입력 오류 [(3-2)직급별평균인원, 직급: {list_title_04[i%rank_count_04]}]: {e}"
                 with open("log.txt", "a", encoding="utf-8") as f:                    
                     f.write(err_detail + "\n")
                 print(err_detail)
                 QMessageBox.information(self, "S4 엑셀 입력 오류", err_detail)
-                continue
+                return "excel_original_no" 
 
         self.s4.table.blockSignals(False)
         self.s4.table.viewport().update()
@@ -2561,181 +3647,110 @@ class MainWindow(QMainWindow):
 
 
 
+
+
+
+
         # s5 ############################################################################
 
+        list_title_05 = list(self.list_title_05)
+        rank_count_05 = len(list_title_05)
 
-        # S5 - (3-3) 가. 정원현원차이
-        list_title = ['1급', '2급', '3급', '4급', '5급', '6급', '연구직', '계', '1급', '2급', '3급', '4급', '5급', '6급', '연구직', '계', ]
-        
-        # '나.근속승진' 이전 섹션인 '가.정원현원차이' 영역 추출
-        excel_original05_05 = excel_original05.split('나.근속승진')[0]  
-        excel = excel_original05_05
 
         self.s5.table.blockSignals(True)
 
-        for i in range(0, 18):
-            # 상단 표(1~6월)와 하단 표(7~12월) 섹션 전환
-            if i == 8:
-                continue # 빈 줄 혹은 구분선 스킵
-            
-            if i == 9:
-                # 7~12월 데이터 섹션으로 전환
-                excel = excel_original05_05.split('당년도')[2]
-                continue
+        for i in range(0, (rank_count_05*2)):
+
+            excel_original_05 = excel_original_05[excel_original_05.find(list_title_05[i%rank_count_05]):]
+            excel_item = excel_original_05.split('\r\n')[0].split('\t')
 
             try:
-                # 1. 직급명 체크 (3종 오류 알림)
-                try:
-                    if i < 9: excel.split(list_title[i])[1]
-                    else: excel.split(list_title[i-2])[1]
-                except:
-                    err_loc = f"S5 엑셀 입력 오류: (3-3) 가.정원현원차이 [직급:{list_title[i]}] 찾을 수 없음"
-                    with open("log.txt", "a", encoding="utf-8") as f:
-                        f.write(err_loc + '\n')
-                    print(err_loc)
-                    QMessageBox.information(self, "S5 엑셀 입력 오류", err_loc)
-                    continue
+                if i < rank_count_05:
 
 
-                
-                # 3. UI 테이블 입력 (i < 9는 1~6월, i > 9는 7~12월)
-                if i < 9:
-                    excel = excel.split(list_title[i])[1]
-                    excel_item = excel.split('\r\n')[0]
-                    if i == 7: continue # '계' 행 제외
+                    if i%rank_count_05 == rank_count_05-1: continue # '계' 행 제외
                     for j in range(1, 25): # 1월~6월 (정/현/복/누 4개씩 6개월 = 24개)
-                        val = excel_item.split('\t')[j].strip().replace(',', '')
-                        # i행, j+1열에 직접 입력
-                        self.s5.table.item(i, j + 1).setText(val)
-                else:
-                    excel = excel.split(list_title[i-2])[1]
-                    excel_item = excel.split('\r\n')[0]                    
-                    if i == 17: continue # '계' 행 제외
+                        self.s5.table.item(i, j + 1).setText(excel_item[j])
+                else:                  
+                    if i == (rank_count_05*2)+1: continue # '계' 행 제외
                     for j in range(1, 25): # 7월~12월
-                        val = excel_item.split('\t')[j].strip().replace(',', '')
-                        # 7~12월 표 위치 보정 (i는 이미 9 이상이므로 시트 구조에 맞게 입력)
-                        self.s5.table.item(i, j + 1).setText(val)
+                        self.s5.table.item(i+2, j + 1).setText(excel_item[j])
+
 
             except Exception as e:
-                err_detail = f"S5 엑셀 입력 오류 [(3-3)가.정원현원차이, 직급: {list_title[i]}]: {e}"
+                err_detail = f"S5 엑셀 입력 오류 [(3-3)가.정원현원차이, 직급: {list_title_05[i%rank_count_05]}]: {e}"
                 with open("log.txt", "a", encoding="utf-8") as f:
                     f.write(err_detail + "\n")
                 print(err_detail)
                 QMessageBox.information(self, "S5 엑셀 입력 오류", err_detail)
-                continue
+                return "excel_original_no" 
 
         self.s5.table.blockSignals(False)
         self.s5.table.viewport().update()
 
 
+
         # s7 ############################################################################
 
-
-        list_title = ['1급', '2급', '3급', '4급', '5급', '6급', '연구직', '계', '1급', '2급', '3급', '4급', '5급', '6급', '연구직', '계']
-
-        # 상단 표 제외, 하단 '전년도' 섹션만 고정
-        excel_original05_07 = excel_original05.split('다.증원소요인건비대상인원')[1]
-        excel = excel_original05_07.split('전년도')[1]
+        list_title_07 = list(self.list_title_07)
+        rank_count_07 = len(list_title_07)
+        
 
         self.s7.table.blockSignals(True)
 
         # 8(전년도 1급)부터 14(전년도 연구직)까지 반복 (15번 '계' 자동 제외)
-        for i in range(8, 15):
+        for i in range(rank_count_07, (rank_count_07*2) - 1):
             try:
-                try:
-                    excel.split(list_title[i])[1]
-                except:
-                    err_loc = f"S7 엑셀 입력 오류: (3-3) 하단표 [직급:{list_title[i]}] 데이터를 찾을 수 없음"
-                    with open("log.txt", "a", encoding="utf-8") as f:
-                        f.write(err_loc + '\n')
-                    print(err_loc)
-                    QMessageBox.information(self, "S7 엑셀 입력 오류", err_loc)
-                    continue
-
-                excel = excel.split(list_title[i])[1]
-                excel_item = excel.split('\r\n')[0]
+                excel_original_07 = excel_original_07[excel_original_07.find(list_title_07[i%rank_count_07]):]
+                excel_item = excel_original_07.split('\r\n')[rank_count_07+2].split('\t')
                 
-                # 하단 표 - 전년도 영역 데이터 입력
                 for j in range(1, 14): 
-                    val = excel_item.split('\t')[j].strip().replace(',', '')
-                    # i+2, j+1 인덱스로 직접 입력 (rank_count=9 반영)
-                    self.s7.table.item(i + 2, j + 1).setText(val)
+                    self.s7.table.item(i + 2, j + 1).setText(excel_item[j+1])
 
             except Exception as e:
-                err_detail = f"S7 엑셀 입력 오류 [(3-3)다.증원인원, 직급: {list_title[i]}]: {e}"
+                err_detail = f"S7 엑셀 입력 오류 [(3-3)다.증원인원, 직급: {list_title_07[i%rank_count_07]}]: {e}"
                 with open("log.txt", "a", encoding="utf-8") as f:
                     f.write(err_detail + "\n")
                 print(err_detail)
                 QMessageBox.information(self, "S7 엑셀 입력 오류", err_detail)
-                continue
+                return "excel_original_no" 
 
         self.s7.table.blockSignals(False)
         self.s7.table.viewport().update()
 
 
 
-
-
-
-
-
-
-
-
-
         # s8 ############################################################################
 
 
-        list_title = ['1급', '2급', '3급', '4급', '5급', '6급', '연구직', '계', '1급', '2급', '3급', '4급', '5급', '6급', '연구직', '계']
+        list_title_08 = list(self.list_title_08)
+        rank_count_08 = len(list_title_08)
 
-        # S8 데이터 영역 (excel_original06 사용)
-        excel = excel_original06
-        self.s8.table.blockSignals(True)
 
-        for i in range(0, 16):
-            if i == 8:
-                # 당년도 섹션으로 전환
-                excel = excel_original06.split('당년도')[1]
+
+
+
+        for i in range(0, (rank_count_08*2)):
+            excel_original_08 = excel_original_08[excel_original_08.find(list_title_08[i%rank_count_08]):]
+            excel_item = excel_original_08.split('\r\n')[0].split('\t')
 
             try:
-                # 1. 직급명 체크 (3종 오류 알림)
-                try:
-                    excel.split(list_title[i])[1]
-                except:
-                    err_loc = f"S8 엑셀 입력 오류: (3-4) [직급:{list_title[i]}] 데이터를 찾을 수 없음"
-                    with open("log.txt", "a", encoding="utf-8") as f:
-                        f.write(err_loc + '\n')
-                    print(err_loc)
-                    QMessageBox.information(self, "S8 엑셀 입력 오류", err_loc)
-                    continue
-
-                # 2. 데이터 추출
-                excel = excel.split(list_title[i])[1]
-                excel_item = excel.split('\r\n')[0]
-
-                # 3. UI 테이블 입력 (불필요 변수 및 수식 제외 로직 삭제)
-                if i < 8:   # 전년도 표
-                    if i == 7: continue 
-                    for j in range(1, 13): # 1월~12월 (데이터 위치에 따라 j 범위 조정)
-                        val = excel_item.split('\t')[j].strip().replace(',', '')
-                        # i와 j+1(또는 컬럼 규격) 인덱스로 직접 입력
-                        self.s8.table.item(i, j + 1).setText(val)
+                if i < rank_count_08:   # 전년도 표
+                    for j in range(1, 13):
+                        self.s8.table.item(i, j + 1).setText(excel_item[j])
 
                 else:       # 당년도 표
-                    if i == 15: continue 
                     for j in range(1, 13):
-                        val = excel_item.split('\t')[j].strip().replace(',', '')
-                        # rank_count=9 반영하여 i+2 행에 직접 입력
-                        self.s8.table.item(i + 2, j + 1).setText(val)
+                        self.s8.table.item(i + 2, j + 1).setText(excel_item[j])
 
             except Exception as e:
                 # 4. 예외 발생 시 3종 세트 알림 (S8 엑셀 입력 오류로 통일)
-                err_detail = f"S8 엑셀 입력 오류 [(3-4)직급별평균단가, 직급: {list_title[i]}]: {e}"
+                err_detail = f"S8 엑셀 입력 오류 [(3-4)직급별평균단가, 직급: {list_title_08[i%rank_count_08]}]: {e}"
                 with open("log.txt", "a", encoding="utf-8") as f:
                     f.write(err_detail + "\n")
                 print(err_detail)
                 QMessageBox.information(self, "S8 엑셀 입력 오류", err_detail)
-                continue
+                return "excel_original_no" 
 
         self.s8.table.blockSignals(False)
         self.s8.table.viewport().update()
@@ -2747,66 +3762,44 @@ class MainWindow(QMainWindow):
 
         # s9 ############################################################################
 
-
-
-        list_title = ['1급', '2급', '3급', '4급', '5급', '6급', '연구직', '기능직', '계', '1급', '2급', '3급', '4급', '5급', '6급', '연구직', '기능직', '계']
-
-        # S9 핵심 데이터 영역 (excel_original07 사용 및 기존 필터 유지)
-        excel_original07_09 = excel_original07.split('나.초임직급정원변동에따른인건비효과')[0]            
-        excel = excel_original07_09
+        list_title_09 = list(self.list_title_09)
+        rank_count_09 = len(list_title_09)
 
         self.s9.table.blockSignals(True)
 
-        for i in range(0, 18):
-            if i == 9:
-                # 당년도 섹션으로 전환
-                excel = excel_original07_09.split('전년도')[1]
+        for i in range(0, (rank_count_09*2)):
+
+            excel_original_09 = excel_original_09[excel_original_09.find(list_title_09[i%rank_count_09]):]
+            excel_item = excel_original_09.split('\r\n')[0].split('\t')
 
             try:
-                # 1. 직급명 체크 (3종 오류 알림 세트)
-                try:
-                    excel.split(list_title[i])[1]
-                except:
-                    err_loc = f"S9 엑셀 입력 오류: (3-6) [직급:{list_title[i]}] 데이터를 찾을 수 없음"
-                    with open("log.txt", "a", encoding="utf-8") as f:
-                        f.write(err_loc + '\n')
-                    print(err_loc)
-                    QMessageBox.information(self, "S9 엑셀 입력 오류", err_loc)
-                    continue
 
-                # 2. 데이터 추출 (순차적 자르기 유지)
-                excel = excel.split(list_title[i])[1]
-                excel_item = excel.split('\r\n')[0]
-
-                # 3. UI 테이블 입력 (불필요 변수/로직 제거, 고정 인덱스 사용)
-                if i < 9:   # 전년도 표
-                    if i == 8: continue # '계' 제외
+                if i < rank_count_09:   # 전년도 표
                     for j in range(1, 13): # 1월~12월 (j 인덱스 고정)
-                        val = excel_item.split('\t')[j].strip().replace(',', '')
                         # i와 j+1 인덱스로 직접 입력
-                        self.s9.table.item(i, j + 1).setText(val)
+                        self.s9.table.item(i, j + 1).setText(excel_item[j])
 
                 else:       # 당년도 표
-                    if i == 17: continue # '계' 제외
                     for j in range(1, 13):
-                        val = excel_item.split('\t')[j].strip().replace(',', '')
-                        # rank_count=9(기능직포함) 및 구분선 규격 반영 [cite: 2025-12-24, 2025-12-20]
-                        self.s9.table.item(i + 2, j + 1).setText(val)
+                        self.s9.table.item(i + 2, j + 1).setText(excel_item[j])
 
             except Exception as e:
                 # 4. 예외 발생 시 상세 알림
-                err_detail = f"S9 엑셀 입력 오류 [(3-6)초임직급정원, 직급: {list_title[i]}]: {e}"
+                err_detail = f"S9 엑셀 입력 오류 [(3-6)초임직급정원, 직급: {list_title_09[i%rank_count_09]}]: {e}"
                 with open("log.txt", "a", encoding="utf-8") as f:                    
                     f.write(err_detail + "\n")
                 print(err_detail)
                 QMessageBox.information(self, "S9 엑셀 입력 오류", err_detail)
-                continue
+                return "excel_original_no" 
 
         self.s9.table.blockSignals(False)
         self.s9.table.viewport().update()
 
 
+
         # 각 페이지 계산   ############################################################################
+
+
 
         self.load_json('excel_input')
 
@@ -2814,7 +3807,12 @@ class MainWindow(QMainWindow):
 
 
 
+
 if __name__ == "__main__":
+    path = os.path.join(os.path.dirname(PyQt5.__file__), "Qt5", "plugins")
+    os.environ['QT_QPA_PLATFORM_PLUGIN_PATH'] = path
+
+
     app = QApplication(sys.argv)
     app.setFont(QFont("맑은 고딕", 9))
     window = MainWindow()
