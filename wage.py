@@ -1438,8 +1438,6 @@ class MainWindow(QMainWindow):
 
 
 
-
-
     def rpa(self, current_index):        
 
         import warnings
@@ -1956,7 +1954,7 @@ class MainWindow(QMainWindow):
                                  'v. 통상임금 판단기준 변경 판례의 영향으로 인한 법정수당 증가분(2024년 귀속분)', '소계:(B)=f+g+h+i+j+k+l+m-n+o+p+q+r+s+t+u+v+w', 
                                  '3.실집행액기준총인건비발생액(C)=(A)-(B)', '4.연도별증원소요인건비의영향을제거하기위한인건비의조정(D)',
                                  '5.별도직군승진시기차이에따른인건비효과조정(E)', '6.초임직급정원변동에따른인건비효과조정(F)', 
-                                 '7.정년이후재고용을전제로전환된정원외인력의인건비효과조정(G)', '8.추가로지급된인건비의영향제거(H)', 
+                                 '7.정년이후재고용을전제로전환된정원외인력의인건비효과조정(G)', '8.생산량증가25년추가지급인건비영향제거(H)', 
                                  '9.최저임금지급직원에대한인건비효과조정(I)', '10.파업등에따른인건비효과조정(J)', '11.통상임금판단기준변경판례의영향으로인한법정수당증가분(2025년귀속분)(K)<주30>', 
                                   '12.(C)+(D)+(E)-(F)-(G)-(H)+(I)+(J)+(K)+(L)', '13.총인건비인상률가이드라인에따른총인건비상한액',
                                  '23년도총인건비인상률가이드라인을준수한경우', '23년도총인건비인상률가이드라인을준수경우하지않은경우', '24년도총인건비인상률가이드라인=2.5%)', '23년도총인건비인상률가이드라인을준수한경우',
@@ -1977,7 +1975,7 @@ class MainWindow(QMainWindow):
                     'v. 통상임금 판단기준 변경 판례의 영향으로 인한 법정수당 증가분(2024년 귀속분)', '소계:(B)=f+g+h+i+j+k+l+m-n+o+p+q+r+s+t+u+v+w', 
                     '3.실집행액기준총인건비발생액(C)=(A)-(B)', '4.연도별증원소요인건비의영향을제거하기위한인건비의조정(D)',
                     '5.별도직군승진시기차이에따른인건비효과조정(E)', '6.초임직급정원변동에따른인건비효과조정(F)', 
-                    '7.정년이후재고용을전제로전환된정원외인력의인건비효과조정(G)', '추가로지급된인건비의영향제거(H)', 
+                    '7.정년이후재고용을전제로전환된정원외인력의인건비효과조정(G)', '8.생산량증가25년추가지급인건비영향제거(H)', 
                     '최저임금지급직원에대한인건비효과조정(I)', '10.파업등에따른인건비효과조정(J)', '11.통상임금판단기준변경판례의영향으로인한법정수당증가분(2025년귀속분)(K)<주30>', 
                     ' (C)+(D)+(E)-(F)-(G)-(H)+(I)+(J)-(K)'
                 ]
@@ -1992,12 +1990,12 @@ class MainWindow(QMainWindow):
                     '인상률제외인건비(통상)', '인상률제외인건비(기타제외)', 'j.사내근로복지기금출연금', 'k.잡급및무기계약직에대한인건비(복리후생비포함,인센티브상여금제외)', 
                     'l.공적보험사용자부담분', 'm.연월차수당등조정(㉠-㉡+㉢)', '연월차수당등발생액(㉠)',
                     '연월차수당등지급액(㉡)', '종업원저리대여금이자관련인건비(㉢)', '무상대여이익', 'o.지방이전관련직접인건비', 
-                    'p.법령에따른특수건강진단비', 'q. 코로나19 대응을 위한 시간외근로수당 등', 'r.해외근무수당', 's.직무발명보상금', 
-                    't.공무원수준내의자녀수당및출산격려금', 'u.야간간호특별수당', 'v.비상진료체계운영에따른특별수당등',
-                    'w. 통상임금 판단기준 변경 판례의 영향으로 인한 법정수당 증가분(2024년 귀속분)', '소계:(B)=f+g+h+i+j+k+l+m-n+o+p+q+r+s+t+u+v+w', 
+                    'p.법령에따른특수건강진단비', 'q.해외근무수당', 'r.직무발명보상금', 
+                    's.공무원수준내의자녀수당및출산격려금', 't.야간간호특별수당', 'u.비상진료체계운영에따른특별수당등',
+                    'v. 통상임금 판단기준 변경 판례의 영향으로 인한 법정수당 증가분(2024년 귀속분)', '소계:(B)=f+g+h+i+j+k+l+m-n+o+p+q+r+s+t+u+v+w', 
                     '3.실집행액기준총인건비발생액(C)=(A)-(B)', '4.연도별증원소요인건비의영향을제거하기위한인건비의조정(D)',
                     '5.별도직군승진시기차이에따른인건비효과조정(E)', '6.초임직급정원변동에따른인건비효과조정(F)', 
-                    '7.정년이후재고용을전제로전환된정원외인력의인건비효과조정(G)', '추가로지급된인건비의영향제거(H)', 
+                    '7.정년이후재고용을전제로전환된정원외인력의인건비효과조정(G)', '8.생산량증가25년추가지급인건비영향제거(H)', 
                     '최저임금지급직원에대한인건비효과조정(I)', '10.파업등에따른인건비효과조정(J)', '11. 코로나19로 인한 휴업의 인건비 효과 조정 (K)', 
                     '(C)+(D)+(E)-(F)-(G)-(H)+(I)+(J)+(K)+(L)'
                 ]
@@ -2015,7 +2013,7 @@ class MainWindow(QMainWindow):
                     '소계:(B)=f+g+h+i+j+k+l+m-n+o+p+q+r+s', 
                     '3.실집행액기준총인건비발생액(C)=(A)-(B)', '4.연도별증원소요인건비의영향을제거하기위한인건비의조정(D)',
                     '5.별도직군승진시기차이에따른인건비효과조정(E)', '6.초임직급정원변동에따른인건비효과조정(F)', 
-                    '7.정년이후재고용을전제로전환된정원외인력의인건비효과조정(G)', '추가로지급된인건비의영향제거(H)', 
+                    '7.정년이후재고용을전제로전환된정원외인력의인건비효과조정(G)', '8.생산량증가25년추가지급인건비영향제거(H)', 
                     '최저임금지급직원에대한인건비효과조정(I)', '10.파업등에따른인건비효과조정(J)', 
                     '11. 코로나19로 인한 휴업의 인건비 효과 조정 (K)',
                     '(C)+(D)+(E)-(F)-(G)-(H)+(I)+(J)+(K)'
@@ -2029,30 +2027,6 @@ class MainWindow(QMainWindow):
 
 
             global list_s2_01, list_s2_02, list_s2_03, list_s2_04
-
-            print(list_s2_01)
-            print()
-            print(list_s2_02)
-            print()
-            print(list_s2_03)
-
-
-
-
-
-
-
-            list_temp = excel_original_02.replace('\t-\t', '\t\t').replace(',', '').split('잉여금')[1].split('총인건비')[0]   # (3) 판관비 ~ 이익잉여금
-
-            print(list_temp)
-            print(repr(list_temp.split('\r\n')[1]))
-
-
-
-
-
-
-
 
 
             for item in excel_original_02.split('\r\n'):
@@ -2070,81 +2044,120 @@ class MainWindow(QMainWindow):
             else: cnt_col = len(list_years3)
 
 
-            list_sogye = list_temp.split('\r\n')[1].split('\t')[col_temp:col_temp+cnt_col]
-
-
-
-
-            print(list_sogye) # 비상진료 실집행
-            return
-            
-            
-
-
-            if year in ['2025', '2024', '2023']:   # (3) 판관비 ~ 이익잉여금
-                list_keyword_01 = list_keyword[1:6]
-                list_keyword_01_answer = [[] for _ in range(5)]
-
-                for i in range(5):
-                    for j in range(len(list_temp)):
-                        if list_keyword_01[i] in list_temp[j]:
-                            list_keyword_01_answer[i] = list_temp[j].split('\t')[col_temp:col_temp+cnt_col]
-                        if not list_keyword_01_answer[i]:
-                            list_keyword_01_answer[i] = ['' for _ in range(cnt_col)]
 
 
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-            
-            return
- 
-
-
-        
-            list_temp = list_temp.split('\r\n')
-            list_temp_clean = []
-
-
-            
+            list_temp = excel_original_02.replace('\t-\t', '\t\t').replace(',', '').split('잉여금')[1].split('총인건비')[0].split('\r\n')   # 소계
+            list_clean = []
             for item in list_temp:
-                if item.strip():
-                    list_temp_clean.append(item)
-            list_temp = list_temp_clean
-            list_temp = list_temp[1:len(list_temp)]
+                if item.startswith('\t\t\t\t\t') or item.startswith('\t\t\t(가)\t') or item.startswith('\t\t\t(바)\t'):
+                    continue
+                list_clean.append(item)
+            list_temp = list_clean
+            list_sogye01 = list_temp[1].split('\t')[col_temp:col_temp+cnt_col]
+
+
+            list_temp = excel_original_02.replace('\t-\t', '\t\t').replace(',', '').split('공적')[1].split('지급액')[0].split('\r\n')   # 연월차 소계
+            list_clean = []
+            for item in list_temp:
+                if item.startswith('\t\t\t\t\t') or item.startswith('\t\t\t(가)\t') or item.startswith('\t\t\t(바)\t'):
+                    continue
+                list_clean.append(item)
+            list_temp = list_clean
+            list_sogye02 = list_temp[1].split('\t')[col_temp:col_temp+cnt_col]
+
+
+
+
+
+            list_temp = excel_original_02.replace('\t-\t', '\t\t').replace(',', '').split('해외')[1].split('실집행')[0].split('\r\n')   # 소계
+            list_clean = []
+            for item in list_temp:
+                if '소계' in item:
+                    list_clean.append(item)
+                    break
+            list_temp = list_clean
+            list_sogye03 = list_temp[0].split('\t')[col_temp:col_temp+cnt_col]
+
+
+
+
+            list_temp = excel_original_02.replace('\t-\t', '\t\t').replace(',', '').split('소계')[2].split('연도별')[0].split('\r\n')   # 소계
+            list_clean = []
+            for item in list_temp:
+                if '실집행' in item:
+                    list_clean.append(item)
+                    break
+            list_temp = list_clean
+            list_sogye03_sil = list_temp[0].split('\t')[col_temp:col_temp+cnt_col]
+
+
+
+
+
+            list_temp = excel_original_02.replace('\t-\t', '\t\t').replace(',', '').split('파업')[1].split('상한액')[0].split('\r\n')   # 소계
+            list_clean = []
+            for item in list_temp:
+                if item.startswith('\t\t\t\t\t') or item.startswith('\t\t\t(가)\t') or item.startswith('\t\t\t(바)\t'):
+                    continue
+                list_clean.append(item)
+            list_temp = list_clean
+            list_sogye04 = list_temp[2].split('\t')[col_temp:col_temp+cnt_col]
+
+
+            list_sogye05 = []
+            list_temp = excel_original_02.replace('\t-\t', '\t\t').replace(',', '').split('상한액')[1].split('인상률산출')[0].split('\r\n')   # 소계
+            list_temp = list_temp[1:]
+            list_clean = []
+            for item in list_temp:
+                if item.startswith('\t\t\t\t\t') or item.startswith('\t\t\t(가)\t') or item.startswith('\t\t\t(바)\t'):
+                    continue
+                list_clean.append(item)
+            list_temp = list_clean[:2]
+            list_sogye05.extend(list_temp)
+
+            list_temp = excel_original_02.replace('\t-\t', '\t\t').replace(',', '').split('인상률산출')[1].split('\r\n')   # 소계
+            list_temp = list_temp[1:]
+            list_clean = []
+            for item in list_temp:
+                if item.startswith('\t\t\t\t\t') or item.startswith('\t\t\t(가)\t') or item.startswith('\t\t\t(바)\t'):
+                    continue
+                list_clean.append(item)
+            list_temp = list_clean[:2]
+            list_sogye05.extend(list_temp)
+
+            
+            list_temp = []
+            for item in list_sogye05:
+                list_temp.append(item.split('\t')[col_temp:col_temp+cnt_col])
+
+            list_sogye05 = list_temp   # 총인건비 상한액, 인상률 가이드라인 준수, 미준수
+
+
+
+            list_null = []
+            for i in range(cnt_col):
+                list_null.append('')
+
+
+            list_total = []
+            list_total.append(list_null)
+            list_total.extend(list_s2_01)
+            list_total.append(list_sogye01)
+            list_total.append(list_null)            
+            list_total.extend(list_s2_02)
+            list_total.append(list_sogye02)
+            list_total.extend(list_s2_03)
+            list_total.append(list_sogye03)
+            list_total.append(list_sogye03_sil)
+            list_total.extend(list_s2_04)
+            list_total.append(list_sogye04)
+            # list_total.extend(list_sogye05)
+
+            for item in list_total:
+                print(item)
 
 
 
@@ -2154,7 +2167,9 @@ class MainWindow(QMainWindow):
 
 
 
-            return
+
+
+
                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      
             str_err += '(3) 총인건비 인상률 지표의 점수계산\n\n'
             str_err += '실집행액 기준 총인건비 발생액 산출\n\n'
@@ -2170,14 +2185,20 @@ class MainWindow(QMainWindow):
             global final_matrix
 
             # for i in range (0, 45):
-            for i in range (0, len(final_matrix)):
+            for i in range (0, len(list_total)):
+                if year in ['2025']:
+                    if i in [7, 29, 30]: str_err += '\n'
+                    if i == 30: str_err += '\n전년대비 조정된 총인건비 발생액 산출\n\n' + f"{'5 4 3':>28}{'2025':>39}{'2024':>41}{'2023':>39}\n"
+                    if i == 39: str_err += '\n\n당해연도 총인건비 인상률 계산\n\n' + f"{'5 4 3':>28}{'2025':>39}{'2024':>41}{'2023':>39}\n"
+                if year in ['2024', '2023']:
+                    if i in [7, 30, 31]: str_err += '\n'
+                    if i == 31: str_err += '\n전년대비 조정된 총인건비 발생액 산출\n\n' + f"{'5 4 3':>28}{'2025':>39}{'2024':>41}{'2023':>39}\n"
+                    if i == 40: str_err += '\n\n당해연도 총인건비 인상률 계산\n\n' + f"{'5 4 3':>28}{'2025':>39}{'2024':>41}{'2023':>39}\n"
+
+
+
 
                 
-                if i in [7, 29, 30]: str_err += '\n'
-
-                
-                if i == 30: str_err += '\n전년대비 조정된 총인건비 발생액 산출\n\n' + f"{'5 4 3':>28}{'2025':>39}{'2024':>41}{'2023':>39}\n"
-                if i == 39: str_err += '\n\n당해연도 총인건비 인상률 계산\n\n' + f"{'5 4 3':>28}{'2025':>39}{'2024':>41}{'2023':>39}\n"
                 if i in [9, 19]:
                     str_err += list_title_02[i][:8] + '\t\t'
                 elif i in [6, 28]:
@@ -2193,29 +2214,49 @@ class MainWindow(QMainWindow):
                     continue
 
 
-                list_temp = []                
-                for j in range(1, len(final_matrix[0])): ####### (1, 4)
-                    if (i in [30, 32] and j == 1) or (i in [34] and j == 2):
-                        str_err += '  '
-                        list_temp.append(' ' * 41)
-                        continue
+                list_temp = []
 
-                    if self.excel_str(final_matrix[i][j], current_index, i, j+1).replace(',', '') == self.table_str(current_index, i, j+1).replace(',', ''):
+
+                list_temp = []                
+                for j in range(0, len(list_total[0])): ####### (1, 4)
+
+                    if year in ['2025']:
+                        if (i in [30, 31, 32] and j == 0) or (i in [34] and j in [1, 2]):
+                            str_err += '  '
+                            list_temp.append(' ' * 41)
+                            continue
+
+                    if year in ['2024', '2023']:
+                        if (i in [31, 32, 33] and j == 0) or (i in [35] and j in [1, 2]):
+                            str_err += '  '
+                            list_temp.append(' ' * 41)
+                            continue
+
+
+
+
+                    if self.excel_str(list_total[i][j], current_index, i, j).replace(',', '') == self.table_str(current_index, i, j+2).replace(',', ''):
                         str_err += 'O '
                         list_temp.append(' ' * 41)
-                        
+
                     else:
                         str_err += 'X '
                         cnt_wrong += 1
-                        list_temp.append((self.excel_str(final_matrix[i][j], current_index, i, j+1) + f"__{self.table_str(current_index, i, j+1)}").rjust(41))
+                        list_temp.append((self.excel_str(           str( f"{int(list_total[i][j]) if list_total[i][j] else 0:,}" )   , current_index, i, j) + f"__{self.table_str(current_index, i, j+2)}").rjust(41))
 
                 str_err = str_err[:-1] + ''.join(list_temp) + '\n'
 
 
-
-            if len(final_matrix[0]) == 3:
+            if len(list_total[0]) == 3:
                 str_err = str_err.replace('5 4 3', '5 4  ')
                 str_err = str_err.replace('2023', '')
+
+
+
+
+            print(str_err)
+
+            return
 
 
 
@@ -3900,7 +3941,9 @@ class MainWindow(QMainWindow):
         for col_idx in range(2, 26):
             self.s5.calculate_s5(self.s5.table.item(0, col_idx))
             self.s5.calculate_s5(self.s5.table.item(rank_count_05+2, col_idx))
-        self.s11.sync_from_s5(self.s5.send_to_s11_from_s5())
+
+        if check_3_5:
+            self.s11.sync_from_s5(self.s5.send_to_s11_from_s5())
 
 
 
@@ -3987,8 +4030,8 @@ class MainWindow(QMainWindow):
 
 
 
-
-        self.s14.get_from_s8(self.s8.send_to_s14())
+        if check_3_5:
+            self.s14.get_from_s8(self.s8.send_to_s14())
 
 
         # self.load_json('excel_input')
