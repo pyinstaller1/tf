@@ -1052,10 +1052,16 @@ class MainWindow(QMainWindow):
 
 
 
-
-            
+            excel_original = excel_original.replace('2023년1월', '1월').replace('2023년1월', '1월').replace('2023년2월', '2월').replace('2023년3월', '3월').replace('2023년4월', '4월').replace('2023년5월', '5월').replace('2023년6월', '6월').replace('2023년7월', '7월').replace('2023년8월', '8월').replace('2023년9월', '9월').replace('2023년10월', '10월').replace('2023년11월', '11월').replace('2023년12월', '12월')
+            excel_original = excel_original.replace('2024년1월', '1월').replace('2024년1월', '1월').replace('2024년2월', '2월').replace('2024년3월', '3월').replace('2024년4월', '4월').replace('2024년5월', '5월').replace('2024년6월', '6월').replace('2024년7월', '7월').replace('2024년8월', '8월').replace('2024년9월', '9월').replace('2024년10월', '10월').replace('2024년11월', '11월').replace('2024년12월', '12월')
+            excel_original = excel_original.replace('2025년1월', '1월').replace('2025년1월', '1월').replace('2025년2월', '2월').replace('2025년3월', '3월').replace('2025년4월', '4월').replace('2025년5월', '5월').replace('2025년6월', '6월').replace('2025년7월', '7월').replace('2025년8월', '8월').replace('2025년9월', '9월').replace('2025년10월', '10월').replace('2025년11월', '11월').replace('2025년12월', '12월')
+            excel_original = excel_original.replace('202301', '1월').replace('202301', '1월').replace('202302', '2월').replace('202303', '3월').replace('202304', '4월').replace('202305', '5월').replace('202306', '6월').replace('202307', '7월').replace('202308', '8월').replace('202309', '9월').replace('202310', '10월').replace('202311', '11월').replace('202312', '12월')
+            excel_original = excel_original.replace('202401', '1월').replace('202401', '1월').replace('202402', '2월').replace('202403', '3월').replace('202404', '4월').replace('202405', '5월').replace('202406', '6월').replace('202407', '7월').replace('202408', '8월').replace('202409', '9월').replace('202410', '10월').replace('202411', '11월').replace('202412', '12월')
+            excel_original = excel_original.replace('202501', '1월').replace('202501', '1월').replace('202502', '2월').replace('202503', '3월').replace('202504', '4월').replace('202505', '5월').replace('202506', '6월').replace('202507', '7월').replace('202508', '8월').replace('202509', '9월').replace('202510', '10월').replace('202511', '11월').replace('202512', '12월')
+            excel_original = excel_original.replace('\t\t구분\t1월\t2월\t3월\t4월\t5월\t6월\t7월\t8월\t9월\t10월\t11월\t12월\t평균\t정원\t', '')        
 
             list_s = excel_original.split('_$$$$$_')
+
 
             cnt_page = 0
             for i in range(cnt_page, len(list_s)):
@@ -1064,6 +1070,7 @@ class MainWindow(QMainWindow):
                     cnt_page += 1
                     break
                 cnt_page += 1
+
 
             for i in range(cnt_page, len(list_s)):
                 if ('총인건비인상률' in list_s[i] and '소계' in list_s[i] and '가이드' in list_s[i]) or ('구분' in list_s[i] and '소계' in list_s[i] and '가이드' in list_s[i]) or ('인센티브' in list_s[i] and '소계' in list_s[i] and '가이드' in list_s[i]):
@@ -1079,6 +1086,11 @@ class MainWindow(QMainWindow):
                     break
                 cnt_page += 1
 
+
+
+
+
+
             for i in range(cnt_page, len(list_s)):
                 if ('직급별' in list_s[i] or '평균인원' in list_s[i]):
                     excel_original_04 = list_s[i]
@@ -1086,13 +1098,17 @@ class MainWindow(QMainWindow):
                     break
                 cnt_page += 1
 
+             
+
             for i in range(cnt_page, len(list_s)):
+
                 if ('복직' in list_s[i] or '누적' in list_s[i]):
                     excel_original_05 = list_s[i].split('\t1월\t')[1]
 
                     if list_s[i].count('\t1월\t') > 1:
                         excel_original_06 = list_s[i].split('\t1월\t')[2]
                         excel_original_07 = ''.join(list_s[i].split('\t1월\t')[3:])
+                        cnt_page += 1
                         break
                     else:
                         excel_original_06 = list_s[i+1].split('\t1월\t')[1]
@@ -1101,7 +1117,6 @@ class MainWindow(QMainWindow):
                         cnt_page += 1
                         break
                 cnt_page += 1
-
 
 
             for i in range(cnt_page, len(list_s)):
@@ -1196,90 +1211,49 @@ class MainWindow(QMainWindow):
         excel_original_07 = excel_original_07.replace('\t직급', '').replace('\r\n직급', '').replace('직급별', '')
         excel_original_08 = excel_original_08.replace('\t직급', '').replace('\r\n직급', '').replace('직급별', '').replace('통합직급', '').replace('인건비총계', '')
 
+        list_not_page = ['정원', '현원', '복직', '복직자', '누적', '누적차', '인원', '초임직급정원', '평균정원', '평균인원']
 
+        self.list_title_03 = (lambda x: x[: (next((i for i,v in enumerate(x) if v in ('계','총계','합계')), len(x)-1)) + 1])(re.findall(r'(?m)^.*?\t*((?:계|총계|합계)|[가-힣0-9]+(?:급|직|장|사|원|군|우))\t', excel_original_03))
+        self.list_title_03 = [item for item in self.list_title_03 if item not in list_not_page]
+        
+        self.list_title_04 = (lambda x: x[: (next((i for i,v in enumerate(x) if v in ('계','총계','합계')), len(x)-1)) + 1])(re.findall(r'(?m)^.*?\t*((?:계|총계|합계)|[가-힣0-9]+(?:급|직|장|사|원|군|우))\t', excel_original_04))
+        self.list_title_04 = [item for item in self.list_title_04 if item not in list_not_page]
 
-        self.list_title_03 = (lambda x: x[: (next((i for i,v in enumerate(x) if v in ('계','총계','합계')), len(x)-1)) + 1])(re.findall(r'(?m)^.*?\t*((?:계|총계|합계)|[가-힣0-9]+(?:급|직|장|사|위원|임원|군|우))\t', excel_original_03))
-        self.list_title_04 = (lambda x: x[: (next((i for i,v in enumerate(x) if v in ('계','총계','합계')), len(x)-1)) + 1])(re.findall(r'(?m)^.*?\t*((?:계|총계|합계)|[가-힣0-9]+(?:급|직|장|사|무원|위원|임원|군|우))\t', excel_original_04))
-        self.list_title_05 = (lambda x: x[: (next((i for i,v in enumerate(x) if v in ('계','총계','합계')), len(x)-1)) + 1])(re.findall(r'(?m)^.*?\t*((?:계|총계|합계)|[가-힣0-9]+(?:급|직|장|사|위원|군|임원|우))\t', excel_original_05))
-        self.list_title_06 = (lambda x: x[: (next((i for i,v in enumerate(x) if v in ('계','총계','합계')), len(x)-1)) + 1])(re.findall(r'(?m)^.*?\t*((?:계|총계|합계)|[가-힣0-9]+(?:급|직|장|사|위원|군|임원|우))\t', excel_original_06))
-        self.list_title_07 = (lambda x: x[: (next((i for i,v in enumerate(x) if v in ('계','총계','합계')), len(x)-1)) + 1])(re.findall(r'(?m)^.*?\t*((?:계|총계|합계)|[가-힣0-9]+(?:급|직|장|사|위원|군|임원|우))\t', excel_original_07))
-        self.list_title_08 = (lambda x: x[: (next((i for i,v in enumerate(x) if v in ('계','총계','합계')), len(x)-1)) + 1])(re.findall(r'(?m)^.*?\t*((?:계|총계|합계)|[가-힣0-9]+(?:급|직|장|사|위원|군|임원|우))\t', excel_original_08))
+        self.list_title_05 = (lambda x: x[: (next((i for i,v in enumerate(x) if v in ('계','총계','합계')), len(x)-1)) + 1])(re.findall(r'(?m)^.*?\t*((?:계|총계|합계)|[가-힣0-9]+(?:급|직|장|사|군|원|우))\t', excel_original_05))
+        self.list_title_05 = [item for item in self.list_title_05 if item not in list_not_page]
 
+        self.list_title_06 = (lambda x: x[: (next((i for i,v in enumerate(x) if v in ('계','총계','합계')), len(x)-1)) + 1])(re.findall(r'(?m)^.*?\t*((?:계|총계|합계)|[가-힣0-9]+(?:급|직|장|사|원|군|우))\t', excel_original_06))
+        self.list_title_06 = [item for item in self.list_title_06 if item not in list_not_page]
+        
+        self.list_title_07 = (lambda x: x[: (next((i for i,v in enumerate(x) if v in ('계','총계','합계')), len(x)-1)) + 1])(re.findall(r'(?m)^.*?\t*((?:계|총계|합계)|[가-힣0-9]+(?:급|직|장|사|원|군|우))\t', excel_original_07))
+        self.list_title_07 = [item for item in self.list_title_07 if item not in list_not_page]
+
+        self.list_title_08 = (lambda x: x[: (next((i for i,v in enumerate(x) if v in ('계','총계','합계')), len(x)-1)) + 1])(re.findall(r'(?m)^.*?\t*((?:계|총계|합계)|[가-힣0-9]+(?:급|직|장|사|원|군|우))\t', excel_original_08))
+        self.list_title_08 = [item for item in self.list_title_08 if item not in list_not_page]
 
 
         if check_3_5 == False and check_3_6 == True:
             excel_original_09 = excel_original_09.replace('\t직급', '').replace('\r\n직급', '').replace('직급별', '')
             excel_original_10 = excel_original_10.replace('\t직급', '').replace('\r\n직급', '').replace('직급별', '')            
-            self.list_title_09 = (lambda x: x[: (next((i for i,v in enumerate(x) if v in ('계','총계','합계')), len(x)-1)) + 1])(re.findall(r'(?m)^.*?\t*((?:계|총계|합계)|[가-힣0-9]+(?:급|직|장|사|위원|임원|군|우))\t', excel_original_09))
-            self.list_title_10 = (lambda x: x[: (next((i for i,v in enumerate(x) if v in ('계','총계','합계')), len(x)-1)) + 1])(re.findall(r'(?m)^.*?\t*((?:계|총계|합계)|[가-힣0-9]+(?:급|직|장|사|위원|임원|군|우))\t', excel_original_10))
+            self.list_title_09 = (lambda x: x[: (next((i for i,v in enumerate(x) if v in ('계','총계','합계')), len(x)-1)) + 1])(re.findall(r'(?m)^.*?\t*((?:계|총계|합계)|[가-힣0-9]+(?:급|직|장|사|원|군|우))\t', excel_original_09))
+            self.list_title_09 = [item for item in self.list_title_09 if item not in list_not_page]
+            self.list_title_10 = (lambda x: x[: (next((i for i,v in enumerate(x) if v in ('계','총계','합계')), len(x)-1)) + 1])(re.findall(r'(?m)^.*?\t*((?:계|총계|합계)|[가-힣0-9]+(?:급|직|장|사|원|군|우))\t', excel_original_10))
+            self.list_title_10 = [item for item in self.list_title_10 if item not in list_not_page]
+
 
         if check_3_5 == True and check_3_6 == False:
             excel_original_11 = excel_original_11.replace('\t직급', '').replace('\r\n직급', '').replace('직급별', '')            
             excel_original_12 = excel_original_12.replace('\t직급', '').replace('\r\n직급', '').replace('직급별', '')            
             excel_original_13 = excel_original_13.replace('\t직급', '').replace('\r\n직급', '').replace('직급별', '')            
             excel_original_14 = excel_original_14.replace('\t직급', '').replace('\r\n직급', '').replace('직급별', '')                        
-            self.list_title_11 = (lambda x: x[: (next((i for i,v in enumerate(x) if v in ('계','총계','합계')), len(x)-1)) + 1])(re.findall(r'(?m)^.*?\t*((?:계|총계|합계)|[가-힣0-9]+(?:급|직|장|사|위원|임원|군|우))\t', excel_original_11))
-            self.list_title_12 = (lambda x: x[: (next((i for i,v in enumerate(x) if v in ('계','총계','합계')), len(x)-1)) + 1])(re.findall(r'(?m)^.*?\t*((?:계|총계|합계)|[가-힣0-9]+(?:급|직|장|사|위원|임원|군|우))\t', excel_original_12))
-            self.list_title_13 = (lambda x: x[: (next((i for i,v in enumerate(x) if v in ('계','총계','합계')), len(x)-1)) + 1])(re.findall(r'(?m)^.*?\t*((?:계|총계|합계)|[가-힣0-9]+(?:급|직|장|사|위원|임원|군|우))\t', excel_original_13))
-            self.list_title_14 = (lambda x: x[: (next((i for i,v in enumerate(x) if v in ('계','총계','합계')), len(x)-1)) + 1])(re.findall(r'(?m)^.*?\t*((?:계|총계|합계)|[가-힣0-9]+(?:급|직|장|사|위원|임원|군|우))\t', excel_original_14))
-
-
-
-        '''
-        print(repr(excel_original_05))
-        print(555555555)
-
-        print(repr(excel_original_06))
-        print(666666666)
-
-        
-
-        print(repr(excel_original_11))
-        print(777777777777)
-
-        print(repr(excel_original_12))
-        print(22222222)
-
-        print(repr(excel_original_13))
-        print(333333333)
-
-        print(repr(excel_original_14))
-        print(4444444444)
-
-
-
-        print(self.list_title_03)
-        print(self.list_title_04)
-        print(self.list_title_05)
-        print(self.list_title_06)
-        print(self.list_title_07)
-        print(self.list_title_08)
-        print()
-
-        if check_3_5 == False and check_3_6 == True:
-            print(self.list_title_09)
-            print(self.list_title_10)
-
-
-        if check_3_5 == True and check_3_6 == False:
-            print(self.list_title_11)
-            print(self.list_title_12)
-            print(self.list_title_13)
-            print(self.list_title_14)
-
-
-        print(company)
-        print(year)
-
-        print(list_years2)
-        print(list_years3)
-
-        print(check_3_5)
-        print(check_3_6)
-        print(check_4)
-        '''
-
-
+            self.list_title_11 = (lambda x: x[: (next((i for i,v in enumerate(x) if v in ('계','총계','합계')), len(x)-1)) + 1])(re.findall(r'(?m)^.*?\t*((?:계|총계|합계)|[가-힣0-9]+(?:급|직|장|사|원|군|우))\t', excel_original_11))
+            self.list_title_11 = [item for item in self.list_title_11 if item not in list_not_page]
+            self.list_title_12 = (lambda x: x[: (next((i for i,v in enumerate(x) if v in ('계','총계','합계')), len(x)-1)) + 1])(re.findall(r'(?m)^.*?\t*((?:계|총계|합계)|[가-힣0-9]+(?:급|직|장|사|원|군|우))\t', excel_original_12))
+            self.list_title_12 = [item for item in self.list_title_12 if item not in list_not_page]
+            self.list_title_13 = (lambda x: x[: (next((i for i,v in enumerate(x) if v in ('계','총계','합계')), len(x)-1)) + 1])(re.findall(r'(?m)^.*?\t*((?:계|총계|합계)|[가-힣0-9]+(?:급|직|장|사|원|군|우))\t', excel_original_13))
+            self.list_title_13 = [item for item in self.list_title_13 if item not in list_not_page]
+            self.list_title_14 = (lambda x: x[: (next((i for i,v in enumerate(x) if v in ('계','총계','합계')), len(x)-1)) + 1])(re.findall(r'(?m)^.*?\t*((?:계|총계|합계)|[가-힣0-9]+(?:급|직|장|사|원|군|우))\t', excel_original_14))
+            self.list_title_14 = [item for item in self.list_title_14 if item not in list_not_page]
 
 
 
@@ -1695,7 +1669,7 @@ class MainWindow(QMainWindow):
                              '인센티브 상여금', '순액', '소계 ⓒ=(1)+(2)+(3)', '인건비 총계: ⓓ=ⓐ+ⓑ+ⓒ', '인센티브 상여금 ⓔ=ⓔ-1+ⓔ-2', '인센티브 전환금 (ⓔ-1)', '인센티브 추가금 (ⓔ-2)', '인건비 해당금액 : ⓓ-ⓔ']
 
 
-                list_keyword = ['기본', '인센', '그외상여', '법정', '해외', '그외제수', '퇴직급여', '임원', '비상임', '제외', '기타', '급료', '근로', '국민', '건강', '고용', '산재', '급식', '교통', '운전', '학자', '건강', '선택', '행사', '포상', '기념',
+                list_keyword = ['기본', '인센', '그외상여', '법정', '해외', '그외제수', '퇴직급여', '임원', '비상임', '제외', '기타', '급료', '근로', '국민', '건강보험', '고용', '산재', '급식', '교통', '운전', '학자', '건강진단', '선택', '행사', '포상', '기념',
                                 '격려', '장기', '육아', '자기', '특별', '피복', '경로', '통신', '축하', '기타', '복리', '일반', '상여', '순액', '청년', '상여', '순액', '무기', '상여', '순액', '소계', '인건비', '상여', '전환', '추가', '해당']
 
 
@@ -1709,7 +1683,7 @@ class MainWindow(QMainWindow):
                                  '피복비', '경로효친비', '통신비', '축하금/조의금', '기타 항목', '복리후생비 소계ⓑ', '일반 급여 (1)', '인센티브 상여금', '순액', '청년인턴 급여 (2)', '인센티브 상여금', '순액', '무기계약직 급여 (3)',
                                  '인센티브 상여금', '순액', '소계 ⓒ=(1)+(2)+(3)', '인건비 총계: ⓓ=ⓐ+ⓑ+ⓒ', '인센티브 상여금 ⓔ=ⓔ-1+ⓔ-2', '인센티브 전환금 (ⓔ-1)', '인센티브 추가금 (ⓔ-2)', '인건비 해당금액 : ⓓ-ⓔ']
                        
-                list_keyword = ['기본', '인센', '그외상여', '법정', '해외', '그외제수', '퇴직급여', '임원', '비상임', '제외', '기타', '급료', '사내근로', '국민', '건강보험', '고용', '산재', '급식', '교통', '운전', '학자', '건강', '선택', '행사', '포상', '기념',
+                list_keyword = ['기본', '인센', '그외상여', '법정', '해외', '그외제수', '퇴직급여', '임원', '비상임', '제외', '기타', '급료', '사내근로', '국민', '건강보험', '고용', '산재', '급식', '교통', '운전', '학자', '건강진단', '선택', '행사', '포상', '기념',
                                 '격려', '장기', '육아', '자기', '특별', '피복', '경로', '통신', '축하', '기타', '복리', '일반', '상여', '순액', '청년', '상여', '순액', '무기', '상여', '순액', '소계', '인건비', '상여', '전환', '추가', '해당']
 
                 readonly_rows = [11, 36, 37, 40, 43, 46, 47, 48, 51]
@@ -1724,7 +1698,7 @@ class MainWindow(QMainWindow):
                                  '피복비', '경로효친비', '통신비', '축하금/조의금', '기타 항목', '복리후생비 소계ⓑ', '일반 급여 (1)', '인센티브 상여금', '순액', '청년인턴 급여 (2)', '인센티브 상여금', '순액', '무기계약직 급여 (3)',
                                  '인센티브 상여금', '순액', '소계 ⓒ=(1)+(2)+(3)', '인건비 총계: ⓓ=ⓐ+ⓑ+ⓒ', '인센티브 상여금 ⓔ=ⓔ-1+ⓔ-2', '인센티브 전환금 (ⓔ-1)', '인센티브 추가금 (ⓔ-2)', '인건비 해당금액 : ⓓ-ⓔ']
                        
-                list_keyword = ['급료', '인센', '그외상여', '법정', '해외', '그외제수', '퇴직급여', '임원', '비상임', '통상', '기타제외', '기타', '급료', '사내근로', '국민', '건강보험', '고용', '산재', '급식', '교통', '운전', '학자', '건강', '선택', '행사', '포상', '기념',
+                list_keyword = ['급료', '인센', '그외상여', '법정', '해외', '그외제수', '퇴직급여', '임원', '비상임', '통상', '기타제외', '기타', '급료', '사내근로', '국민', '건강보험', '고용', '산재', '급식', '교통', '운전', '학자', '건강진단', '선택', '행사', '포상', '기념',
                                 '격려', '장기', '육아', '자기', '특별', '피복', '경로', '통신', '축하', '기타', '복리', '일반', '상여', '순액', '청년', '상여', '순액', '무기', '상여', '순액', '소계', '인건비', '상여', '전환', '추가', '해당']
 
                 readonly_rows = [12, 37, 38, 41, 44, 47, 48, 49, 52]
@@ -3164,7 +3138,7 @@ class MainWindow(QMainWindow):
                              '피복비', '경로효친비', '통신비', '축하금/조의금', '기타 항목', '복리후생비 소계ⓑ', '일반 급여 (1)', '인센티브 상여금', '순액', '청년인턴 급여 (2)', '인센티브 상여금', '순액', '무기계약직 급여 (3)',
                              '인센티브 상여금', '순액', '소계 ⓒ=(1)+(2)+(3)', '인건비 총계: ⓓ=ⓐ+ⓑ+ⓒ', '인센티브 상여금 ⓔ=ⓔ-1+ⓔ-2', '인센티브 전환금 (ⓔ-1)', '인센티브 추가금 (ⓔ-2)', '인건비 해당금액 : ⓓ-ⓔ']
                    
-            list_keyword = ['기본', '인센', '그외상여', '법정', '해외', '그외제수', '퇴직급여', '임원', '비상임', '제외', '기타', '급료', '사내근로', '국민', '건강보험', '고용', '산재', '급식', '교통', '운전', '학자', '건강', '선택', '행사', '포상', '기념',
+            list_keyword = ['기본', '인센', '그외상여', '법정', '해외', '그외제수', '퇴직급여', '임원', '비상임', '제외', '기타', '급료', '사내근로', '국민', '건강보험', '고용', '산재', '급식', '교통', '운전', '학자', '건강진단', '선택', '행사', '포상', '기념',
                             '격려', '장기', '육아', '자기', '특별', '피복', '경로', '통신', '축하', '기타', '복리', '일반', '상여', '순액', '청년', '상여', '순액', '무기', '상여', '순액', '소계', '인건비', '상여', '전환', '추가', '해당']
 
             readonly_rows = [11, 36, 37, 40, 43, 46, 47, 48, 51]
@@ -3179,7 +3153,7 @@ class MainWindow(QMainWindow):
                              '피복비', '경로효친비', '통신비', '축하금/조의금', '기타 항목', '복리후생비 소계ⓑ', '일반 급여 (1)', '인센티브 상여금', '순액', '청년인턴 급여 (2)', '인센티브 상여금', '순액', '무기계약직 급여 (3)',
                              '인센티브 상여금', '순액', '소계 ⓒ=(1)+(2)+(3)', '인건비 총계: ⓓ=ⓐ+ⓑ+ⓒ', '인센티브 상여금 ⓔ=ⓔ-1+ⓔ-2', '인센티브 전환금 (ⓔ-1)', '인센티브 추가금 (ⓔ-2)', '인건비 해당금액 : ⓓ-ⓔ']
                    
-            list_keyword = ['기본', '인센', '그외상여', '법정', '해외', '그외제수', '퇴직급여', '임원', '비상임', '통상', '기타제외', '기타', '급료', '사내근로', '국민', '건강보험', '고용', '산재', '급식', '교통', '운전', '학자', '건강', '선택', '행사', '포상', '기념',
+            list_keyword = ['기본', '인센', '그외상여', '법정', '해외', '그외제수', '퇴직급여', '임원', '비상임', '통상', '기타제외', '기타', '급료', '사내근로', '국민', '건강보험', '고용', '산재', '급식', '교통', '운전', '학자', '건강진단', '선택', '행사', '포상', '기념',
                             '격려', '장기', '육아', '자기', '특별', '피복', '경로', '통신', '축하', '기타', '복리', '일반', '상여', '순액', '청년', '상여', '순액', '무기', '상여', '순액', '소계', '인건비', '상여', '전환', '추가', '해당']
 
             readonly_rows = [12, 37, 38, 41, 44, 47, 48, 49, 52]
@@ -3548,6 +3522,7 @@ class MainWindow(QMainWindow):
 
         self.s1.table.blockSignals(False)
         self.s1.table.viewport().update()
+
 
 
 
@@ -3949,7 +3924,7 @@ class MainWindow(QMainWindow):
         self.s2.table.viewport().update()
 
 
-        
+
 
         
 
@@ -4011,46 +3986,117 @@ class MainWindow(QMainWindow):
 
 
 
+
+
         # s5 ############################################################################
 
         list_title_05 = list(self.list_title_05)
         rank_count_05 = len(list_title_05)
 
+        global check_nu
+        global check_month_0708
+
+        check_nu = False
+        check_month_0708 = False
+
+        if '\t누적\t누적차\t' in excel_original_05:
+            check_nu = True
+
+        if '7월\t\t\t\t\t8월' in excel_original_05 or '7월\t\t\t\t8월' in excel_original_05:
+            check_month_0708 = True
+
+
+
+
+
+
+        
+        # print(repr(excel_original_05))
+
 
         self.s5.table.blockSignals(True)
 
 
+        '''
+        print(repr(excel_original_05))
+        print(i)
+        print(list_title_05)
+        print(rank_count_05)
+        '''
 
-
-
-        for i in range(0, (rank_count_05*2)):
-
-            excel_original_05 = excel_original_05[excel_original_05.find(list_title_05[i%rank_count_05]):]
-            excel_item = excel_original_05.split('\r\n')[0].split('\t')
-
-            print(repr(excel_original_05))
-            print(i)
-
-            try:
-                if i < rank_count_05:
-
-
+        if check_month_0708 and check_nu:
+            print(7)
+            for i in range(0, (rank_count_05)):
+                print(list_title_05[i])
+                print(i)
+                
+                try:
                     if i%rank_count_05 == rank_count_05-1: continue # '계' 행 제외
-                    for j in range(1, 25): # 1월~6월 (정/현/복/누 4개씩 6개월 = 24개)
+                    for j in range(1, 61): # 1월~12월
+                        if j%5 == 3:   # 누적 제외
+                            print(j)
+                            continue
+                            print(self.s5.table.item(i, j + 1))
                         self.s5.table.item(i, j + 1).setText(excel_item[j])
-                else:                  
-                    if i == (rank_count_05*2)+1: continue # '계' 행 제외
-                    for j in range(1, 25): # 7월~12월
-                        self.s5.table.item(i+2, j + 1).setText(excel_item[j])
 
 
-            except Exception as e:
-                err_detail = f"S5 엑셀 입력 오류 [(3-3)가.정원현원차이, 직급: {list_title_05[i%rank_count_05]}]: {e}"
-                with open("log.txt", "a", encoding="utf-8") as f:
-                    f.write(err_detail + "\n")
-                print(err_detail)
-                QMessageBox.information(self, "S5 엑셀 입력 오류", err_detail)
-                return "excel_original_no"
+
+                except Exception as e:
+                    err_detail = f"S5 엑셀 입력 오류 [(3-3)가.정원현원차이, 직급: {list_title_05[i%rank_count_05]}]: {e}"
+                    with open("log.txt", "a", encoding="utf-8") as f:
+                        f.write(err_detail + "\n")
+                    print(err_detail)
+                    QMessageBox.information(self, "S5 엑셀 입력 오류", err_detail)
+                    return "excel_original_no"
+
+
+
+
+
+
+
+                
+
+
+        else:
+            for i in range(0, (rank_count_05*2)):
+
+                try:
+                    if i < rank_count_05:
+                        if i%rank_count_05 == rank_count_05-1: continue # '계' 행 제외
+                        for j in range(1, 25): # 1월~6월 (정/현/복/누 4개씩 6개월 = 24개)
+                            self.s5.table.item(i, j + 1).setText(excel_item[j])
+                    else:                  
+                        if i == (rank_count_05*2)+1: continue # '계' 행 제외
+                        for j in range(1, 25): # 7월~12월
+                            self.s5.table.item(i+2, j + 1).setText(excel_item[j])
+
+
+                except Exception as e:
+                    err_detail = f"S5 엑셀 입력 오류 [(3-3)가.정원현원차이, 직급: {list_title_05[i%rank_count_05]}]: {e}"
+                    with open("log.txt", "a", encoding="utf-8") as f:
+                        f.write(err_detail + "\n")
+                    print(err_detail)
+                    QMessageBox.information(self, "S5 엑셀 입력 오류", err_detail)
+                    return "excel_original_no"
+        return
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+            
 
         for col_idx in range(2, 26):
             self.s5.calculate_s5(self.s5.table.item(0, col_idx))
@@ -4066,6 +4112,7 @@ class MainWindow(QMainWindow):
 
 
 
+        return
 
         # s7 ############################################################################
 
