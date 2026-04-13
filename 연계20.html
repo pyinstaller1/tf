@@ -1,0 +1,249 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>정보 연계 시스템 (IE 호환성 강화)</title>
+    <style>
+        body { margin: 0; font-family: "Malgun Gothic", "Dotum", sans-serif; overflow: hidden; background: #f0f4f8; }
+        #left-pane {
+            width: 78%; height: 100vh; float: left; position: relative;
+            background: #fff; overflow: hidden; border-right: 1px solid #ccc;
+        }
+        #right-pane {
+            width: 20%; height: 100vh; float: left; padding: 20px; box-sizing: border-box; background: #fff;
+        }
+
+        /* 공단 본부 */
+        .center-node {
+            position: absolute; width: 84px; height: 84px; border-radius: 42px;
+            background: #000; color: #fff; font-weight: 900; z-index: 2000;
+            text-align: center; line-height: 84px; font-size: 15px;
+            box-shadow: 0 0 20px rgba(0,0,0,0.4);
+        }
+
+        /* 기관 노드 - IE 정렬 방식 변경 */
+        .main-circle {
+            position: absolute; width: 54px; height: 54px; border-radius: 27px;
+            color: #000; font-weight: 900; cursor: pointer; z-index: 500;
+            
+            /* IE 정렬 핵심 */
+            text-align: center; 
+            line-height: 54px; /* 가로 높이와 맞추면 세로 중앙 정렬됨 */
+            white-space: nowrap; /* 기본은 한줄 */
+            
+            box-shadow: 2px 3px 6px rgba(0,0,0,0.3);
+            transition: all 0.4s ease; 
+            user-select: none;
+            text-shadow: -1px -1px 0 #fff, 1px -1px 0 #fff, -1px 1px 0 #fff, 1px 1px 0 #fff;
+        }
+
+        /* 긴 이름용 특수 스타일 (줄바꿈 대응) */
+        .long-text {
+            display: table !important;
+            line-height: 1.2 !important;
+        }
+        .long-text span {
+            display: table-cell;
+            vertical-align: middle;
+            text-align: center;
+            padding: 2px;
+        }
+
+        /* 서브 노드 */
+        .sub-circle {
+            position: absolute; width: 38px; height: 38px; border-radius: 19px;
+            color: #000; cursor: pointer; z-index: 1000; font-size: 10px;
+            text-align: center; line-height: 38px; opacity: 0; font-weight: 900;
+            transition: all 0.4s ease; pointer-events: none;
+            box-shadow: 1px 1px 4px rgba(0,0,0,0.2);
+            text-shadow: -1px -1px 0 #fff, 1px -1px 0 #fff, -1px 1px 0 #fff, 1px 1px 0 #fff;
+        }
+
+        .main-line {
+            position: absolute; height: 2px; transform-origin: 0 50%;
+            z-index: 100; background: #555; pointer-events: none;
+        }
+        .sub-line {
+            position: absolute; height: 1.2px; transform-origin: 0 50%;
+            z-index: 100; pointer-events: none; opacity: 0;
+        }
+    </style>
+</head>
+<body>
+
+<div id="left-pane"></div>
+<div id="right-pane">
+    <h3 style="margin-top:0;">정보 연계 대시보드</h3>
+    <hr>
+    <div id="info">기관을 클릭하세요.</div>
+</div>
+
+<script>
+    var pane = document.getElementById('left-pane');
+    var nodes = [];
+    var totalNodes = 70;
+    
+    var specialNames = {
+        1: "한국근로<br>복지공단",
+        2: "국민건강<br>보험공단",
+        10: "국민연금<br>관리공단"
+    };
+
+    function init() {
+        var w = pane.offsetWidth, h = pane.offsetHeight;
+        var cx = w / 2, cy = h / 2;
+
+        var center = document.createElement('div');
+        center.className = 'center-node';
+        center.innerHTML = '공단본부';
+        center.style.left = (cx - 42) + 'px';
+        center.style.top = (cy - 42) + 'px';
+        pane.appendChild(center);
+
+        var cols = 10, stepX = w / (cols + 1), stepY = h / 8; 
+        var nodeCount = 1;
+
+        for (var i = 1; i <= 80; i++) {
+            if (nodeCount > totalNodes) break;
+            if (i === 35 || i === 36) continue;
+
+            var r = Math.floor((i-1) / cols), c = (i-1) % cols;
+            var displayTitle = specialNames[nodeCount] ? specialNames[nodeCount] : nodeCount;
+
+            var node = {
+                id: 'N' + nodeCount,
+                title: displayTitle,
+                expanded: false,
+                baseX: stepX * (c + 1) - 27,
+                baseY: stepY * (r + 1) - 27,
+                color: 'hsl(' + (nodeCount * 360 / 70) + ', 75%, 55%)'
+            };
+
+            var dist = Math.sqrt(Math.pow(node.baseX - (cx-27), 2) + Math.pow(node.baseY - (cy-27), 2));
+            if (dist < 120) node.baseY += (node.baseY > cy ? 65 : -65);
+
+            node.curX = node.baseX; node.curY = node.baseY;
+            nodes.push(node);
+            createElements(node, cx, cy);
+            nodeCount++;
+        }
+    }
+
+    function createElements(n, cx, cy) {
+        var l = document.createElement('div');
+        l.className = 'main-line';
+        l.id = 'L-' + n.id;
+        pane.appendChild(l);
+
+        var m = document.createElement('div');
+        m.className = 'main-circle';
+        m.id = 'M-' + n.id;
+        
+        // 이름 길이에 따른 IE용 줄바꿈 처리
+        if (n.title.toString().indexOf('<br>') > -1) {
+            m.className += " long-text";
+            m.innerHTML = "<span>" + n.title + "</span>";
+            m.style.fontSize = "10px";
+        } else {
+            m.innerHTML = n.title;
+            m.style.fontSize = "13px";
+        }
+        
+        m.style.backgroundColor = n.color;
+        m.onclick = function() { handleToggle(n.id); };
+        pane.appendChild(m);
+
+        for (var j = 0; j < 3; j++) {
+            var sl = document.createElement('div');
+            sl.className = 'sub-line';
+            sl.id = 'SL-' + n.id + '-' + j;
+            sl.style.backgroundColor = n.color;
+            pane.appendChild(sl);
+
+            var s = document.createElement('div');
+            s.className = 'sub-circle';
+            s.id = 'S-' + n.id + '-' + j;
+            s.innerHTML = 'D' + (j+1);
+            s.style.backgroundColor = n.color;
+            pane.appendChild(s);
+        }
+        render(n, cx, cy);
+    }
+
+    function handleToggle(id) {
+        setTimeout(function() {
+            var active = null;
+            for (var i = 0; i < nodes.length; i++) {
+                if (nodes[i].id === id) {
+                    nodes[i].expanded = !nodes[i].expanded;
+                    active = nodes[i];
+                } else nodes[i].expanded = false;
+            }
+            
+            for (var i = 0; i < nodes.length; i++) {
+                var n = nodes[i];
+                if (active && active.expanded && n.id !== active.id) {
+                    var dx = n.baseX - active.baseX, dy = n.baseY - active.baseY;
+                    var d = Math.sqrt(dx*dx + dy*dy);
+                    if (d < 180 && d > 0) {
+                        var f = (180 - d) + 40;
+                        n.curX = n.baseX + (dx/d * f);
+                        n.curY = n.baseY + (dy/d * f * 0.6); 
+                    } else { n.curX = n.baseX; n.curY = n.baseY; }
+                } else { n.curX = n.baseX; n.curY = n.baseY; }
+            }
+            var w = pane.offsetWidth, h = pane.offsetHeight;
+            for (var i = 0; i < nodes.length; i++) render(nodes[i], w/2, h/2);
+        }, 15);
+    }
+
+    function render(n, cx, cy) {
+        var m = document.getElementById('M-' + n.id);
+        var l = document.getElementById('L-' + n.id);
+        
+        m.style.left = n.curX + 'px';
+        m.style.top = n.curY + 'px';
+        m.style.zIndex = n.expanded ? '1600' : '500';
+        // IE는 transform scale이 클릭 영역에 영향 줄 수 있어 주의
+        m.style.msTransform = n.expanded ? 'scale(1.4)' : 'scale(1)';
+        m.style.transform = n.expanded ? 'scale(1.4)' : 'scale(1)';
+
+        var lx = (n.curX + 27) - cx, ly = (n.curY + 27) - cy;
+        var dist = Math.sqrt(lx*lx + ly*ly);
+        l.style.width = dist + 'px';
+        l.style.left = cx + 'px';
+        l.style.top = cy + 'px';
+        var rot = 'rotate(' + Math.atan2(ly, lx) + 'rad)';
+        l.style.msTransform = rot;
+        l.style.transform = rot;
+        l.style.background = n.expanded ? n.color : '#555';
+        l.style.opacity = n.expanded ? '1' : '0.4';
+
+        for (var j = 0; j < 3; j++) {
+            var s = document.getElementById('S-' + n.id + '-' + j);
+            var sl = document.getElementById('SL-' + n.id + '-' + j);
+            if (n.expanded) {
+                var angle = j * (360/3) * (Math.PI/180), distSub = 90;
+                var tx = n.curX + Math.cos(angle)*distSub + 8;
+                var ty = n.curY + Math.sin(angle)*distSub + 8;
+                s.style.left = tx + 'px'; s.style.top = ty + 'px'; s.style.opacity = '1';
+                s.style.pointerEvents = 'auto';
+                var sdx = (tx+19) - (n.curX+27), sdy = (ty+19) - (n.curY+27);
+                sl.style.width = Math.sqrt(sdx*sdx + sdy*sdy) + 'px';
+                sl.style.left = (n.curX+27) + 'px'; sl.style.top = (n.curY+27) + 'px';
+                var sRot = 'rotate(' + Math.atan2(sdy, sdx) + 'rad)';
+                sl.style.msTransform = sRot;
+                sl.style.transform = sRot;
+                sl.style.opacity = '0.7';
+            } else {
+                s.style.left = (n.curX+8) + 'px'; s.style.top = (n.curY+8) + 'px';
+                s.style.opacity = '0'; s.style.pointerEvents = 'none';
+                sl.style.width = '0px'; sl.style.opacity = '0';
+            }
+        }
+    }
+    window.onload = init;
+</script>
+</body>
+</html>
