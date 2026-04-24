@@ -1,0 +1,257 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>정보 연계 시스템 (상단 공간 미세 조정)</title>
+    <style>
+        * { box-sizing: border-box; }
+        body { margin: 0; font-family: "Malgun Gothic", "Dotum", sans-serif; background: #f0f4f8; overflow: hidden; }
+        
+        #left-pane { width: 75%; height: 100vh; float: left; position: relative; background: #fff; border-right: 1px solid #ccc; overflow: auto; }
+        /* 캔버스 높이를 1100 -> 1150으로 아주 살짝 확장 */
+        #pane-content { position: relative; width: 1500px; height: 1150px; background: #fafafa; } 
+        #right-pane { width: 25%; height: 100vh; float: left; padding: 15px; background: #fff; overflow-y: auto; }
+        
+        .center-node { position: absolute; width: 120px; height: 120px; border-radius: 60px; background: #ff7f00; color: #fff; font-weight: bold; z-index: 2000; text-align: center; line-height: 120px; font-size: 17px; cursor: pointer; border: 3px solid #fff; box-shadow: 0 4px 10px rgba(0,0,0,0.3); }
+        
+        .main-circle { position: absolute; width: 105px; height: 105px; border-radius: 53px; color: #000; font-weight: bold; cursor: pointer; z-index: 1500; text-align: center; font-size: 14px; box-shadow: 2px 3px 8px rgba(0,0,0,0.2); 
+            transition: left 0.2s ease-out, top 0.2s ease-out; 
+            -ms-transition: left 0.2s ease-out, top 0.2s ease-out;
+        }
+        .main-circle-text { display: block; margin-top: 38px; line-height: 1.2; pointer-events: none; text-shadow: -2px -2px 0 #fff, 2px -2px 0 #fff, -2px 2px 0 #fff, 2px 2px 0 #fff; }
+        
+        .sub-circle { position: absolute; width: 84px; height: 84px; border-radius: 42px; color: #000; cursor: pointer; z-index: 1000; font-size: 13px; text-align: center; display: none; font-weight: bold; box-shadow: 1px 2px 5px rgba(0,0,0,0.15); border: 1px solid rgba(255,255,255,0.4); opacity: 0;
+            transition: left 0.2s ease-out, top 0.2s ease-out, opacity 0.2s ease-in;
+            -ms-transition: left 0.2s ease-out, top 0.2s ease-out, opacity 0.2s ease-in;
+        }
+        .sub-inner { display: block; margin-top: 24px; line-height: 1.2; padding: 0 5px; pointer-events: none; white-space: normal; word-break: break-all; text-shadow: -1.5px -1.5px 0 #fff, 1.5px -1.5px 0 #fff, -1.5px 1.5px 0 #fff, 1.5px 1.5px 0 #fff; }
+        
+        .main-line { position: absolute; height: 3.5px; z-index: 100; background: #ddd; pointer-events: none; transform-origin: 0 50%; -ms-transform-origin: 0 50%; 
+            transition: width 0.2s ease-out; -ms-transition: width 0.2s ease-out;
+        }
+        .sub-line { position: absolute; height: 1.8px; z-index: 90; pointer-events: none; display: none; transform-origin: 0 50%; -ms-transform-origin: 0 50%; opacity: 0;
+            transition: width 0.2s ease-out, opacity 0.2s ease-in; -ms-transition: width 0.2s ease-out, opacity 0.2s ease-in;
+        }
+        
+        .dash-table { width: 100%; border-collapse: collapse; margin-top: 15px; border: 1px solid #ccc; table-layout: fixed; }
+        .dash-table th, .dash-table td { border: 1px solid #ccc; padding: 8px 5px; font-size: 13px; text-align: left; line-height: 1.4; }
+        .dash-table th { background: #f4f4f4; text-align: center; white-space: nowrap; }
+        .col-num { width: 35px; text-align: center !important; background: #f9f9f9; font-weight: bold; font-size: 12px; }
+    </style>
+</head>
+<body>
+
+<div id="left-pane">
+    <div id="pane-content"></div>
+</div>
+
+<div id="right-pane">
+    <h3 style="margin-top:0; border-bottom: 2px solid #333; padding-bottom: 8px; font-size: 17px;">정보 연계 대시보드</h3>
+    <div id="info" style="color: #666; line-height: 1.6; font-size: 13.5px;">노드를 클릭하여 세부 업무를 확인하세요.</div>
+</div>
+
+<script>
+    var container = document.getElementById('left-pane');
+    var pane = document.getElementById('pane-content');
+    var nodes = [];
+    
+    var CANVAS_W = 1500; 
+    var CANVAS_H = 1150;
+    var CENTER_Y = 750;
+
+
+    var subNodeDetails = {
+        "감사원": ["감사결과"],
+
+
+
+        "DEFAULT": [],
+    };
+
+    var masterData = {
+        "4대사회보험": ["국민연금\n공단", "근로복지\n공단"],
+        "공공기관": ["건강보험\n심사평가원", "공무원\n연금공단", "국가평생\n교육진흥원", "별정우체국\n연금관리단", "사립학교\n교직원연금\n공단", "사회보장\n정보원", "소상공인\n진흥공단", "양육비이행\n관리원", "중앙\n치매센터", "한국\n고용정보원", "한국교육\n학술정보원", "한국무역\n보험공사", "한국\n부동산원", "한국사회\n보장정보원", "한국산업\n기술기획\n평가원", "한국산업\n기술진흥원", "한국의약품\n안전관리원", "한국자산\n관리공사", "한국자활\n복지개발원", "한국\n장학재단", "한국지역\n정보개발원", "한국토지\n주택공사", "한국\n환경공단", "한국환경\n산업기술원"],
+        "금융기관": ["국민은행", "금융감독원", "금융결제원", "금융정보\n분석원", "기술보증\n기금", "여신금융\n협회", "주택도시\n보증공사", "한국\n신용정보원"],
+        "민간기관": ["더존다스"],
+        "의료기관": ["국립암센터", "일산병원"],
+        "중앙행정기관": ["감사원", "과학기술\n정보통신부", "국가\n데이터처", "국가보훈부", "국가정보원", "국방부", "국토교통부", "기획재정부", "농림축산\n식품부", "법무부", "보건복지부", "식품의약품\n안전처", "인사혁신처", "재정경제부", "해양수산부", "행정안전부"],
+        "지자체": ["보건소"]
+    };
+
+    function init() {
+        var cx = CANVAS_W / 2, cy = CENTER_Y; 
+        var center = document.createElement('div');
+        center.className = 'center-node'; center.innerHTML = '국민건강보험';
+        center.style.left = (cx - 60) + 'px'; center.style.top = (cy - 60) + 'px';
+        
+        center.onclick = function() {
+            for(var i=0; i<nodes.length; i++) { nodes[i].expanded = false; render(nodes[i], cx, cy); }
+            smoothScrollIE(cx - container.offsetWidth/2, cy - container.offsetHeight/2, 400);
+        };
+        pane.appendChild(center);
+
+        var idx = 0, count = 0;
+        for (var k in masterData) count++;
+
+        for (var key in masterData) {
+            var angle = (idx * (360 / count)) * (Math.PI / 180);
+            var node = { id: 'N' + idx, title: key, expanded: false, subList: masterData[key], angle: angle, color: 'hsl(' + (idx * 360 / count) + ", 70%, 85%)" };
+            nodes.push(node);
+            createElements(node, cx, cy);
+            idx++;
+        }
+        
+        container.scrollLeft = cx - container.offsetWidth/2;
+        container.scrollTop = cy - container.offsetHeight/2;
+    }
+
+    function createElements(n, cx, cy) {
+        var l = document.createElement('div');
+        l.className = 'main-line'; l.id = 'L-' + n.id;
+        pane.appendChild(l);
+        var m = document.createElement('div');
+        m.className = 'main-circle'; m.id = 'M-' + n.id;
+        m.innerHTML = '<span class="main-circle-text">' + n.title + '</span>';
+        m.style.backgroundColor = n.color;
+        m.onclick = function() { handleToggle(n.id); };
+        pane.appendChild(m);
+        for (var j = 0; j < n.subList.length; j++) {
+            var sl = document.createElement('div');
+            sl.className = 'sub-line'; sl.id = 'SL-' + n.id + '-' + j;
+            sl.style.backgroundColor = n.color;
+            pane.appendChild(sl);
+            var s = document.createElement('div');
+            s.className = 'sub-circle'; s.id = 'S-' + n.id + '-' + j;
+            s.innerHTML = '<span class="sub-inner">' + n.subList[j].replace("\n", "<br>") + '</span>';
+            s.style.backgroundColor = n.color;
+            (function(cat, name) { s.onclick = function() { updateDashboard(cat, name); }; })(n.title, n.subList[j]);
+            pane.appendChild(s);
+        }
+        render(n, cx, cy);
+    }
+
+    function handleToggle(id) {
+        var cx = CANVAS_W / 2, cy = CENTER_Y;
+        var targetNode = null;
+        for (var i = 0; i < nodes.length; i++) {
+            if (nodes[i].id === id) {
+                nodes[i].expanded = !nodes[i].expanded;
+                targetNode = nodes[i];
+            } else {
+                nodes[i].expanded = false;
+            }
+            render(nodes[i], cx, cy);
+        }
+        
+        if (targetNode && targetNode.expanded) {
+            var dist = 460; 
+            // 위쪽 노드 클릭 시 상단 여백을 고려하여 포커스 위치 미세 조정
+            var offset = (targetNode.angle < 0 || targetNode.angle > Math.PI) ? 140 : 120;
+            var focusX = cx + Math.cos(targetNode.angle) * (dist + offset);
+            var focusY = cy + Math.sin(targetNode.angle) * (dist + offset);
+            smoothScrollIE(focusX - container.offsetWidth/2, focusY - container.offsetHeight/2, 500);
+        }
+    }
+
+
+
+
+
+function updateDashboard(cat, name) {
+    // 비교를 위해 이름에서 모든 줄바꿈(\n)과 공백을 제거
+    var searchName = name.replace(/\n/g, "").replace(/\s+/g, "");
+    var cleanName = name.replace(/\n/g, " "); // 제목 표시용 (줄바꿈을 공백으로)
+
+    var html = "<h4>[" + cat + "] " + cleanName + "</h4>";
+    html += "<table class='dash-table'><colgroup><col style='width:35px;'><col></colgroup>";
+    html += "<thead><tr><th class='col-num'></th><th>연계 업무 내역</th></tr></thead><tbody>";
+
+    // subNodeDetails 객체의 키값들과 비교 (줄바꿈 무시 매칭)
+    var tasks = subNodeDetails["DEFAULT"];
+    for (var key in subNodeDetails) {
+        if (key.replace(/\n/g, "").replace(/\s+/g, "") === searchName) {
+            tasks = subNodeDetails[key];
+            break;
+        }
+    }
+
+    for (var i = 0; i < tasks.length; i++) {
+        html += "<tr><td class='col-num'>" + (i + 1) + "</td><td>" + tasks[i] + "</td></tr>";
+    }
+
+    html += "</tbody></table>";
+    document.getElementById('info').innerHTML = html;
+
+    var rightPane = document.getElementById('right-pane');
+    if (rightPane) {
+        setTimeout(function() {
+            rightPane.scrollTop = 0;
+        }, 10);
+    }
+}
+
+
+
+
+
+
+    function render(n, cx, cy) {
+        var m = document.getElementById('M-' + n.id), l = document.getElementById('L-' + n.id);
+        var r = n.expanded ? 460 : 270; 
+        var tx = cx + Math.cos(n.angle) * r - 52, ty = cy + Math.sin(n.angle) * r - 52;
+        m.style.left = tx + 'px'; m.style.top = ty + 'px';
+        l.style.width = Math.sqrt(Math.pow((tx+52)-cx, 2) + Math.pow((ty+52)-cy, 2)) + 'px';
+        l.style.left = cx + 'px'; l.style.top = cy + 'px';
+        var rot = 'rotate(' + Math.atan2((ty+52)-cy, (tx+52)-cx) + 'rad)';
+        l.style.msTransform = rot; l.style.transform = rot;
+
+        if (n.expanded) {
+            for (var j = 0; j < n.subList.length; j++) {
+                var s = document.getElementById('S-' + n.id + '-' + j), sl = document.getElementById('SL-' + n.id + '-' + j);
+                s.style.display = 'block'; sl.style.display = 'block';
+                s.style.left = (tx + 10) + 'px'; s.style.top = (ty + 10) + 'px';
+                s.style.opacity = '0'; sl.style.opacity = '0'; sl.style.width = '0px';
+            }
+            setTimeout(function() {
+                if(!n.expanded) return;
+                for (var j = 0; j < n.subList.length; j++) {
+                    var s = document.getElementById('S-' + n.id + '-' + j), sl = document.getElementById('SL-' + n.id + '-' + j);
+                    var sa = (j * (360 / n.subList.length)) * (Math.PI / 180);
+                    var sd = (n.subList.length > 8) ? ((j % 2 === 0) ? 150 : 270) : 180; 
+                    var stx = tx + Math.cos(sa) * sd + 10, sty = ty + Math.sin(sa) * sd + 10;
+                    s.style.left = stx + 'px'; s.style.top = sty + 'px';
+                    s.style.opacity = '1'; sl.style.opacity = '1';
+                    sl.style.width = Math.sqrt(Math.pow((stx+42)-(tx+52), 2) + Math.pow((sty+42)-(ty+52), 2)) + 'px';
+                    sl.style.left = (tx+52) + 'px'; sl.style.top = (ty+52) + 'px';
+                    var srot = 'rotate(' + Math.atan2((sty+42)-(ty+52), (stx+42)-(tx+52)) + 'rad)';
+                    sl.style.msTransform = srot; sl.style.transform = srot;
+                }
+            }, 150);
+        } else {
+            for (var j = 0; j < n.subList.length; j++) {
+                var s = document.getElementById('S-' + n.id + '-' + j), sl = document.getElementById('SL-' + n.id + '-' + j);
+                s.style.display = 'none'; sl.style.display = 'none';
+                s.style.opacity = '0'; sl.style.opacity = '0';
+            }
+        }
+    }
+
+    function smoothScrollIE(targetX, targetY, duration) {
+        var startX = container.scrollLeft, startY = container.scrollTop;
+        var startTime = new Date().getTime();
+        function animate() {
+            var now = new Date().getTime();
+            var time = (now - startTime) / duration;
+            if (time > 1) time = 1;
+            var val = 1 - Math.pow(1 - time, 3);
+            container.scrollLeft = startX + (targetX - startX) * val;
+            container.scrollTop = startY + (targetY - startY) * val;
+            if (time < 1) setTimeout(animate, 10);
+        }
+        animate();
+    }
+    window.onload = init;
+</script>
+</body>
+</html>
