@@ -1,29 +1,85 @@
 {% load humanize %}
 
-{% if kospi %}
-<div class="rounded-box" style="border: 1px solid #eee; padding: 10px; border-radius: 8px;">
-    <div class="kospi-row kospi-header" style="font-weight: bold; border-bottom: 2px solid #ccc; padding-bottom: 8px; margin-bottom: 10px; cursor: pointer; display: flex; font-size: 16px; white-space: nowrap; align-items: center;">
-        <div style="flex: 0.3;"></div>
+<!-- 전체를 감싸는 컨테이너: 바깥 스크롤 방지 -->
+<div style="width: 480px; display: flex; flex-direction: column; overflow: hidden;">
+
+    <!-- 1. 상단 탭 메뉴 영역 -->
+    <div id="tab-container" 
+         style="display: flex; gap: 2px; margin-bottom: 0px; padding: 0 10px 5px 10px; align-items: flex-end; 
+                overflow-x: auto; white-space: nowrap; width: 100%;
+                -webkit-overflow-scrolling: touch;">
         
-        <div onclick="sortTable(1, this)" style="flex: 2.2; text-align: center; position: relative;">
-            종목명<span class="sort-icon" style="position: absolute; width: 10px; font-size: 10px; margin-left: 2px; top: 1px;"></span>
+        <style>
+            /* 가로 스크롤바 미세 조정 */
+            #tab-container::-webkit-scrollbar { height: 4px; display: block; }
+            #tab-container::-webkit-scrollbar-track { background: #f1f1f1; border-radius: 10px; }
+            #tab-container::-webkit-scrollbar-thumb { background: #ccc; border-radius: 10px; }
+
+            .tab-btn {
+                display: flex; align-items: center; flex-shrink: 0; padding: 10px 20px;
+                cursor: pointer; border: 1px solid #eee; border-bottom: none;
+                border-radius: 8px 8px 0 0; background-color: #fff; color: #666;
+                font-size: 14px; transition: all 0.2s;
+            }
+            
+            .tab-btn.active {
+                background-color: #f9f9f9; color: #000; font-weight: bold;
+                border: 1px solid #ccc; border-bottom: 1px solid #f9f9f9; z-index: 1;
+            }
+
+            .kospi-row.active { background-color: #e3f2fd !important; }
+            
+            /* 세로 스크롤바 디자인 (내부용) */
+            #kospi-body::-webkit-scrollbar { width: 6px; }
+            #kospi-body::-webkit-scrollbar-track { background: transparent; }
+            #kospi-body::-webkit-scrollbar-thumb { background: #ddd; border-radius: 10px; }
+        </style>
+
+        <button type="button" onclick="location.reload()" class="tab-btn active">전체 종목</button>
+        <button type="button" onclick="selectTab(this)" class="tab-btn">관심1</button>
+        <button type="button" onclick="selectTab(this)" class="tab-btn">관심2</button>
+        <button type="button" onclick="selectTab(this)" class="tab-btn">반도체</button>
+        <button type="button" onclick="selectTab(this)" class="tab-btn">배당주</button>
+    </div>
+
+    <!-- 2. 메인 리스트 영역 -->
+    <div id="kospi-main-area" style="border-top: 1px solid #ccc; padding-top: 10px; margin-top: -1px;">
+        {% if kospi %}
+        <div class="rounded-box" style="border: 1px solid #eee; padding: 10px; border-radius: 8px; background: #fff; display: flex; flex-direction: column;">
+            
+            <!-- 헤더 (고정) -->
+            <div class="kospi-row kospi-header" style="font-weight: bold; border-bottom: 2px solid #ccc; padding-bottom: 8px; margin-bottom: 10px; cursor: pointer; display: flex; font-size: 16px; white-space: nowrap; align-items: center;">
+                <div style="flex: 0.3;"></div>
+                <div onclick="sortTable(1, this)" style="flex: 2.2; text-align: center; position: relative;">종목명<span class="sort-icon" style="position: absolute; width: 10px; font-size: 10px; margin-left: 2px; top: 1px;"></span></div>
+                <div onclick="sortTable(2, this)" style="flex: 1.3; text-align: right; position: relative;">현재가<span class="sort-icon" style="position: absolute; width: 10px; font-size: 10px; margin-left: 2px; top: 1px;"></span></div>
+                <div onclick="sortTable(3, this)" style="flex: 1.1; text-align: right; position: relative;">등락<span class="sort-icon" style="position: absolute; width: 10px; font-size: 10px; margin-left: 2px; top: 1px;"></span></div>
+                <div onclick="sortTable(4, this)" style="flex: 0.8; text-align: right; padding-right: 15px; position: relative;">RSI<span class="sort-icon" style="position: absolute; width: 10px; font-size: 10px; margin-left: 2px; top: 1px;"></span></div>        
+                <div onclick="sortTable(5, this)" style="flex: 0.9; text-align: center; position: relative;">시총<span class="sort-icon" style="position: absolute; width: 10px; font-size: 10px; margin-left: 2px; top: 1px;"></span></div>
+            </div>
+
+            <!-- 스크롤되는 바디: 높이를 고정하여 바깥 스크롤 발생 억제 -->
+            <div id="kospi-body" style="height: 600px; overflow-y: auto; overflow-x: hidden;">
+                {% for row in kospi %}
+                <div class="kospi-row" id="row-{{ row.0 }}" style="display: flex; align-items: center; border-bottom: 1px solid #f0f0f0; padding: 8px 0; font-size: 16px;">
+                    <div style="flex: 0.3; text-align: right; color: #888; font-size: 11px;">{{ forloop.counter }}</div>
+                    <div style="flex: 2.2; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: bold;">
+                        <a href="#" style="text-decoration: none; color: inherit;"
+                           hx-get="{% url '_partial_detail' %}?code={{ row.0 }}"
+                           hx-vals='js:{check_web: document.getElementById("check_web").checked}'
+                           hx-target="#box_detail" hx-swap="innerHTML" 
+                           onclick="setActive(this, '{{ row.0 }}')">
+                            {{ row.1|slice:":11" }}
+                        </a>
+                    </div>
+                    <div style="flex: 1.3; text-align: right;">{{ row.2|intcomma }}</div>
+                    <div style="flex: 1.1; text-align: right;"><span style="color: {% if '+' in row.3 %}red{% elif '-' in row.3 %}blue{% else %}black{% endif %}; font-weight: bold;">{{ row.3 }}</span></div>
+                    <div style="flex: 0.8; text-align: right; font-size: 13px; font-weight: bold; padding-right: 5px; color: {% if row.12 %}{% if row.12|add:0 >= 70 %}#ff4500{% elif row.12|add:0 <= 30 %}#1e90ff{% else %}#555{% endif %}{% else %}#ccc{% endif %};">{{ row.12|floatformat:0|default:"-" }}</div>
+                    <div style="flex: 0.9; text-align: right; font-size: 12px; color: #999;">{{ row.4|intcomma }}</div>
+                </div>
+                {% endfor %}
+            </div>
         </div>
-        
-        <div onclick="sortTable(2, this)" style="flex: 1.3; text-align: right; position: relative;">
-            현재가<span class="sort-icon" style="position: absolute; width: 10px; font-size: 10px; margin-left: 2px; top: 1px;"></span>
-        </div>
-        
-        <div onclick="sortTable(3, this)" style="flex: 1.1; text-align: right; position: relative;">
-            등락<span class="sort-icon" style="position: absolute; width: 10px; font-size: 10px; margin-left: 2px; top: 1px;"></span>
-        </div>
-        
-        <div onclick="sortTable(4, this)" style="flex: 0.8; text-align: right; padding-right: 15px; position: relative;">
-            RSI<span class="sort-icon" style="position: absolute; width: 10px; font-size: 10px; margin-left: 2px; top: 1px;"></span>
-        </div>        
-        
-        <div onclick="sortTable(5, this)" style="flex: 0.9; text-align: center; position: relative;">
-            시총<span class="sort-icon" style="position: absolute; width: 10px; font-size: 10px; margin-left: 2px; top: 1px;"></span>
-        </div>
+        {% endif %}
     </div>
 
 
@@ -33,106 +89,258 @@
 
 
 
+    <!-- 3. 하단 컨트롤바 -->
+    <div style="margin-top: 20px; padding: 10px; border-top: 1px dashed #ccc; display: flex; flex-direction: column; gap: 12px;">
+        
+        <!-- 첫 번째 줄: 검색 및 주요 버튼 -->
+        <div style="display: flex; align-items: center; gap: 8px;">
+            <form id="search-form" onsubmit="handleSearch(event)" style="display: flex; gap: 5px; align-items: center; margin: 0;">
+                <input type="text" id="search-input" list="stock-list" placeholder="종목명" 
+                       style="height: 35px; width: 128px; border: 1px solid #ccc; border-radius: 4px; padding: 0 8px; font-size: 13px;">
+                <button type="submit" style="height: 35px; cursor: pointer; background-color: #f0f0f0; border: 1px solid #999; border-radius: 4px; padding: 0 8px; font-size: 13px;">조회</button>
+            </form>
+
+            <div style="flex-grow: 1;"></div> <!-- 중간 여백 -->
+
+            <div style="display: flex; gap: 4px;">
+                <button type="button" onclick="location.href='{% url 'gwansim' %}'" class="ctrl-btn"
+                        style="height: 35px; cursor: pointer; background-color: #fff; border: 1px solid #2c3e50; color: #2c3e50; border-radius: 4px; padding: 0 10px; cursor: pointer; font-size: 12px; font-weight: bold;">
+                    ⭐ 관심종목
+                </button>
+
+
+
+                <!-- <button type="button" onclick="location.href='{% url 'start_kospi_1day' %}'" class="ctrl-btn" style="background-color: #3498db; color: white; border: none; border-radius: 4px; padding: 0 8px; font-weight: bold; cursor: pointer; font-size: 12px;">1일 일봉</button> -->
+                <!-- <button type="button" onclick="location.href=startLogStreaming()" class="ctrl-btn" style="background-color: #4CAF50; color: white; border: none; border-radius: 4px; padding: 0 8px; font-weight: bold; cursor: pointer; font-size: 12px;">500일 일봉</button> -->
+
+
+                <button type="button" 
+                        id="btn-1day-update"
+                        class="ctrl-btn" 
+                        data-url="{% url 'get_ilbong_1day' %}"  onclick="startLogStreaming(this)" 
+                        style="background-color: #3498db; color: white; border: none; border-radius: 4px; padding: 0 8px; font-weight: bold; cursor: pointer; font-size: 12px;">
+                    1일 일봉
+                </button>
+
+
+                <button type="button" 
+                        id="btn-total-update"
+                        class="ctrl-btn" 
+                        data-url="{% url 'get_ilbong_total' %}"  onclick="startLogStreaming(this)" 
+                        style="background-color: #4CAF50; color: white; border: none; border-radius: 4px; padding: 0 8px; font-weight: bold; cursor: pointer; font-size: 12px;">
+                    500일 일봉
+                </button>
 
 
 
 
-
-    <div id="kospi-body">
-        {% for row in kospi %}
-        <div class="kospi-row" style="display: flex; align-items: center; border-bottom: 1px solid #f0f0f0; padding: 8px 0; font-size: 16px;">
-            <div style="flex: 0.3; text-align: right; color: #888; font-size: 11px;">{{ row.10 }}</div>
-            
-            <div style="flex: 2.2; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: bold;">
-                <a href="#" class="stock-link" 
-                   hx-get="{% url '_partial_detail' %}?code={{ row.0 }}" 
-                   hx-target="#box_detail" 
-                   hx-swap="innerHTML" 
-                   onclick="setActive(this, '{{ row.0 }}')">
-                    {{ row.1|slice:":11" }}
+                <a href="{% url 'account' %}" style="text-decoration: none;">
+                    <button type="button" class="ctrl-btn" style="height: 35px; background-color: #F48FB1; color: white; border: none; border-radius: 4px; padding: 0 8px; font-weight: bold; cursor: pointer; font-size: 12px;">계좌</button>
                 </a>
             </div>
-
-            <div style="flex: 1.3; text-align: right;">{{ row.2|intcomma }}</div>
-
-            <div style="flex: 1.1; text-align: right;">
-                <span style="color: {% if '+' in row.3 %}red{% elif '-' in row.3 %}blue{% else %}black{% endif %}; font-weight: bold;">{{ row.3 }}</span>
-            </div>
-            <div style="flex: 0.8; text-align: right; font-size: 13px; font-weight: bold; padding-right: 5px; 
-                        color: {% if row.12 %}{% if row.12|add:0 >= 70 %}#ff4500{% elif row.12|add:0 <= 30 %}#1e90ff{% else %}#555{% endif %}{% else %}#ccc{% endif %};">
-                {{ row.12|floatformat:0|default:"-" }}
-            </div>
-            <div style="flex: 0.9; text-align: right; font-size: 12px; color: #999;">{{ row.4|intcomma }}</div>
         </div>
-        {% endfor %}
+
+        <!-- 두 번째 줄: 옵션 체크박스 영역 -->
+        <!-- <div style="display: none; align-items: center; gap: 15px; padding-left: 2px;"> -->                                
+        <div style="display: flex; align-items: center; gap: 15px; padding-left: 2px;">
+            <div style="display: flex; align-items: center; gap: 5px;">
+                <input type="checkbox" id="check_web" name="check_web" style="width: 17px; height: 17px; cursor: pointer;">
+                <label for="check_web" style="font-size: 13px; cursor: pointer; color: #333; font-weight: 500;">웹연결</label>
+            </div>
+        </div>
     </div>
+
+
+
+
+
+    <div id="log-container" 
+         style="margin: 10px; padding: 8px;
+                padding: 5px 0px;
+                background-color: #f8f9fa;  /* 밝고 차분한 연회색 */
+                color: #333;                /* 글자는 진한 회색으로 가독성 확보 */
+                border-radius: 6px; 
+                font-family: 'Consolas', monospace; 
+                font-size: 11px; 
+                height: 80px; 
+                overflow-y: auto; 
+                border: 1px solid #ddd;     /* 주변 border와 톤 맞춤 */
+                box-shadow: inset 0 1px 2px rgba(0,0,0,0.05);"> 
+        <div id="log-content">
+            <span style="color: #28a745; font-weight: bold;">[시스템]</span> 준비 완료.
+        </div>
+    </div>
+
+
+
+
+
+
+
+                                
 </div>
-{% else %}
-<p>데이터가 없습니다.</p>
-{% endif %}
-
-<br>
-
-
-
-<div style="margin-top: 20px; padding: 10px; border-top: 1px dashed #ccc; display: flex; align-items: center; width: 100%;">
-    
-    <form hx-get="{% url '_partial_detail' %}" hx-target="#box_detail" 
-          onsubmit="var m={% for r in kospi %}'{{r.1}}':'{{r.0}}',{% endfor %}; if(m[this.code.value])this.code.value=m[this.code.value];" 
-          style="display: flex; gap: 5px; align-items: center; margin: 0;">
-        <input type="text" name="code" list="stock-list" placeholder="종목명" 
-               style="height: 35px; width: 150px; border: 1px solid #ccc; border-radius: 4px; padding: 0 10px; box-sizing: border-box; font-size: 14px;">
-        <button type="submit" style="height: 35px; cursor: pointer; background-color: #f0f0f0; border: 1px solid #999; border-radius: 4px; padding: 0 15px; box-sizing: border-box; font-size: 14px;">조회</button>
-    </form>
-
-    <div style="flex-grow: 1;"></div>
-
-    <a href="{% url 'account' %}" style="text-decoration: none; display: flex; align-items: center; transform: translateY(-2px);">
-        <button type="button" style="height: 35px; cursor: pointer; background-color: #F48FB1; color: white; border: none; border-radius: 4px; padding: 0 20px; font-weight: bold; font-size: 14px; box-sizing: border-box; display: flex; align-items: center; justify-content: center;">
-            계좌관리
-        </button>
-    </a>
-</div>
-
-
-
-
-
-<datalist id="stock-list">
-    {% for row in kospi %}<option value="{{ row.1 }}">{{ row.0 }}</option>{% endfor %}
-</datalist>
 
 <script>
-var sortAscState = true;
-var stockDataMap = { {% for row in kospi %}"{{ row.1 }}":"{{ row.0 }}",{% endfor %} };
 
-// 전송 전 이름 -> 코드로 변환
-function transformBeforeSend(form) {
-    var val = form.code.value;
-    if (stockDataMap[val]) { form.code.value = stockDataMap[val]; }
-}
 
-// 테이블 정렬 (RSI 정렬 포함)
-function sortTable(index, element) {
-    var body = document.getElementById('kospi-body');
-    if (!body) return;
-    var rows = Array.from(body.getElementsByClassName('kospi-row'));
-    
-    document.querySelectorAll('.sort-icon').forEach(function(el) { el.innerText = ''; });
-    sortAscState = !sortAscState;
-    element.querySelector('.sort-icon').innerHTML = '<span style="font-size: 10px; margin-left: 3px;">' + (sortAscState ? '▲' : '▼') + '</span>';
-    
-    rows.sort(function(a, b) {
-        var valA = a.children[index].innerText.replace(/,/g, '').replace('%', '').trim();
-        var valB = b.children[index].innerText.replace(/,/g, '').replace('%', '').trim();
-        
-        var numA = parseFloat(valA), numB = parseFloat(valB);
-        if (!isNaN(numA) && !isNaN(numB)) {
-            return sortAscState ? numA - numB : numB - numA;
+    function handleSearch(event) {
+        event.preventDefault();
+        const input = document.getElementById('search-input');
+        input.blur();
+        const inputValue = input.value.trim();
+        if (!inputValue) return;
+
+        const options = document.getElementById('stock-list').options;
+        let stockCode = inputValue;
+        for (let i = 0; i < options.length; i++) {
+            if (options[i].value === inputValue) {
+                stockCode = options[i].getAttribute('data-code');
+                break;
+            }
         }
-        return sortAscState ? valA.localeCompare(valB) : valB.localeCompare(valA);
-    });
 
-    rows.forEach(function(row) { body.appendChild(row); });
-}
+        // 1. 체크박스의 현재 상태(true/false)를 가져옵니다.
+        const isWebChecked = document.getElementById('check_web').checked;
+
+        htmx.ajax('GET', '{% url "_partial_detail" %}', {
+            target: '#box_detail',
+            values: { 
+                code: stockCode,
+                // 2. 서버로 보낼 데이터에 check_web 값을 추가합니다.
+                check_web: isWebChecked 
+            }
+        });
+    }
+
+
+
+
+
+
+
+
+
+    function selectTab(el) {
+        document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+        el.classList.add('active');
+        el.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
+    }
+
+    function setActive(el, code) {
+        document.querySelectorAll('.kospi-row').forEach(row => row.classList.remove('active'));
+        const targetRow = document.getElementById('row-' + code);
+        if (targetRow) targetRow.classList.add('active');
+    }
+
+    let sortOrders = {};
+    function sortTable(columnIndex, headerEl) {
+        const body = document.getElementById('kospi-body');
+        const rows = Array.from(body.querySelectorAll('.kospi-row'));
+        sortOrders[columnIndex] = !sortOrders[columnIndex];
+        const isAsc = sortOrders[columnIndex];
+
+        document.querySelectorAll('.sort-icon').forEach(span => span.innerHTML = '');
+        headerEl.querySelector('.sort-icon').innerHTML = isAsc ? ' ▲' : ' ▼';
+
+        rows.sort((a, b) => {
+            let valA = a.children[columnIndex].innerText.replace(/,/g, '').replace('%', '').trim();
+            let valB = b.children[columnIndex].innerText.replace(/,/g, '').replace('%', '').trim();
+            if (!isNaN(valA) && !isNaN(valB)) return isAsc ? valA - valB : valB - valA;
+            return isAsc ? valA.localeCompare(valB) : valB.localeCompare(valA);
+        });
+        rows.forEach(row => body.appendChild(row));
+    }
+
+
+
+    function addLog(message) {
+        const logContent = document.getElementById('log-content');
+        const logContainer = document.getElementById('log-container');
+        if(!logContent) return;
+
+        const newLog = document.createElement('div');
+        newLog.style.marginBottom = '2px';
+        newLog.innerHTML = `<span style="color: #808080;">[${new Date().toLocaleTimeString()}]</span> ${message}`;
+        
+        logContent.appendChild(newLog);
+        logContainer.scrollTop = logContainer.scrollHeight; // 자동 스크롤
+    }
+
+
+
+
+
+    // 1. 전역 변수로 현재 연결 상태를 저장 (페이지 내 어디서든 접근 가능)
+    let currentEventSource = null;
+
+    function startLogStreaming(btn) {
+        // [핵심] 다른 버튼을 누르는 순간, 기존 연결이 있다면 즉시 종료
+        if (currentEventSource) {
+            currentEventSource.close();
+            console.log("기존 작업 자동 중단");
+        }
+
+        const url = btn.getAttribute('data-url');
+        if (!url) return;
+
+        // "1일 일봉" -> "일봉"으로 치환 로직
+        let btnText = btn.innerText.trim();
+        const suffix = btnText.replace('1일 ', '') + " 완료";
+
+        const logContent = document.getElementById('log-content');
+        const logContainer = document.getElementById('log-container');
+        
+        logContent.innerHTML = ""; // 로그창 비우기
+        
+        // 2. 새로운 연결을 변수에 할당
+        currentEventSource = new EventSource(url);
+
+        currentEventSource.onmessage = function(event) {
+            const parts = event.data.split(' ');
+            const num = (parts[0] || "").padStart(4, ' '); 
+            const code = parts[1] || "";
+            const name = parts[2] || "";
+
+            const newLog = document.createElement('div');
+            newLog.style.cssText = "margin-bottom:1px; font-size:11px; display:flex; white-space:pre; padding-left:0px;";
+
+            newLog.innerHTML = `
+                <span style="color:#888;">${num}</span>
+                <span> ${code} </span>
+                <span style="display:inline-block; width:110px; font-weight:bold; white-space:nowrap; overflow:hidden;">${name}</span>
+                <span style="color: #808080;">&nbsp;${suffix}</span>
+            `;
+            
+            logContent.appendChild(newLog);
+            logContainer.scrollTop = logContainer.scrollHeight;
+        };
+
+        currentEventSource.onerror = function() {
+            if (currentEventSource) {
+                currentEventSource.close();
+                currentEventSource = null; // 작업 끝나면 비워주기
+            }
+        };
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                              
 </script>
+
+<datalist id="stock-list">
+    {% for row in kospi %}<option value="{{ row.1 }}" data-code="{{ row.0 }}">{{ row.0 }}</option>{% endfor %}
+</datalist>

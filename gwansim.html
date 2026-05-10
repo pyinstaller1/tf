@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>관심 종목 관리</title>
+    <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
+    <style>
+        :root { --header-navy: #1a2a3a; --group-bg: #4a90e2; }
+        body { font-family: 'Pretendard', sans-serif; background-color: #f8f9fa; margin: 0; padding: 20px; }
+        .container { max-width: 800px; margin: 0 auto; }
+        header { border-bottom: 2px solid var(--header-navy); margin-bottom: 20px; padding-bottom: 10px; }
+        h1 { font-size: 24px; color: var(--header-navy); cursor: pointer; }
+
+        .group-item { background-color: var(--group-bg); border-radius: 6px; margin-bottom: 5px; overflow: visible; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+        .group-header { padding: 10px 15px; cursor: pointer; display: flex; justify-content: space-between; align-items: center; color: white; }
+        
+        .stock-list { background-color: #fff; margin: 0; padding: 0; list-style: none; }
+        .add-stock-area { padding: 8px 15px; background-color: #f1f3f5; display: flex; align-items: center; gap: 8px; position: relative; }
+        
+        .stock-input-sm { width: 150px; padding: 6px 10px; border: 1px solid #ccc; border-radius: 4px; font-size: 13px; outline: none; }
+        .btn-add-stock { padding: 6px 14px; background-color: var(--header-navy); color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 12px; font-weight: bold; }
+
+        .search-layer {
+            position: absolute; top: 100%; left: 15px; width: 450px; 
+            background: white; border: 1px solid #ccc; border-radius: 0 0 4px 4px;
+            max-height: 300px; overflow-y: auto; display: none; z-index: 9999;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+        }
+        .search-item {
+            padding: 8px 12px; cursor: pointer; font-size: 13px; border-bottom: 1px solid #eee;
+            display: flex; white-space: nowrap; gap: 10px; align-items: center;
+        }
+        .search-item:hover { background: #f0f7ff; color: #4a90e2; }
+        .s-name { font-weight: bold; min-width: 130px; color: #333; }
+        .s-code { color: #888; width: 60px; }
+        .s-price { color: #333; width: 100px; text-align: right; }
+        .s-rate { width: 70px; text-align: right; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <header><h1 onclick="location.href='{% url 'index' %}'">관심 종목 관리</h1></header>
+
+    <div id="group-container">
+        {% for group in groups %}
+        <div class="group-item" data-id="{{ group.0 }}">
+            <details>
+                <summary class="group-header">
+                    <span><span class="group-handle" style="cursor:grab; margin-right:10px;">::</span>{{ group.1 }}</span>
+                    <button onclick="event.preventDefault();" style="background:none; border:1px solid #fff; color:#fff; border-radius:3px; padding:2px 8px; cursor:pointer; font-size:11px;">삭제</button>
+                </summary>
+                
+                <ul class="stock-list">
+                    {% for stock in group.stocks %}
+                    <li style="display:flex; justify-content:space-between; padding:10px 15px; border-bottom:1px solid #eee; background:#fff; font-size:14px;">
+                        <div>
+                            <strong>{{ stock.hname }}</strong> 
+                            <small style="color:#888; margin-left:5px;">{{ stock.shcode }}</small>
+                        </div>
+                        <div style="text-align:right;">
+                            <span style="margin-right:10px;">{{ stock.price }}원</span>
+                            <span style="color:{% if '+' in stock.rate %}#d60000{% else %}#0056b3{% endif %}; font-weight:bold;">
+                                {{ stock.rate }}
+                            </span>
+                        </div>
+                    </li>
+                    {% empty %}
+                    <li style="text-align:center; padding:15px; color:#999; font-size:12px; background:#fff;">등록된 종목이 없습니다.</li>
+                    {% endfor %}
+                </ul>
+
+                <div class="add-stock-area">
+                    <input type="text" class="stock-input-sm" placeholder="종목명/코드" 
+                           id="input-{{ group.0 }}" data-selected-code=""
+                           onmouseenter="showSearch(this, '{{ group.0 }}')" 
+                           oninput="filterSearch(this, '{{ group.0 }}')" autocomplete="off">
+                    <button class="btn-add-stock" onclick="addStock('{{ group.0 }}')">추가</button>
+                    <div id="layer-{{ group.0 }}" class="search-layer"></div>
+                </div>
+            </details>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+
+<script>
+    const allStocks = [
+        {% for s in kospi %}
+        { code: "{{ s.shcode }}", name: "{{ s.hname }}", price: "{{ s.price }}", rate: "{{ s.rate }}" },
+        {% endfor %}
+    ];
+
+    function showSearch(input, gid) {
+        input.focus();
+        if (input.value === "") renderItems(allStocks.slice(0, 15), gid);
+        else filterSearch(input, gid);
+    }
+
+    function filterSearch(input, gid) {
+        const val = input.value.toLowerCase();
+        input.dataset.selectedCode = ""; 
+        const filtered = allStocks.filter(s => s.name.toLowerCase().includes(val) || s.code.includes(val)).slice(0, 15);
+        renderItems(filtered, gid);
+    }
+
+    function renderItems(data, gid) {
+        const layer = document.getElementById('layer-' + gid);
+        if (data.length === 0) { layer.style.display = 'none'; return; }
+        
+        layer.innerHTML = data.map(s => `
+            <div class="search-item" onclick="selectItem('${s.name}', '${s.code}', '${gid}')">
+                <span class="s-name">${s.name}</span>
+                <span class="s-code">${s.code}</span>
+                <span class="s-price">${s.price}원</span>
+                <span class="s-rate" style="color:${s.rate.includes('+') ? '#d60000' : '#0056b3'}">${s.rate}</span>
+            </div>
+        `).join('');
+        layer.style.display = 'block';
+    }
+
+    function selectItem(name, code, gid) {
+        const input = document.getElementById('input-' + gid);
+        input.value = name;
+        input.dataset.selectedCode = code;
+        document.getElementById('layer-' + gid).style.display = 'none';
+    }
+
+    function addStock(gid) {
+        const input = document.getElementById('input-' + gid);
+        const shcode = input.dataset.selectedCode;
+        if (!shcode) { alert("종목을 선택해주세요."); return; }
+
+        const form = document.createElement('form');
+        form.method = 'POST';
+        form.action = "{% url 'add_gwansim_stock' %}";
+        const csrf = document.createElement('input');
+        csrf.type = 'hidden'; csrf.name = 'csrfmiddlewaretoken'; csrf.value = '{{ csrf_token }}';
+        const gIn = document.createElement('input');
+        gIn.type = 'hidden'; gIn.name = 'group_id'; gIn.value = gid;
+        const cIn = document.createElement('input');
+        cIn.type = 'hidden'; cIn.name = 'shcode'; cIn.value = shcode;
+        form.appendChild(csrf); form.appendChild(gIn); form.appendChild(cIn);
+        document.body.appendChild(form); form.submit();
+    }
+
+    document.addEventListener('click', e => {
+        if (!e.target.classList.contains('stock-input-sm')) {
+            document.querySelectorAll('.search-layer').forEach(l => l.style.display = 'none');
+        }
+    });
+
+    new Sortable(document.getElementById('group-container'), { animation: 150, handle: '.group-handle' });
+</script>
+</body>
+</html>
